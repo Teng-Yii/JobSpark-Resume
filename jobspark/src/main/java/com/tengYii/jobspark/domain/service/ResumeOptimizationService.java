@@ -38,7 +38,7 @@ public class ResumeOptimizationService {
 
     private String generateOptimizationSuggestions(String resumeContent) {
         String prompt = buildOptimizationPrompt(resumeContent);
-        return chatModel.generate(prompt);
+        return chatModel.chat(prompt);
     }
 
     private String buildOptimizationPrompt(String resumeContent) {

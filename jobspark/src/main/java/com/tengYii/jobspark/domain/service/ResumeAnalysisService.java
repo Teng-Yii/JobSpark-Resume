@@ -57,7 +57,7 @@ public class ResumeAnalysisService {
     private ResumeAnalysisResult parseResumeWithAI(String resumeContent, String jobTitle, String industry) {
         try {
             String prompt = buildResumeAnalysisPrompt(resumeContent, jobTitle, industry);
-            String aiResponse = chatModel.generate(prompt);
+            String aiResponse = chatModel.chat(prompt);
             
             // 解析AI响应并构建结果对象
             return parseAIResponse(aiResponse);
@@ -97,7 +97,7 @@ public class ResumeAnalysisService {
         // 模拟解析结果
         ResumeBasicInfo basicInfo = new ResumeBasicInfo(
             "张三", "zhangsan@email.com", "13800138000", "北京", 
-            "资深Java开发工程师", "Java开发工程师", "5年"
+            "资深Java开发工程师", "Java开发工程师", "5年", "阿里巴巴"
         );
         
         List<EducationExperience> educationList = new ArrayList<>();

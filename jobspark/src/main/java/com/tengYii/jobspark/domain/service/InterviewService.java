@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -162,14 +163,14 @@ public class InterviewService {
         // TODO: 实现简历获取逻辑
         // 这里返回模拟数据
         ResumeBasicInfo basicInfo = new ResumeBasicInfo(
-            "张三", "zhangsan@email.com", "13800138000", "北京", 
-            "资深Java开发工程师", "Java开发工程师", "5年"
+                "张三", "zhangsan@email.com", "13800138000", "北京",
+                "资深Java开发工程师", "Java开发工程师", "5年", "阿里巴巴"
         );
-        
+
         List<Skill> skills = new ArrayList<>();
         skills.add(new Skill("Java", "精通", "编程语言", "5年Java开发经验"));
         skills.add(new Skill("Spring Boot", "熟练", "框架", "熟悉Spring全家桶"));
-        
+
         return new Resume(resumeId, "sample_resume.pdf", "简历内容...");
     }
     

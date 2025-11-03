@@ -10,9 +10,7 @@
         <module name="jobspark-resume" />
       </profile>
     </annotationProcessing>
-    <bytecodeTargetLevel>
-      <module name="jobspark" target="1.8" />
-    </bytecodeTargetLevel>
+    <bytecodeTargetLevel target="17" />
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">

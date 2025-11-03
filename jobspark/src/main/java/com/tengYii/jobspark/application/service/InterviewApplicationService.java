@@ -170,7 +170,7 @@ public class InterviewApplicationService {
     private Resume getResumeById(String resumeId) {
         // TODO: 实现简历获取逻辑
         // 这里返回模拟数据
-        return resumeAnalysisService.getResumeAnalysis(resumeId);
+        return (Resume)resumeAnalysisService.getResumeAnalysis(resumeId);
     }
     
     /**

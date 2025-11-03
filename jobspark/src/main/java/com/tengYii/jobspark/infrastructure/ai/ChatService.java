@@ -24,7 +24,7 @@ public class ChatService {
     public String evaluateInterviewAnswer(String question, String answer, String referenceAnswer, String criteria) {
         try {
             String prompt = buildEvaluationPrompt(question, answer, referenceAnswer, criteria);
-            return chatModel.generate(prompt);
+            return chatModel.chat(prompt);
             
         } catch (Exception e) {
             log.error("AI评估面试回答失败", e);
@@ -38,7 +38,7 @@ public class ChatService {
     public String generateComprehensiveEvaluation(InterviewSession session, java.util.List<String> allAnswers) {
         try {
             String prompt = buildComprehensiveEvaluationPrompt(session, allAnswers);
-            return chatModel.generate(prompt);
+            return chatModel.chat(prompt);
             
         } catch (Exception e) {
             log.error("AI生成综合评估失败", e);
@@ -52,7 +52,7 @@ public class ChatService {
     public String generateInterviewSuggestions(Resume resume, String targetPosition) {
         try {
             String prompt = buildSuggestionPrompt(resume, targetPosition);
-            return chatModel.generate(prompt);
+            return chatModel.chat(prompt);
             
         } catch (Exception e) {
             log.error("AI生成面试建议失败", e);

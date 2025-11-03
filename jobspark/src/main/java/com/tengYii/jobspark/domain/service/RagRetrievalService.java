@@ -196,7 +196,7 @@ public class RagRetrievalService {
         String content = String.format("请介绍一下你对%s的理解和应用经验？", skill);
         
         return new InterviewQuestion(questionId, content, "技术问题", skill, difficulty, 
-                                   "参考答案待生成", "根据回答的深度和准确性评分");
+                                   "参考答案待生成", "根据回答的深度和准确性评分", null ,null);
     }
     
     private InterviewQuestion createScenarioQuestion(String skill, String proficiency) {
@@ -204,7 +204,7 @@ public class RagRetrievalService {
         String content = String.format("请描述一个你在实际项目中应用%s解决问题的具体案例？", skill);
         
         return new InterviewQuestion(questionId, content, "情景问题", skill, "高级", 
-                                   "参考答案待生成", "根据案例的真实性和解决方案的有效性评分");
+                                   "参考答案待生成", "根据案例的真实性和解决方案的有效性评分", null, null);
     }
     
     private InterviewQuestion createBehavioralQuestion(String skill, String proficiency) {
@@ -212,6 +212,6 @@ public class RagRetrievalService {
         String content = String.format("在工作中遇到%s相关的挑战时，你是如何应对的？", skill);
         
         return new InterviewQuestion(questionId, content, "行为问题", skill, "中级", 
-                                   "参考答案待生成", "根据应对策略和反思深度评分");
+                                   "参考答案待生成", "根据应对策略和反思深度评分", null, null);
     }
 }
