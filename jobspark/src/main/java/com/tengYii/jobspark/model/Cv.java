@@ -3,13 +3,13 @@ package com.tengYii.jobspark.model;
 import dev.langchain4j.model.output.structured.Description;
 
 public class Cv {
-    @Description("skills of the cadidate, comma-concatenated")
+    @Description("候选人的技能，以逗号分隔")
     private String skills;
 
-    @Description("professional experience of the candidate")
+    @Description("候选人的专业经验")
     private String professionalExperience;
 
-    @Description("studies of the candidate")
+    @Description("候选人的研究")
     private String studies;
 
     @Override

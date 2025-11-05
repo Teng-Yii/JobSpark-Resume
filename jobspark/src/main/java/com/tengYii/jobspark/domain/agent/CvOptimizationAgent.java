@@ -1,5 +1,6 @@
 package com.tengYii.jobspark.domain.agent;
 
+import com.tengYii.jobspark.model.Cv;
 import com.tengYii.jobspark.model.CvReview;
 import dev.langchain4j.agentic.declarative.ExitCondition;
 import dev.langchain4j.agentic.declarative.LoopAgent;
@@ -34,7 +35,7 @@ public interface CvOptimizationAgent {
         return review.score > 0.8;
     }
 
-    @Output
+//    @Output
     private static String outputOptimizedCv(@V("cv") String cv) {
         System.out.println("=== 优化后的简历如下： ===");
         return cv;

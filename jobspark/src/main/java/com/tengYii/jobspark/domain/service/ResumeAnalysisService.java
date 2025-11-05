@@ -3,6 +3,7 @@ package com.tengYii.jobspark.domain.service;
 import com.tengYii.jobspark.domain.agent.CvOptimizationAgent;
 import com.tengYii.jobspark.domain.model.*;
 import com.tengYii.jobspark.infrastructure.file.FileStorageService;
+import com.tengYii.jobspark.model.Cv;
 import com.tengYii.jobspark.utils.ChatModelProvider;
 import com.tengYii.jobspark.utils.StringLoader;
 import dev.langchain4j.agentic.AgenticServices;
@@ -32,6 +33,7 @@ public class ResumeAnalysisService {
         ChatModel chatModel = ChatModelProvider.createChatModel();
         CvOptimizationAgent cvOptimizationAgent = AgenticServices.createAgenticSystem(CvOptimizationAgent.class, chatModel);
         String optimizeCv = cvOptimizationAgent.optimizeCv(masterCv, jobDescription);
+//        Cv optimizeCv = cvOptimizationAgent.optimizeCv(masterCv, jobDescription);
 
         System.out.println(optimizeCv);
     }
