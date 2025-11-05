@@ -1,5 +1,7 @@
 package com.tengYii.jobspark.workflow;
 
+import com.tengYii.jobspark.domain.agent.CvReviewer;
+import com.tengYii.jobspark.domain.agent.ScoredCvTailor;
 import com.tengYii.jobspark.model.CvReview;
 import com.tengYii.jobspark.utils.StringLoader;
 import com.tengYii.jobspark.utils.log.CustomLogging;
@@ -7,7 +9,6 @@ import com.tengYii.jobspark.utils.log.LogLevels;
 import dev.langchain4j.agentic.AgenticServices;
 import dev.langchain4j.agentic.UntypedAgent;
 import dev.langchain4j.model.chat.ChatModel;
-import dev.langchain4j.model.openai.OpenAiChatModel;
 
 import java.io.IOException;
 import java.util.ArrayList;

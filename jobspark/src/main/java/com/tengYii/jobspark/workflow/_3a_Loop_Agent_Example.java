@@ -1,5 +1,7 @@
 package com.tengYii.jobspark.workflow;
 
+import com.tengYii.jobspark.domain.agent.CvReviewer;
+import com.tengYii.jobspark.domain.agent.ScoredCvTailor;
 import com.tengYii.jobspark.model.CvReview;
 import com.tengYii.jobspark.utils.StringLoader;
 import com.tengYii.jobspark.utils.log.CustomLogging;

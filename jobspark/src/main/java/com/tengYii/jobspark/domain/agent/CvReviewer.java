@@ -1,4 +1,4 @@
-package com.tengYii.jobspark.workflow;
+package com.tengYii.jobspark.domain.agent;
 
 import com.tengYii.jobspark.model.CvReview;
 import dev.langchain4j.agentic.Agent;
