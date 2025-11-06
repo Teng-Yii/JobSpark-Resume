@@ -1,0 +1,10 @@
+THIS IS A PLACEHOLDER FONT FILE.
+Please replace with a valid "NotoSansSC-Regular.ttf" for best Chinese rendering.
+
+Usage:
+- Put the actual TTF here: src/main/resources/templates/fonts/NotoSansSC-Regular.ttf
+- If unavailable, the renderer will fall back to system font stack defined in CSS.
+
+Notes:
+- Placeholder will be safely ignored or may log a warning during PDF rendering.
+- Docx generation uses Word-side fonts; you can change to a local Chinese font in Word if needed.

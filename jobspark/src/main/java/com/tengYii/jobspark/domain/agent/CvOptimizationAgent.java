@@ -25,7 +25,7 @@ public interface CvOptimizationAgent {
             @SubAgent(type = CvReviewer.class, outputName = "cvReview"),
             @SubAgent(type = ScoredCvTailor.class, outputName = "cv")
     })
-    String optimizeCv(String cv, String jobDescription);
+    Cv optimizeCv(Cv cv, String jobDescription);
 
 
     @ExitCondition(testExitAtLoopEnd = true)
@@ -35,8 +35,8 @@ public interface CvOptimizationAgent {
         return review.score > 0.8;
     }
 
-//    @Output
-    private static String outputOptimizedCv(@V("cv") String cv) {
+    @Output
+    private Cv outputOptimizedCv(@V("cv") Cv cv) {
         System.out.println("=== 优化后的简历如下： ===");
         return cv;
     }

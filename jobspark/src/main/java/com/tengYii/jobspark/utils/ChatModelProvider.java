@@ -11,6 +11,8 @@ public class ChatModelProvider {
                 .baseUrl("https://dashscope.aliyuncs.com/compatible-mode/v1")
 //                .logRequests(true)
 //                .logResponses(true)
+                // 结构化输出
+                .strictJsonSchema(true)
                 .build();
     }
 }

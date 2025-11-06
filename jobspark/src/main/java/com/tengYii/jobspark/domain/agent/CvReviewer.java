@@ -1,5 +1,6 @@
 package com.tengYii.jobspark.domain.agent;
 
+import com.tengYii.jobspark.model.Cv;
 import com.tengYii.jobspark.model.CvReview;
 import dev.langchain4j.agentic.Agent;
 import dev.langchain4j.service.SystemMessage;
@@ -17,5 +18,5 @@ public interface CvReviewer {
             可忽略地址缺失、占位符等信息。
             """)
     @UserMessage("请审核这份简历：{{cv}}")
-    CvReview reviewCv(@V("cv") String cv, @V("jobDescription") String jobDescription);
+    CvReview reviewCv(@V("cv") Cv cv, @V("jobDescription") String jobDescription);
 }
