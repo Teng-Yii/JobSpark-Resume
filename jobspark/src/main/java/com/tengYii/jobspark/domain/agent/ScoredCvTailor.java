@@ -1,7 +1,6 @@
 package com.tengYii.jobspark.domain.agent;
 
-import com.tengYii.jobspark.model.Cv;
-import com.tengYii.jobspark.model.CvReview;
+import com.tengYii.jobspark.domain.cv.model.CvReview;
 import dev.langchain4j.agentic.Agent;
 import dev.langchain4j.service.SystemMessage;
 import dev.langchain4j.service.UserMessage;
@@ -24,5 +23,5 @@ public interface ScoredCvTailor {
             最接近要求的方面，但切勿捏造事实）
             审核意见：{{cvReview}}
             """)
-    Cv tailorCv(@V("cv") Cv cv, @V("cvReview") CvReview cvReview);
+    String tailorCv(@V("cv") String cv, @V("cvReview") CvReview cvReview);
 }

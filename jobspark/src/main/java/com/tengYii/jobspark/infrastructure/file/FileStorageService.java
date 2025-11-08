@@ -1,5 +1,6 @@
 package com.tengYii.jobspark.infrastructure.file;
 
+import com.tengYii.jobspark.domain.model.constants.ContentTypeConstants;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -20,7 +21,7 @@ public class FileStorageService {
     public FileStorageService() {
         this.fileStorageLocation = Paths.get("uploads/resumes")
                 .toAbsolutePath().normalize();
-        
+
         try {
             Files.createDirectories(this.fileStorageLocation);
         } catch (Exception ex) {
@@ -32,11 +33,11 @@ public class FileStorageService {
         try {
             // 验证文件类型
             String fileName = validateAndGenerateFileName(file);
-            
+
             // 复制文件到目标位置
             Path targetLocation = this.fileStorageLocation.resolve(fileName);
             Files.copy(file.getInputStream(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
-            
+
             log.info("文件存储成功: {}", fileName);
             return fileName.replace(".", "_"); // 返回文件ID（去除扩展名）
         } catch (IOException ex) {
@@ -47,7 +48,7 @@ public class FileStorageService {
     private String validateAndGenerateFileName(MultipartFile file) {
         // 验证文件类型
         String contentType = file.getContentType();
-        if (contentType == null || !isSupportedContentType(contentType)) {
+        if (!isSupportedContentType(contentType)) {
             throw new RuntimeException("不支持的文件类型: " + contentType);
         }
 
@@ -57,15 +58,13 @@ public class FileStorageService {
         if (originalFileName != null && originalFileName.contains(".")) {
             fileExtension = originalFileName.substring(originalFileName.lastIndexOf("."));
         }
-        
+
         return UUID.randomUUID().toString() + fileExtension;
     }
 
     private boolean isSupportedContentType(String contentType) {
-        return contentType.equals("application/pdf") ||
-               contentType.equals("application/msword") ||
-               contentType.equals("application/vnd.openxmlformats-officedocument.wordprocessingml.document") ||
-               contentType.equals("text/plain");
+        return contentType != null &&
+                ContentTypeConstants.SUPPORTED_TYPES.contains(contentType);
     }
 
     public byte[] loadResumeFile(String fileId) {

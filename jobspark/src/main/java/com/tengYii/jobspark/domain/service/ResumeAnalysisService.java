@@ -3,7 +3,6 @@ package com.tengYii.jobspark.domain.service;
 import com.tengYii.jobspark.domain.agent.CvOptimizationAgent;
 import com.tengYii.jobspark.domain.model.*;
 import com.tengYii.jobspark.infrastructure.file.FileStorageService;
-import com.tengYii.jobspark.model.Cv;
 import com.tengYii.jobspark.utils.ChatModelProvider;
 import com.tengYii.jobspark.utils.StringLoader;
 import dev.langchain4j.agentic.AgenticServices;
@@ -38,7 +37,7 @@ public class ResumeAnalysisService {
         System.out.println(optimizeCv);
     }
 
-    public Resume analyzeResume(MultipartFile file, String jobTitle, String industry) {
+    public Resume analyzeResume(MultipartFile file, Integer memoryId, String industry) {
         try {
             // 存储文件并获取文件ID
             String fileId = fileStorageService.storeResumeFile(file);
@@ -50,7 +49,7 @@ public class ResumeAnalysisService {
             Resume resume = new Resume(fileId, file.getOriginalFilename(), fileContent);
             
             // 使用AI解析简历内容
-            ResumeAnalysisResult analysisResult = parseResumeWithAI(fileContent, jobTitle, industry);
+            ResumeAnalysisResult analysisResult = parseResumeWithAI(fileContent, memoryId, industry);
             
             // 标记简历为已分析状态
             resume.markAsAnalyzed(
@@ -70,9 +69,9 @@ public class ResumeAnalysisService {
         }
     }
 
-    private ResumeAnalysisResult parseResumeWithAI(String resumeContent, String jobTitle, String industry) {
+    private ResumeAnalysisResult parseResumeWithAI(String resumeContent, Integer memoryId, String industry) {
         try {
-            String prompt = buildResumeAnalysisPrompt(resumeContent, jobTitle, industry);
+            String prompt = buildResumeAnalysisPrompt(resumeContent, memoryId, industry);
             String aiResponse = chatModel.chat(prompt);
             
             // 解析AI响应并构建结果对象
@@ -83,16 +82,13 @@ public class ResumeAnalysisService {
         }
     }
 
-    private String buildResumeAnalysisPrompt(String resumeContent, String jobTitle, String industry) {
+    private String buildResumeAnalysisPrompt(String resumeContent, Integer memoryId, String industry) {
         StringBuilder prompt = new StringBuilder();
         prompt.append("请解析以下简历内容，提取关键信息：\n\n");
         prompt.append("简历内容：\n");
         prompt.append(resumeContent);
         prompt.append("\n\n");
-        
-        if (jobTitle != null && !jobTitle.isEmpty()) {
-            prompt.append("目标职位：").append(jobTitle).append("\n");
-        }
+
         if (industry != null && !industry.isEmpty()) {
             prompt.append("行业：").append(industry).append("\n");
         }

@@ -1,24 +1,23 @@
 package com.tengYii.jobspark.cv;
 
-import com.tengYii.jobspark.cv.config.DocxConfig;
-import com.tengYii.jobspark.cv.config.HtmlConfig;
-import com.tengYii.jobspark.cv.config.MarkdownConfig;
-import com.tengYii.jobspark.cv.config.PdfConfig;
-import com.tengYii.jobspark.cv.errors.RenderException;
-import com.tengYii.jobspark.cv.errors.ValidationException;
-import com.tengYii.jobspark.cv.mapping.TemplateFieldMapper;
-import com.tengYii.jobspark.cv.model.*;
-import com.tengYii.jobspark.cv.render.MarkdownService;
-import com.tengYii.jobspark.cv.render.PdfService;
-import com.tengYii.jobspark.cv.render.TemplateService;
-import com.tengYii.jobspark.cv.render.DocxService;
-import com.tengYii.jobspark.cv.validation.CvValidator;
+import com.tengYii.jobspark.domain.cv.config.DocxConfig;
+import com.tengYii.jobspark.domain.cv.config.HtmlConfig;
+import com.tengYii.jobspark.domain.cv.config.MarkdownConfig;
+import com.tengYii.jobspark.domain.cv.config.PdfConfig;
+import com.tengYii.jobspark.domain.cv.errors.RenderException;
+import com.tengYii.jobspark.domain.cv.errors.ValidationException;
+import com.tengYii.jobspark.domain.cv.mapping.TemplateFieldMapper;
+import com.tengYii.jobspark.domain.cv.model.*;
+import com.tengYii.jobspark.domain.cv.render.MarkdownService;
+import com.tengYii.jobspark.domain.cv.render.PdfService;
+import com.tengYii.jobspark.domain.cv.render.TemplateService;
+import com.tengYii.jobspark.domain.cv.render.DocxService;
+import com.tengYii.jobspark.domain.cv.validation.CvValidator;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
-import java.nio.file.Files;
 import java.time.LocalDate;
 import java.util.List;
 

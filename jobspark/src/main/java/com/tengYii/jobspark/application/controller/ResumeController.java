@@ -15,13 +15,14 @@ public class ResumeController {
 
     private final ResumeApplicationService resumeApplicationService;
 
+    /**
+     * 上传简历，并进行简历优化
+     * @param request 简历上传请求对象
+     * @return
+     */
     @PostMapping("/upload")
-    public ResponseEntity<ResumeUploadResponse> uploadResume(
-            @RequestParam("file") MultipartFile file,
-            @RequestParam(value = "jobTitle", required = false) String jobTitle,
-            @RequestParam(value = "industry", required = false) String industry) {
-        
-        ResumeUploadRequest request = new ResumeUploadRequest(file, jobTitle, industry);
+    public ResponseEntity<ResumeUploadResponse> uploadResume(@ModelAttribute ResumeUploadRequest request) {
+
         ResumeUploadResponse response = resumeApplicationService.uploadResume(request);
         return ResponseEntity.ok(response);
     }

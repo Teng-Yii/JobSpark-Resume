@@ -24,11 +24,11 @@ public class ResumeApplicationService {
 
     public ResumeUploadResponse uploadResume(ResumeUploadRequest request) {
         try {
-            // 存储文件
+            // 1、保存文件
             String resumeId = fileStorageService.storeResumeFile(request.getFile());
-            
+
             // 解析简历内容
-            Resume resume = resumeAnalysisService.analyzeResume(request.getFile(), request.getJobTitle(), request.getIndustry());
+            Resume resume = resumeAnalysisService.analyzeResume(request.getFile(), request.getMemoryId(), request.getUserMessage());
             
             String uploadTime = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
             
