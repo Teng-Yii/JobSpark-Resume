@@ -46,9 +46,9 @@ public class PdfService {
             // HTML 输入（JSoup -> W3C DOM，避免 XML/TRaX 严格性）
             Document w3cDoc = new W3CDom().fromJsoup(Jsoup.parse(html));
             builder.withW3cDocument(w3cDoc, baseUri == null ? "" : baseUri);
-            // Dump HTML for diagnostics to inspect mismatched tags (e.g., SAXParseException line/col)
+            // 转储用于诊断的HTML以检查标签不匹配
             try {
-                java.nio.file.Files.writeString(debugHtml.toPath(), html, java.nio.charset.StandardCharsets.UTF_8);
+                Files.writeString(debugHtml.toPath(), html, java.nio.charset.StandardCharsets.UTF_8);
                 log.info("Wrote PDF input HTML to: {}", debugHtml.getAbsolutePath());
             } catch (Exception writeEx) {
                 log.warn("Failed to write PDF input HTML: {}", writeEx.toString());
@@ -87,6 +87,7 @@ public class PdfService {
 
             // 渲染
             builder.toStream(fos);
+//            builder.useFont(new File(fontsDir, "NotoSansSC-Regular.otf"), "Noto Sans SC");
             builder.run();
 
             if (outFile.length() == 0) {

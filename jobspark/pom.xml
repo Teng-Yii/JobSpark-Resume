@@ -18,25 +18,25 @@
     <properties>
         <java.version>17</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <langchain4j.version>1.8.0</langchain4j.version>
+        <langchain4j.version>1.7.1</langchain4j.version>
         <mybatis-plus.version>3.5.1</mybatis-plus.version>
         <mybatis-generator.vesion>3.4.1</mybatis-generator.vesion>
     </properties>
 
-<!--    <dependencyManagement>-->
-<!--        <dependencies>-->
-<!--            <dependency>-->
-<!--                <groupId>org.apache.pdfbox</groupId>-->
-<!--                <artifactId>pdfbox</artifactId>-->
-<!--                <version>3.0.5</version>-->
-<!--            </dependency>-->
-<!--            <dependency>-->
-<!--                <groupId>org.apache.pdfbox</groupId>-->
-<!--                <artifactId>xmpbox</artifactId>-->
-<!--                <version>3.0.5</version>-->
-<!--            </dependency>-->
-<!--        </dependencies>-->
-<!--    </dependencyManagement>-->
+    <!--    <dependencyManagement>-->
+    <!--        <dependencies>-->
+    <!--            <dependency>-->
+    <!--                <groupId>org.apache.pdfbox</groupId>-->
+    <!--                <artifactId>pdfbox</artifactId>-->
+    <!--                <version>3.0.5</version>-->
+    <!--            </dependency>-->
+    <!--            <dependency>-->
+    <!--                <groupId>org.apache.pdfbox</groupId>-->
+    <!--                <artifactId>xmpbox</artifactId>-->
+    <!--                <version>3.0.5</version>-->
+    <!--            </dependency>-->
+    <!--        </dependencies>-->
+    <!--    </dependencyManagement>-->
 
     <dependencies>
         <!-- Spring Boot Starters -->
@@ -58,37 +58,27 @@
         </dependency>
 
         <!-- LangChain4j -->
-        <!-- LangChain4j -->
-        <!--        <dependency>-->
-        <!--            <groupId>dev.langchain4j</groupId>-->
-        <!--            <artifactId>langchain4j-core</artifactId>-->
-        <!--            <version>${langchain4j.version}</version>-->
-        <!--        </dependency>-->
         <dependency>
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j</artifactId>
             <version>${langchain4j.version}</version>
         </dependency>
-        <!--        <dependency>-->
-        <!--            <groupId>dev.langchain4j</groupId>-->
-        <!--            <artifactId>langchain4j-open-ai</artifactId>-->
-        <!--            <version>${langchain4j.version}</version>-->
-        <!--        </dependency>-->
+
         <dependency>
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-agentic</artifactId>
-            <version>1.8.0-beta15</version>
+            <version>1.7.1-beta14</version>
         </dependency>
         <!-- 继承SpringBoot -->
         <dependency>
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-open-ai-spring-boot-starter</artifactId>
-            <version>1.8.0-beta15</version>
+            <version>1.7.1-beta14</version>
         </dependency>
         <dependency>
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-spring-boot-starter</artifactId>
-            <version>1.8.0-beta15</version>
+            <version>1.7.1-beta14</version>
         </dependency>
 
         <!-- MyBatis Plus -->
@@ -133,17 +123,17 @@
             <artifactId>commonmark</artifactId>
             <version>0.22.0</version>
         </dependency>
-<!-- JSoup for tolerant HTML5 parsing -> W3C DOM -->
+        <!-- JSoup for tolerant HTML5 parsing -> W3C DOM -->
         <dependency>
             <groupId>org.jsoup</groupId>
             <artifactId>jsoup</artifactId>
             <version>1.17.2</version>
         </dependency>
-<!-- OpenHTMLtoPDF (enable HTML5 parsing via useHtml5Parser in PdfRendererBuilder) -->
+
         <dependency>
-            <groupId>com.openhtmltopdf</groupId>
-            <artifactId>openhtmltopdf-core</artifactId>
-            <version>1.0.10</version>
+            <groupId>org.docx4j</groupId>
+            <artifactId>docx4j-core</artifactId>
+            <version>11.5.6</version>
         </dependency>
 
         <dependency>
@@ -159,11 +149,20 @@
             </exclusions>
         </dependency>
 
+        <!-- 补充 docx4j 所需的 JAXB 扩展（解决 NamespacePrefixMapper 缺失） -->
         <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-lang3</artifactId>
-            <version>3.18.0</version>
+            <groupId>org.docx4j</groupId>
+            <artifactId>docx4j-JAXB-ReferenceImpl</artifactId>
+            <version>11.5.6</version>
         </dependency>
+
+        <!-- 解决 JAXB 实现缺失：GlassFish JAXB 运行时（官方推荐） -->
+        <dependency>
+            <groupId>org.glassfish.jaxb</groupId>
+            <artifactId>jaxb-runtime</artifactId>
+            <version>3.0.2</version>
+        </dependency>
+
     </dependencies>
 
     <build>
