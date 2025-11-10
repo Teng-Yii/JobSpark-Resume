@@ -11,9 +11,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.net.URL;
 import java.nio.file.Files;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.lang.reflect.Method;
 import org.jsoup.Jsoup;
 import org.jsoup.helper.W3CDom;
 import org.w3c.dom.Document;
@@ -23,20 +20,28 @@ import org.w3c.dom.Document;
  * 说明：
  * - HTML/CSS 由 MarkdownService 生成。
  * - 字体：若 classpath:templates/fonts 存在有效 ttf/otf，则进行注册；否则使用系统字体栈。
- * - 输出：项目根 out/resume_YYYYMMDD_HHMM.pdf
+ * - 输出：指定目录下的PDF文件
  */
 public class PdfService {
 
     private static final Logger log = LoggerFactory.getLogger(PdfService.class);
 
-    public File toPdf(String html, PdfConfig config, File outDir, String baseUri) {
-        if (html == null) {
+    /**
+     * 将HTML内容转换为PDF文件
+     *
+     * @param html HTML内容（必须是完整的HTML文档）
+     * @param config PDF配置
+     * @param outDir 输出目录
+     * @param fileName 输出文件名（包含.pdf后缀）
+     * @return 生成的PDF文件
+     */
+    public File toPdf(String html, PdfConfig config, File outDir, String fileName) {
+        if (html == null || html.trim().isEmpty()) {
             throw RenderException.pdf("HTML 内容为空");
         }
         ensureDir(outDir);
 
-        String ts = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmm"));
-        File outFile = new File(outDir, config.getOutputNamePrefix() + "_" + ts + ".pdf");
+        File outFile = new File(outDir, fileName);
         File debugHtml = new File(outDir, "debug_pdf_input.html");
 
         try (FileOutputStream fos = new FileOutputStream(outFile)) {
@@ -45,49 +50,24 @@ public class PdfService {
 
             // HTML 输入（JSoup -> W3C DOM，避免 XML/TRaX 严格性）
             Document w3cDoc = new W3CDom().fromJsoup(Jsoup.parse(html));
-            builder.withW3cDocument(w3cDoc, baseUri == null ? "" : baseUri);
-            // 转储用于诊断的HTML以检查标签不匹配
+
+            // 设置基础URI为输出目录，用于解析HTML中的相对路径资源
+            String baseUri = outDir.toURI().toString();
+            builder.withW3cDocument(w3cDoc, baseUri);
+
+            // 保存调试用的HTML文件
             try {
                 Files.writeString(debugHtml.toPath(), html, java.nio.charset.StandardCharsets.UTF_8);
-                log.info("Wrote PDF input HTML to: {}", debugHtml.getAbsolutePath());
+                log.info("已保存调试HTML: {}", debugHtml.getAbsolutePath());
             } catch (Exception writeEx) {
-                log.warn("Failed to write PDF input HTML: {}", writeEx.toString());
+                log.warn("保存调试HTML失败: {}", writeEx.getMessage());
             }
 
-            // 字体注册（可选）
+            // 注册字体
             registerFonts(builder, config.getFontsDirResourcePath());
 
-            // 依赖诊断（记录关键类来源与方法签名，用于定位 NoSuchMethodError/版本冲突）
-            try {
-                Class<?> ttfParserClz = Class.forName("org.apache.fontbox.ttf.TTFParser");
-                String ttfSrc = (ttfParserClz.getProtectionDomain() != null
-                        && ttfParserClz.getProtectionDomain().getCodeSource() != null
-                        && ttfParserClz.getProtectionDomain().getCodeSource().getLocation() != null)
-                        ? ttfParserClz.getProtectionDomain().getCodeSource().getLocation().toString()
-                        : "null";
-                boolean hasParseIS = false;
-                for (Method m : ttfParserClz.getDeclaredMethods()) {
-                    if (m.getName().equals("parse")) {
-                        Class<?>[] ps = m.getParameterTypes();
-                        if (ps.length == 1 && "java.io.InputStream".equals(ps[0].getName())) {
-                            hasParseIS = true;
-                        }
-                    }
-                }
-                String pdfbxSrc = (PdfRendererBuilder.class.getProtectionDomain() != null
-                        && PdfRendererBuilder.class.getProtectionDomain().getCodeSource() != null
-                        && PdfRendererBuilder.class.getProtectionDomain().getCodeSource().getLocation() != null)
-                        ? PdfRendererBuilder.class.getProtectionDomain().getCodeSource().getLocation().toString()
-                        : "null";
-                log.info("Diagnose PDF deps: TTFParser@{}, hasParse(InputStream)={}, PdfRendererBuilder@{}",
-                        ttfSrc, hasParseIS, pdfbxSrc);
-            } catch (Throwable diag) {
-                log.debug("PDF deps diagnosis failed: {}", diag.toString());
-            }
-
-            // 渲染
+            // 渲染PDF
             builder.toStream(fos);
-//            builder.useFont(new File(fontsDir, "NotoSansSC-Regular.otf"), "Noto Sans SC");
             builder.run();
 
             if (outFile.length() == 0) {
@@ -96,9 +76,9 @@ public class PdfService {
             log.info("PDF 生成成功：{}", outFile.getAbsolutePath());
             return outFile;
         } catch (LinkageError e) {
-            // 版本冲突或链接错误（如 pdfbox/fontbox 与 openhtmltopdf 版本不匹配）
-            throw RenderException.pdf("PDF 渲染依赖版本冲突或链接错误: " + e.getClass().getSimpleName() + ": " + e.getMessage(), e);
+            throw RenderException.pdf("PDF 渲染依赖版本冲突: " + e.getMessage(), e);
         } catch (Exception e) {
+            log.error("HTML 转 PDF 失败", e);
             throw RenderException.pdf("HTML 转 PDF 失败: " + e.getMessage(), e);
         }
     }
@@ -124,8 +104,11 @@ public class PdfService {
                     .forEach(p -> {
                         try {
                             String path = p.toFile().getAbsolutePath();
-                            builder.useFont(p.toFile(), "custom", 400, BaseRendererBuilder.FontStyle.NORMAL, true);
-                            log.info("注册字体: {}", path);
+                            String fileName = p.getFileName().toString();
+                            // 使用 "Noto Sans SC" 作为字体族名，与CSS中的font-family保持一致
+                            String fontFamily = "Noto Sans SC";
+                            builder.useFont(p.toFile(), fontFamily, 400, BaseRendererBuilder.FontStyle.NORMAL, true);
+                            log.info("注册字体: {} -> {}", fileName, fontFamily);
                         } catch (Exception ex) {
                             log.warn("字体注册失败（跳过）: {} - {}", p, ex.getMessage());
                         }
