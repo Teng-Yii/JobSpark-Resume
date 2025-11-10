@@ -7,8 +7,6 @@ import com.tengYii.jobspark.utils.ChatModelProvider;
 import com.tengYii.jobspark.utils.StringLoader;
 import dev.langchain4j.agentic.AgenticServices;
 import dev.langchain4j.model.chat.ChatModel;
-import dev.langchain4j.service.SystemMessage;
-import dev.langchain4j.service.UserMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -41,28 +39,28 @@ public class ResumeAnalysisService {
         try {
             // 存储文件并获取文件ID
             String fileId = fileStorageService.storeResumeFile(file);
-            
+
             // 读取文件内容
             String fileContent = fileStorageService.getFileContent(fileId);
-            
+
             // 创建简历对象
             Resume resume = new Resume(fileId, file.getOriginalFilename(), fileContent);
-            
+
             // 使用AI解析简历内容
             ResumeAnalysisResult analysisResult = parseResumeWithAI(fileContent, memoryId, industry);
-            
+
             // 标记简历为已分析状态
             resume.markAsAnalyzed(
-                analysisResult.getParsedContent(),
-                analysisResult.getBasicInfo(),
-                analysisResult.getEducationExperiences(),
-                analysisResult.getWorkExperiences(),
-                analysisResult.getSkills()
+                    analysisResult.getParsedContent(),
+                    analysisResult.getBasicInfo(),
+                    analysisResult.getEducationExperiences(),
+                    analysisResult.getWorkExperiences(),
+                    analysisResult.getSkills()
             );
-            
+
             log.info("简历解析完成: {}", fileId);
             return resume;
-            
+
         } catch (Exception e) {
             log.error("简历解析失败", e);
             throw new RuntimeException("简历解析失败: " + e.getMessage(), e);
@@ -73,7 +71,7 @@ public class ResumeAnalysisService {
         try {
             String prompt = buildResumeAnalysisPrompt(resumeContent, memoryId, industry);
             String aiResponse = chatModel.chat(prompt);
-            
+
             // 解析AI响应并构建结果对象
             return parseAIResponse(aiResponse);
         } catch (Exception e) {
@@ -92,42 +90,42 @@ public class ResumeAnalysisService {
         if (industry != null && !industry.isEmpty()) {
             prompt.append("行业：").append(industry).append("\n");
         }
-        
+
         prompt.append("\n请按以下格式返回解析结果：\n");
         prompt.append("基本信息：姓名、邮箱、电话、地点、个人简介、目标职位、工作年限\n");
         prompt.append("教育经历：学校、学位、专业、时间、描述\n");
         prompt.append("工作经历：公司、职位、时间、描述、成就\n");
         prompt.append("技能：技能名称、熟练程度、类别、描述\n");
-        
+
         return prompt.toString();
     }
 
     private ResumeAnalysisResult parseAIResponse(String aiResponse) {
         // 这里简化处理，实际应该使用更复杂的解析逻辑
         // 可以使用JSON格式让AI返回结构化数据
-        
+
         // 模拟解析结果
         ResumeBasicInfo basicInfo = new ResumeBasicInfo(
-            "张三", "zhangsan@email.com", "13800138000", "北京", 
-            "资深Java开发工程师", "Java开发工程师", "5年", "阿里巴巴"
+                "张三", "zhangsan@email.com", "13800138000", "北京",
+                "资深Java开发工程师", "Java开发工程师", "5年", "阿里巴巴"
         );
-        
+
         List<EducationExperience> educationList = new ArrayList<>();
         educationList.add(new EducationExperience(
-            "清华大学", "本科", "计算机科学与技术", "2015-2019", 
-            "主修计算机科学，获得学士学位"
+                "清华大学", "本科", "计算机科学与技术", "2015-2019",
+                "主修计算机科学，获得学士学位"
         ));
-        
+
         List<WorkExperience> workList = new ArrayList<>();
         workList.add(new WorkExperience(
-            "阿里巴巴", "Java开发工程师", "2019-2022", 
-            "负责核心业务系统开发", "获得优秀员工奖"
+                "阿里巴巴", "Java开发工程师", "2019-2022",
+                "负责核心业务系统开发", "获得优秀员工奖"
         ));
-        
+
         List<Skill> skills = new ArrayList<>();
         skills.add(new Skill("Java", "精通", "编程语言", "5年Java开发经验"));
         skills.add(new Skill("Spring Boot", "熟练", "框架", "熟悉Spring全家桶"));
-        
+
         return new ResumeAnalysisResult(aiResponse, basicInfo, educationList, workList, skills);
     }
 

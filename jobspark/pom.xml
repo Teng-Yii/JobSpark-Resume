@@ -163,6 +163,13 @@
             <version>3.0.2</version>
         </dependency>
 
+        <!-- guava基础工具包 -->
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>33.5.0-jre</version>
+        </dependency>
+
     </dependencies>
 
     <build>

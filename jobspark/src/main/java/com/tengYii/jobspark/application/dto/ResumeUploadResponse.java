@@ -2,19 +2,33 @@ package com.tengYii.jobspark.application.dto;
 
 import lombok.Data;
 
+import java.time.LocalDateTime;
+
 @Data
 public class ResumeUploadResponse {
+    /**
+     * 上传简历的唯一标识
+     */
     private String resumeId;
-    private String fileName;
-    private String status;
-    private String message;
-    private String uploadTime;
 
-    public ResumeUploadResponse(String resumeId, String fileName, String status, String message, String uploadTime) {
-        this.resumeId = resumeId;
-        this.fileName = fileName;
-        this.status = status;
-        this.message = message;
-        this.uploadTime = uploadTime;
-    }
+    /**
+     * 文件名称
+     */
+    private String fileName;
+
+    /**
+     * 上传状态
+     */
+    private String status;
+
+    /**
+     * 上传消息
+     */
+    private String message;
+
+    /**
+     * 上传时间
+     */
+    private LocalDateTime uploadTime;
+
 }

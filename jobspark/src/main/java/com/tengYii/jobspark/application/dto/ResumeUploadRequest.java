@@ -13,7 +13,7 @@ public class ResumeUploadRequest {
     /**
      * 记忆id，用于隔离用户对话
      */
-    private int memoryId;
+    private String memoryId;
 
     /**
      * 用户信息

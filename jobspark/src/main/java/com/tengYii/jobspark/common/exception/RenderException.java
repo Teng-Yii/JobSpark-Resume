@@ -1,4 +1,4 @@
-package com.tengYii.jobspark.domain.cv.errors;
+package com.tengYii.jobspark.common.exception;
 
 import lombok.Getter;
 

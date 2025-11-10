@@ -3,10 +3,11 @@ package com.tengYii.jobspark.application.controller;
 import com.tengYii.jobspark.application.dto.ResumeUploadRequest;
 import com.tengYii.jobspark.application.dto.ResumeUploadResponse;
 import com.tengYii.jobspark.application.service.ResumeApplicationService;
+import com.tengYii.jobspark.common.exception.ValidationException;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api/v1/resumes")
@@ -22,6 +23,12 @@ public class ResumeController {
      */
     @PostMapping("/upload")
     public ResponseEntity<ResumeUploadResponse> uploadResume(@ModelAttribute ResumeUploadRequest request) {
+
+        // 校验请求参数合法性
+        String validationResult = ResumeValidator.validate(request);
+        if(StringUtils.isNotBlank(validationResult)){
+            throw new ValidationException(validationResult);
+        }
 
         ResumeUploadResponse response = resumeApplicationService.uploadResume(request);
         return ResponseEntity.ok(response);

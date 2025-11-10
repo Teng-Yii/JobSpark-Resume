@@ -1,6 +1,5 @@
 package com.tengYii.jobspark.infrastructure.file;
 
-import com.tengYii.jobspark.domain.model.constants.ContentTypeConstants;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -23,7 +22,7 @@ public class FileStorageService {
                 .toAbsolutePath().normalize();
 
         try {
-            Files.createDirectories(this.fileStorageLocation);
+            Files.createDirectories(fileStorageLocation);
         } catch (Exception ex) {
             throw new RuntimeException("无法创建文件存储目录", ex);
         }
@@ -31,11 +30,11 @@ public class FileStorageService {
 
     public String storeResumeFile(MultipartFile file) {
         try {
-            // 验证文件类型
-            String fileName = validateAndGenerateFileName(file);
+            // 生成文件名
+            String fileName = generateFileName(file);
 
             // 复制文件到目标位置
-            Path targetLocation = this.fileStorageLocation.resolve(fileName);
+            Path targetLocation = fileStorageLocation.resolve(fileName);
             Files.copy(file.getInputStream(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
 
             log.info("文件存储成功: {}", fileName);
@@ -45,12 +44,7 @@ public class FileStorageService {
         }
     }
 
-    private String validateAndGenerateFileName(MultipartFile file) {
-        // 验证文件类型
-        String contentType = file.getContentType();
-        if (!isSupportedContentType(contentType)) {
-            throw new RuntimeException("不支持的文件类型: " + contentType);
-        }
+    private String generateFileName(MultipartFile file) {
 
         // 生成唯一文件名
         String originalFileName = file.getOriginalFilename();
@@ -59,18 +53,13 @@ public class FileStorageService {
             fileExtension = originalFileName.substring(originalFileName.lastIndexOf("."));
         }
 
-        return UUID.randomUUID().toString() + fileExtension;
-    }
-
-    private boolean isSupportedContentType(String contentType) {
-        return contentType != null &&
-                ContentTypeConstants.SUPPORTED_TYPES.contains(contentType);
+        return UUID.randomUUID() + fileExtension;
     }
 
     public byte[] loadResumeFile(String fileId) {
         try {
             String fileName = fileId.replace("_", ".");
-            Path filePath = this.fileStorageLocation.resolve(fileName).normalize();
+            Path filePath = fileStorageLocation.resolve(fileName).normalize();
             return Files.readAllBytes(filePath);
         } catch (IOException ex) {
             throw new RuntimeException("文件读取失败: " + fileId, ex);
