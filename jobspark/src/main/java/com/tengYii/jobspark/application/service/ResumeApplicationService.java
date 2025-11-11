@@ -28,25 +28,23 @@ public class ResumeApplicationService {
             String resumeId = fileStorageService.storeResumeFile(request.getFile());
 
             // 解析简历内容
-            Resume resume = resumeAnalysisService.analyzeResume(request.getFile(), request.getMemoryId(), request.getUserMessage());
-            
-            String uploadTime = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-            
+            Resume resume = resumeAnalysisService.analyzeResume(request.getFile(), request.getUserId(), request.getUserMessage());
+
             return new ResumeUploadResponse(
-                resumeId,
-                request.getFile().getOriginalFilename(),
-                "SUCCESS",
-                "简历上传成功，已开始解析",
-                uploadTime
+                    resumeId,
+                    request.getFile().getOriginalFilename(),
+                    "SUCCESS",
+                    "简历上传成功，已开始解析",
+                    LocalDateTime.now()
             );
         } catch (Exception e) {
             log.error("简历上传失败", e);
             return new ResumeUploadResponse(
-                null,
-                request.getFile().getOriginalFilename(),
-                "FAILED",
-                "简历上传失败: " + e.getMessage(),
-                LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+                    null,
+                    request.getFile().getOriginalFilename(),
+                    "FAILED",
+                    "简历上传失败: " + e.getMessage(),
+                    LocalDateTime.now()
             );
         }
     }

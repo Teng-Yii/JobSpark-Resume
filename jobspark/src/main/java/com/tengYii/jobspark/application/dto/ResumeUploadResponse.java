@@ -1,10 +1,12 @@
 package com.tengYii.jobspark.application.dto;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
 
 import java.time.LocalDateTime;
 
 @Data
+@AllArgsConstructor
 public class ResumeUploadResponse {
     /**
      * 上传简历的唯一标识

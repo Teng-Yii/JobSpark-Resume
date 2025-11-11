@@ -35,9 +35,9 @@ public class ResumeValidator {
         // 3. 校验文件大小
         validateFileSize(file, errorMessages);
 
-        // 4. 校验 memoryId（示例：假设 memoryId 是 request 的属性）
-        if (request.getMemoryId() == null || request.getMemoryId().trim().isEmpty()) {
-            errorMessages.add("memoryId 不能为空");
+        // 4. 校验 uerId
+        if (request.getUserId() == null || request.getUserId().trim().isEmpty()) {
+            errorMessages.add("uerId 不能为空");
         }
 
         // 返回所有错误信息（逗号分隔）

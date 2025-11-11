@@ -1,6 +1,6 @@
 package com.tengYii.jobspark.domain.cv.validation;
 
-import com.tengYii.jobspark.domain.cv.errors.ValidationException;
+import com.tengYii.jobspark.common.exception.ValidationException;
 import com.tengYii.jobspark.domain.cv.model.Contact;
 import com.tengYii.jobspark.domain.cv.model.Cv;
 import org.slf4j.Logger;
@@ -12,7 +12,7 @@ import org.slf4j.LoggerFactory;
  * - 联系方式：phone/email/wechat 至少一种
  * - 教育或经历：至少一项
  * - 列表字段为空时允许运行，但会给出告警日志
- *
+ * <p>
  * 注意：模板字段映射一致性由 TemplateFieldMapper 负责，这里不做模板键校验。
  */
 public class CvValidator {
@@ -70,9 +70,11 @@ public class CvValidator {
     private static boolean isBlank(String s) {
         return s == null || s.trim().isEmpty();
     }
+
     private static boolean notBlank(String s) {
         return s != null && !s.trim().isEmpty();
     }
+
     private static int sizeOf(java.util.Collection<?> c) {
         return c == null ? 0 : c.size();
     }

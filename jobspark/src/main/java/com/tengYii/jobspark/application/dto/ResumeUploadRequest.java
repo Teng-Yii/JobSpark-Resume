@@ -11,9 +11,9 @@ public class ResumeUploadRequest {
     private MultipartFile file;
 
     /**
-     * 记忆id，用于隔离用户对话
+     * 用户唯一标识
      */
-    private String memoryId;
+    private String userId;
 
     /**
      * 用户信息

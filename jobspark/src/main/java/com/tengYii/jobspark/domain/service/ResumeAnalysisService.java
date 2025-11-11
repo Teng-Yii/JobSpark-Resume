@@ -35,7 +35,7 @@ public class ResumeAnalysisService {
         System.out.println(optimizeCv);
     }
 
-    public Resume analyzeResume(MultipartFile file, Integer memoryId, String industry) {
+    public Resume analyzeResume(MultipartFile file, String memoryId, String industry) {
         try {
             // 存储文件并获取文件ID
             String fileId = fileStorageService.storeResumeFile(file);
