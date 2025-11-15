@@ -8,10 +8,7 @@ import lombok.NoArgsConstructor;
 import java.util.List;
 
 /**
- * 新版简历领域模型（与旧包 com.tengYii.jobspark.model.Cv 无冲突）。
- * 仅承载数据，不包含任何渲染逻辑。渲染由渲染门面与各 Service 完成。
- * <p>
- * 编码：UTF-8；Java 17。
+ * 简历BO对象，简历解析后的结构化结果
  */
 @Data
 @Builder
