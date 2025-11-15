@@ -1,7 +1,7 @@
 package com.tengYii.jobspark.application.validate;
 
 import com.google.common.base.Joiner;
-import com.tengYii.jobspark.application.dto.ResumeUploadRequest;
+import com.tengYii.jobspark.model.dto.ResumeUploadRequest;
 import com.tengYii.jobspark.common.constants.ContentTypeConstants;
 import com.tengYii.jobspark.common.constants.ParseConstant;
 import org.springframework.web.multipart.MultipartFile;

@@ -1,10 +1,9 @@
 package com.tengYii.jobspark.domain.service;
 
 import com.tengYii.jobspark.domain.agent.CvOptimizationAgent;
-import com.tengYii.jobspark.domain.model.*;
-import com.tengYii.jobspark.infrastructure.file.FileStorageService;
-import com.tengYii.jobspark.utils.ChatModelProvider;
-import com.tengYii.jobspark.utils.StringLoader;
+import com.tengYii.jobspark.model.*;
+import com.tengYii.jobspark.common.utils.llm.ChatModelProvider;
+import com.tengYii.jobspark.common.utils.StringLoader;
 import dev.langchain4j.agentic.AgenticServices;
 import dev.langchain4j.model.chat.ChatModel;
 import lombok.RequiredArgsConstructor;
@@ -67,7 +66,7 @@ public class ResumeAnalysisService {
         }
     }
 
-    private ResumeAnalysisResult parseResumeWithAI(String resumeContent, Integer memoryId, String industry) {
+    private ResumeAnalysisResult parseResumeWithAI(String resumeContent, String memoryId, String industry) {
         try {
             String prompt = buildResumeAnalysisPrompt(resumeContent, memoryId, industry);
             String aiResponse = chatModel.chat(prompt);
@@ -80,7 +79,7 @@ public class ResumeAnalysisService {
         }
     }
 
-    private String buildResumeAnalysisPrompt(String resumeContent, Integer memoryId, String industry) {
+    private String buildResumeAnalysisPrompt(String resumeContent, String memoryId, String industry) {
         StringBuilder prompt = new StringBuilder();
         prompt.append("请解析以下简历内容，提取关键信息：\n\n");
         prompt.append("简历内容：\n");

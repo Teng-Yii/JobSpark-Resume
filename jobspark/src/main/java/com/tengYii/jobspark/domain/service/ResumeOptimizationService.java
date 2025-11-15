@@ -1,7 +1,6 @@
 package com.tengYii.jobspark.domain.service;
 
-import com.tengYii.jobspark.domain.model.Resume;
-import com.tengYii.jobspark.utils.ChatModelProvider;
+import com.tengYii.jobspark.common.utils.llm.ChatModelProvider;
 import dev.langchain4j.model.chat.ChatModel;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

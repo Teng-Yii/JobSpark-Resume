@@ -1,9 +1,9 @@
 package com.tengYii.jobspark.application.service;
 
-import com.tengYii.jobspark.domain.model.InterviewEvaluation;
-import com.tengYii.jobspark.domain.model.InterviewQuestion;
-import com.tengYii.jobspark.domain.model.InterviewSession;
-import com.tengYii.jobspark.domain.model.Resume;
+import com.tengYii.jobspark.model.InterviewEvaluation;
+import com.tengYii.jobspark.model.InterviewQuestion;
+import com.tengYii.jobspark.model.InterviewSession;
+import com.tengYii.jobspark.model.Resume;
 import com.tengYii.jobspark.domain.service.InterviewService;
 import com.tengYii.jobspark.domain.service.ResumeAnalysisService;
 import lombok.RequiredArgsConstructor;

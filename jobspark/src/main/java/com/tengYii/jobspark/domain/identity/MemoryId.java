@@ -1,5 +1,7 @@
 package com.tengYii.jobspark.domain.identity;
 
+import com.tengYii.jobspark.common.utils.memoryid.MemoryIdGenerator;
+
 import java.util.Optional;
 
 /**

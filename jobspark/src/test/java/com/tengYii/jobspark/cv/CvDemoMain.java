@@ -1,14 +1,14 @@
 package com.tengYii.jobspark.cv;
 
-import com.tengYii.jobspark.domain.cv.config.DocxConfig;
-import com.tengYii.jobspark.domain.cv.config.HtmlConfig;
-import com.tengYii.jobspark.domain.cv.config.MarkdownConfig;
-import com.tengYii.jobspark.domain.cv.config.PdfConfig;
-import com.tengYii.jobspark.domain.cv.errors.RenderException;
-import com.tengYii.jobspark.domain.cv.mapping.TemplateFieldMapper;
-import com.tengYii.jobspark.domain.cv.model.*;
+import com.tengYii.jobspark.common.exception.RenderException;
+import com.tengYii.jobspark.config.cv.DocxConfig;
+import com.tengYii.jobspark.config.cv.HtmlConfig;
+import com.tengYii.jobspark.config.cv.MarkdownConfig;
+import com.tengYii.jobspark.config.cv.PdfConfig;
+import com.tengYii.jobspark.domain.cv.render.markdown.TemplateFieldMapper;
 import com.tengYii.jobspark.domain.cv.render.CvRendererFacade;
-import com.tengYii.jobspark.domain.cv.validation.CvValidator;
+import com.tengYii.jobspark.application.validate.CvValidator;
+import com.tengYii.jobspark.model.cv.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

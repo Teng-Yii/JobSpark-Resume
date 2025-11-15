@@ -1,10 +1,8 @@
 package com.tengYii.jobspark.domain.service;
 
-import com.tengYii.jobspark.domain.model.InterviewQuestion;
-import com.tengYii.jobspark.domain.model.Resume;
-import com.tengYii.jobspark.domain.model.Skill;
-import com.tengYii.jobspark.infrastructure.ai.EmbeddingService;
-import com.tengYii.jobspark.infrastructure.vector.VectorDatabaseService;
+import com.tengYii.jobspark.model.InterviewQuestion;
+import com.tengYii.jobspark.model.Resume;
+import com.tengYii.jobspark.model.Skill;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

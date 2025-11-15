@@ -1,17 +1,16 @@
 package com.tengYii.jobspark.application.service;
 
-import com.tengYii.jobspark.application.dto.ResumeUploadRequest;
-import com.tengYii.jobspark.application.dto.ResumeUploadResponse;
-import com.tengYii.jobspark.domain.model.Resume;
+import com.tengYii.jobspark.model.dto.ResumeUploadRequest;
+import com.tengYii.jobspark.model.dto.ResumeUploadResponse;
+import com.tengYii.jobspark.model.Resume;
 import com.tengYii.jobspark.domain.service.ResumeAnalysisService;
 import com.tengYii.jobspark.domain.service.ResumeOptimizationService;
-import com.tengYii.jobspark.infrastructure.file.FileStorageService;
+import com.tengYii.jobspark.domain.service.FileStorageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 
 @Slf4j
 @Service

@@ -1,16 +1,14 @@
 package com.tengYii.jobspark.application.controller;
 
-import com.tengYii.jobspark.application.dto.*;
 import com.tengYii.jobspark.application.service.InterviewApplicationService;
-import com.tengYii.jobspark.domain.model.InterviewEvaluation;
-import com.tengYii.jobspark.domain.model.InterviewQuestion;
-import com.tengYii.jobspark.domain.model.InterviewSession;
+import com.tengYii.jobspark.model.InterviewEvaluation;
+import com.tengYii.jobspark.model.InterviewQuestion;
+import com.tengYii.jobspark.model.InterviewSession;
+import com.tengYii.jobspark.model.dto.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 /**
  * 模拟面试API控制器

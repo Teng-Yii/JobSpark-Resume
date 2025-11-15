@@ -34,11 +34,11 @@ public class MybatisPlusGenerator {
         AutoGenerator mpg = new AutoGenerator();
 
         // 全局配置
-        String projectPath = System.getProperty("user.dir") + "/ipc-plan-store";
+        String projectPath = System.getProperty("user.dir") + "/jobspark";
         mpg.setGlobalConfig(new GlobalConfig()
                 .setOutputDir(projectPath + "/src/main/java")
                 .setOpen(false)
-                .setAuthor("liushixuan.6")
+                .setAuthor("Teng-Yii")
                 .setSwagger2(false)
                 .setBaseResultMap(false)
                 .setIdType(IdType.AUTO)
@@ -50,18 +50,19 @@ public class MybatisPlusGenerator {
         // 数据源配置
         mpg.setDataSource(new DataSourceConfig()
                 .setUrl("jdbc:mysql://tidb-9nvom6ww0m-tidb.tidb-9nvom6ww0m-hb.jvessel2.jdcloud.com:4000/sop_test")
+                .setUrl("jdbc:mysql://localhost:3306/jobspark?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai&useSSL=false")
                 .setDriverName("com.mysql.cj.jdbc.Driver")
-                .setUsername("sop_test_rw")
-                .setPassword("7TQ0JSn7RDh7OE6T")
+                .setUsername("root")
+                .setPassword("****")
         );
 
         // 包配置
         mpg.setPackageInfo(new PackageConfig()
-                .setParent("com.jd.ipc")
-                .setMapper("repo.dao.mapper.bbcc")
-                .setEntity("model.po.bbcc")
-                .setService("repo.bbcc")
-                .setServiceImpl("repo.bbcc.impl")
+                .setParent("com.tengYii.jobspark")
+                .setMapper("infrastructure.mapper")
+                .setEntity("model.po")
+                .setService("infrastructure.repo")
+                .setServiceImpl("infrastructure.repo.impl")
         );
 
         // 策略配置
@@ -70,7 +71,6 @@ public class MybatisPlusGenerator {
                         .setColumnNaming(NamingStrategy.underline_to_camel)
                         .setEntityLombokModel(true)
                         .setInclude(scanner("表名"))
-//        .setTablePrefix("ips")
                         .setControllerMappingHyphenStyle(true)
 
         );
@@ -89,7 +89,7 @@ public class MybatisPlusGenerator {
 
             @Override
             public String outputFile(TableInfo tableInfo) {
-                return projectPath + "/src/main/resources/mybatis/mapper/mysql/bbcc/" + tableInfo.getMapperName()
+                return projectPath + "/src/main/resources/mybatis/mapper/mysql/" + tableInfo.getMapperName()
                         + StringPool.DOT_XML;
             }
         });

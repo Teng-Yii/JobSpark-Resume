@@ -1,7 +1,7 @@
 package com.tengYii.jobspark.application.controller;
 
-import com.tengYii.jobspark.application.dto.ResumeUploadRequest;
-import com.tengYii.jobspark.application.dto.ResumeUploadResponse;
+import com.tengYii.jobspark.model.dto.ResumeUploadRequest;
+import com.tengYii.jobspark.model.dto.ResumeUploadResponse;
 import com.tengYii.jobspark.application.service.ResumeApplicationService;
 import com.tengYii.jobspark.application.validate.ResumeValidator;
 import com.tengYii.jobspark.common.exception.ValidationException;
