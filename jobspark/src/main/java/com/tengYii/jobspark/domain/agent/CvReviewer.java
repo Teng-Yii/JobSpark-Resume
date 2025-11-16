@@ -1,6 +1,6 @@
 package com.tengYii.jobspark.domain.agent;
 
-import com.tengYii.jobspark.model.cv.CvReview;
+import com.tengYii.jobspark.model.llm.CvReview;
 import dev.langchain4j.agentic.Agent;
 import dev.langchain4j.service.SystemMessage;
 import dev.langchain4j.service.UserMessage;

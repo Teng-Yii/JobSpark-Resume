@@ -10,7 +10,7 @@ import lombok.EqualsAndHashCode;
 
 /**
  * <p>
- * 工作经历要点表
+ * 统一亮点表（工作经历/项目经历的亮点）
  * </p>
  *
  * @author Teng-Yii
@@ -18,8 +18,8 @@ import lombok.EqualsAndHashCode;
  */
 @Data
 @EqualsAndHashCode(callSuper = false)
-@TableName("cv_experience_highlight")
-public class CvExperienceHighlightPO implements Serializable {
+@TableName("cv_highlight")
+public class CvHighlightPO implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
@@ -30,12 +30,17 @@ public class CvExperienceHighlightPO implements Serializable {
     private Long id;
 
     /**
-     * 工作经历ID
+     * 亮点类型：1-工作经历亮点 2-项目经历亮点
      */
-    private Long experienceId;
+    private Integer type;
 
     /**
-     * 职责/业绩要点（Markdown格式）
+     * 关联ID：根据type对应工作经历ID(cv_experience.id)或项目ID(cv_project.id)
+     */
+    private Long relatedId;
+
+    /**
+     * 亮点内容（职责/业绩/贡献，Markdown格式）
      */
     private String highlightMarkdown;
 

@@ -12,7 +12,7 @@ import com.tengYii.jobspark.domain.cv.render.pdf.PdfService;
 import com.tengYii.jobspark.domain.cv.render.markdown.TemplateService;
 import com.tengYii.jobspark.domain.cv.render.doc.DocxService;
 import com.tengYii.jobspark.application.validate.CvValidator;
-import com.tengYii.jobspark.model.cv.*;
+import com.tengYii.jobspark.model.bo.*;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
@@ -33,25 +33,25 @@ public class CvPipelineTest {
 
     @Test
     void validate_missing_fields_should_throw() {
-        Cv cv = Cv.builder()
+        CvBO cv = CvBO.builder()
                 .name(null)
-                .contact(Contact.builder().phone("13800000000").build())
-                .educations(List.of(Education.builder().school("X").major("Y").startDate(LocalDate.now()).build()))
+                .contact(ContactBO.builder().phone("13800000000").build())
+                .educations(List.of(EducationBO.builder().school("X").major("Y").startDate(LocalDate.now()).build()))
                 .build();
 
         Assertions.assertThrows(ValidationException.class, () -> new CvValidator().validateOrThrow(cv));
 
-        Cv cv2 = Cv.builder()
+        CvBO cv2 = CvBO.builder()
                 .name("张三")
-                .contact(Contact.builder().build()) // 无联系方式
-                .educations(List.of(Education.builder().school("X").major("Y").startDate(LocalDate.now()).build()))
+                .contact(ContactBO.builder().build()) // 无联系方式
+                .educations(List.of(EducationBO.builder().school("X").major("Y").startDate(LocalDate.now()).build()))
                 .build();
 
         Assertions.assertThrows(ValidationException.class, () -> new CvValidator().validateOrThrow(cv2));
 
-        Cv cv3 = Cv.builder()
+        CvBO cv3 = CvBO.builder()
                 .name("张三")
-                .contact(Contact.builder().phone("13800000000").build())
+                .contact(ContactBO.builder().phone("13800000000").build())
                 .build();
 
         Assertions.assertThrows(ValidationException.class, () -> new CvValidator().validateOrThrow(cv3));
@@ -59,7 +59,7 @@ public class CvPipelineTest {
 
     @Test
     void template_render_contains_sections() throws Exception {
-        Cv cv = sampleCvMinimal();
+        CvBO cv = sampleCvMinimal();
         new CvValidator().validateOrThrow(cv);
 
         TemplateService ts = new TemplateService();
@@ -75,7 +75,7 @@ public class CvPipelineTest {
 
     @Test
     void html_to_pdf_and_docx_generate_files_or_skip_when_deps_missing() throws Exception {
-        Cv cv = sampleCvMinimal();
+        CvBO cv = sampleCvMinimal();
         new CvValidator().validateOrThrow(cv);
 
         // Markdown -> HTML
@@ -110,26 +110,26 @@ public class CvPipelineTest {
         }
     }
 
-    // 构建一个最小可用的 Cv（中文内容）
-    private Cv sampleCvMinimal() throws Exception {
-        RichText summary = RichText.builder().markdown("热爱后端开发，关注性能与可靠性。").build();
-        Contact contact = Contact.builder().phone("13800000000").email("z***@example.com").location("西安").build();
-        Education edu = Education.builder()
+    // 构建一个最小可用的 CvBO（中文内容）
+    private CvBO sampleCvMinimal() throws Exception {
+        String summary = "热爱后端开发，关注性能与可靠性。";
+        ContactBO contact = ContactBO.builder().phone("13800000000").email("z***@example.com").location("西安").build();
+        EducationBO edu = EducationBO.builder()
                 .school("西安某大学")
                 .major("计算机科学")
                 .startDate(LocalDate.of(2022, 9, 1))
                 .endDate(LocalDate.of(2026, 7, 1))
-                .description(RichText.builder().markdown("- 主修数据结构、数据库系统、计算机网络等").build())
+                .description("- 主修数据结构、数据库系统、计算机网络等")
                 .build();
-        Project proj = Project.builder()
+        ProjectBO proj = ProjectBO.builder()
                 .name("示例项目")
                 .role("后端开发")
-                .description(RichText.builder().markdown("- SpringBoot + MySQL + Redis").build())
-                .highlights(List.of(RichText.builder().markdown("实现接口幂等与限流").build()))
+                .descriptionMarkdown("- SpringBoot + MySQL + Redis")
+                .highlights(List.of(HighlightBO.builder().highlightMarkdown("实现接口幂等与限流").build()))
                 .build();
-        Skill skill = Skill.builder().name("Java / SpringBoot").level("熟练").build();
+        SkillBO skill = SkillBO.builder().name("Java / SpringBoot").level("熟练").build();
 
-        FormatMeta meta = FormatMeta.builder()
+        FormatMetaBO meta = FormatMetaBO.builder()
                 .alignment("left")
                 .lineSpacing(1.4)
                 .fontFamily("\"Noto Sans SC\", \"PingFang SC\", \"Microsoft YaHei\", \"SimSun\", sans-serif")
@@ -138,12 +138,12 @@ public class CvPipelineTest {
                 .showAvatar(false)
                 .showSocial(true)
                 .twoColumnLayout(false)
-                .localeConfig(LocaleConfig.builder().locale("zh-CN").datePattern("yyyy.MM").build())
+                .localeConfig(LocaleConfigBO.builder().locale("zh-CN").datePattern("yyyy.MM").build())
                 .build();
 
-        return Cv.builder()
+        return CvBO.builder()
                 .name("张三")
-                .age(23)
+                .birthDate(LocalDate.parse("2004-01-01"))
                 .title("Java后端开发实习生")
                 .summary(summary)
                 .contact(contact)

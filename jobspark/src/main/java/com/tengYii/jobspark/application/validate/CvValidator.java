@@ -1,13 +1,14 @@
 package com.tengYii.jobspark.application.validate;
 
 import com.tengYii.jobspark.common.exception.ValidationException;
-import com.tengYii.jobspark.model.cv.Contact;
-import com.tengYii.jobspark.model.cv.Cv;
+import com.tengYii.jobspark.model.bo.ContactBO;
+import com.tengYii.jobspark.model.bo.CvBO;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Cv 领域校验器：
+ * CvBO 领域校验器：
  * - 必填：姓名
  * - 联系方式：phone/email/wechat 至少一种
  * - 教育或经历：至少一项
@@ -19,17 +20,17 @@ public class CvValidator {
 
     private static final Logger log = LoggerFactory.getLogger(CvValidator.class);
 
-    public void validateOrThrow(Cv cv) {
+    public void validateOrThrow(CvBO cv) {
         if (cv == null) {
-            throw ValidationException.illegal("Cv 为空");
+            throw ValidationException.illegal("CvBO 为空");
         }
         // 姓名
-        if (isBlank(cv.getName())) {
+        if (StringUtils.isBlank(cv.getName())) {
             throw ValidationException.missing("name");
         }
 
         // 联系方式至少一种
-        Contact c = cv.getContact();
+        ContactBO c = cv.getContact();
         boolean hasContact = c != null && (notBlank(c.getPhone()) || notBlank(c.getEmail()) || notBlank(c.getWechat()));
         if (!hasContact) {
             throw ValidationException.missing("contact.phone/email/wechat 之一");
@@ -37,16 +38,15 @@ public class CvValidator {
 
         // 教育/经历至少一项
         boolean hasEdu = cv.getEducations() != null && !cv.getEducations().isEmpty();
-        boolean hasExp = cv.getExperiences() != null && !cv.getExperiences().isEmpty();
-        if (!hasEdu && !hasExp) {
-            throw ValidationException.missing("educations 或 experiences 至少一项");
+        if (!hasEdu) {
+            throw ValidationException.missing("教育经历至少一项");
         }
 
         // 软校验/提示
         if (cv.getSkills() == null || cv.getSkills().isEmpty()) {
             log.warn("校验提示：skills 为空，将继续渲染");
         }
-        if (cv.getSummary() == null || isBlank(cv.getSummary().getMarkdown())) {
+        if (cv.getSummary() == null || StringUtils.isBlank(cv.getSummary())) {
             log.warn("校验提示：summary 为空，将继续渲染");
         }
         if (cv.getProjects() == null || cv.getProjects().isEmpty()) {
@@ -55,20 +55,16 @@ public class CvValidator {
 
         // 元数据存在但字段为空的提示
         if (cv.getMeta() != null && cv.getMeta().getLocaleConfig() != null) {
-            if (isBlank(cv.getMeta().getLocaleConfig().getLocale())) {
+            if (StringUtils.isBlank((cv.getMeta().getLocaleConfig().getLocale()))) {
                 log.warn("校验提示：meta.localeConfig.locale 为空");
             }
         }
 
-        log.info("Cv 校验通过：name={}, contact={}, edu={}, exp={}",
+        log.info("CvBO 校验通过：name={}, contact={}, edu={}, exp={}",
                 cv.getName(),
                 maskContact(c),
                 sizeOf(cv.getEducations()),
                 sizeOf(cv.getExperiences()));
-    }
-
-    private static boolean isBlank(String s) {
-        return s == null || s.trim().isEmpty();
     }
 
     private static boolean notBlank(String s) {
@@ -79,7 +75,7 @@ public class CvValidator {
         return c == null ? 0 : c.size();
     }
 
-    private static String maskContact(Contact c) {
+    private static String maskContact(ContactBO c) {
         if (c == null) return "N/A";
         String phone = c.getPhone();
         if (notBlank(phone) && phone.length() >= 7) {

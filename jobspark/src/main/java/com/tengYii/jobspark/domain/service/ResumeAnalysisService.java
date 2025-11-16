@@ -29,7 +29,7 @@ public class ResumeAnalysisService {
         ChatModel chatModel = ChatModelProvider.createChatModel();
         CvOptimizationAgent cvOptimizationAgent = AgenticServices.createAgenticSystem(CvOptimizationAgent.class, chatModel);
         String optimizeCv = cvOptimizationAgent.optimizeCv(masterCv, jobDescription);
-//        Cv optimizeCv = cvOptimizationAgent.optimizeCv(masterCv, jobDescription);
+//        CvBO optimizeCv = cvOptimizationAgent.optimizeCv(masterCv, jobDescription);
 
         System.out.println(optimizeCv);
     }

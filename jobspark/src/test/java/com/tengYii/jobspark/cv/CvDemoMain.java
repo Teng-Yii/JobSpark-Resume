@@ -8,7 +8,7 @@ import com.tengYii.jobspark.config.cv.PdfConfig;
 import com.tengYii.jobspark.domain.cv.render.markdown.TemplateFieldMapper;
 import com.tengYii.jobspark.domain.cv.render.CvRendererFacade;
 import com.tengYii.jobspark.application.validate.CvValidator;
-import com.tengYii.jobspark.model.cv.*;
+import com.tengYii.jobspark.model.bo.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -69,7 +69,7 @@ public class CvDemoMain {
 
         try {
             // 1. 构建并校验CV数据
-            Cv cv = buildSampleCv();
+            CvBO cv = buildSampleCv();
             validateCv(cv);
 
             // 2. 生成基础文件名（统一命名规则）
@@ -134,7 +134,7 @@ public class CvDemoMain {
     /**
      * 校验CV数据（独立方法，便于后续扩展校验规则）
      */
-    private static void validateCv(Cv cv) {
+    private static void validateCv(CvBO cv) {
         try {
             CV_VALIDATOR.validateOrThrow(cv);
             log.info("CV数据校验通过");
@@ -146,7 +146,7 @@ public class CvDemoMain {
     /**
      * 生成Markdown文件
      */
-    private static String generateMarkdown(Cv cv, RenderConfigs configs, Path outputDir, String baseFileName) {
+    private static String generateMarkdown(CvBO cv, RenderConfigs configs, Path outputDir, String baseFileName) {
         try {
             CvRendererFacade facade = new CvRendererFacade();
             String markdownContent = facade.toMarkdown(cv, configs.mdConfig(), configs.fieldMapper());
@@ -242,10 +242,10 @@ public class CvDemoMain {
     /**
      * 构建示例CV数据（拆分多个子方法，便于维护单个模块数据）
      */
-    private static Cv buildSampleCv() {
-        return Cv.builder()
+    private static CvBO buildSampleCv() {
+        return CvBO.builder()
                 .name("张三")
-                .age(23)
+                .birthDate(LocalDate.parse("2004-01-01"))
                 .title("Java后端开发实习生")
                 .avatarUrl("") // 可选：resources目录下的头像路径，需配合渲染器配置
                 .summary(buildSummary())
@@ -263,19 +263,19 @@ public class CvDemoMain {
     /**
      * 构建个人简介
      */
-    private static RichText buildSummary() {
-        return RichText.builder().markdown("""
+    private static String buildSummary() {
+        return """
                 - 热爱后端开发，具备良好的编码习惯与团队协作能力
                 - 熟悉 Java / SpringBoot / MySQL / Redis / RocketMQ / MyBatis-Plus
                 - 关注性能与可靠性，重视日志、监控与故障排查
-                """).build();
+                """;
     }
 
     /**
      * 构建联系方式
      */
-    private static Contact buildContact() {
-        return Contact.builder()
+    private static ContactBO buildContact() {
+        return ContactBO.builder()
                 .phone("138****0000")
                 .email("z***@example.com")
                 .location("西安")
@@ -285,27 +285,27 @@ public class CvDemoMain {
     /**
      * 构建社交链接
      */
-    private static List<Link> buildSocialLinks() {
+    private static List<LinkBO> buildSocialLinks() {
         return List.of(
-                Link.builder().label("GitHub").url("https://github.com/example").build(),
-                Link.builder().label("Blog").url("https://blog.example.com").build()
+                LinkBO.builder().label("GitHub").url("https://github.com/example").build(),
+                LinkBO.builder().label("Blog").url("https://blog.example.com").build()
         );
     }
 
     /**
      * 构建教育经历
      */
-    private static List<Education> buildEducations() {
+    private static List<EducationBO> buildEducations() {
         return List.of(
-                Education.builder()
+                EducationBO.builder()
                         .school("西安某大学")
                         .major("人工智能专业")
                         .startDate(LocalDate.of(2022, 9, 1))
                         .endDate(LocalDate.of(2026, 7, 1))
-                        .description(RichText.builder().markdown("""
+                        .description("""
                                 - 连续获得奖学金，担任学院技术社团负责人
                                 - 课程涉猎：数据结构、操作系统、数据库系统、计算机网络、算法设计
-                                """).build())
+                                """)
                         .build()
         );
     }
@@ -313,17 +313,18 @@ public class CvDemoMain {
     /**
      * 构建实习经历
      */
-    private static List<Experience> buildExperiences() {
+    private static List<ExperienceBO> buildExperiences() {
+
         return List.of(
-                Experience.builder()
+                ExperienceBO.builder()
                         .company("上海某金融科技公司（实习）")
                         .role("Java后端实习生")
                         .startDate(LocalDate.of(2025, 4, 1))
                         .endDate(LocalDate.of(2025, 8, 1))
                         .highlights(List.of(
-                                RichText.builder().markdown("负责核心接口的改造与性能优化，关键接口响应延迟降低约20%").build(),
-                                RichText.builder().markdown("参与风控规则引擎开发，基于 Redis 结构与多维索引提升命中效率").build(),
-                                RichText.builder().markdown("推进 MyBatis-Plus 版本升级与分页查询优化，减少冗余SQL").build()
+                                HighlightBO.builder().highlightMarkdown("负责核心接口的改造与性能优化，关键接口响应延迟降低约20%").sortOrder(0).build(),
+                                HighlightBO.builder().highlightMarkdown("参与风控规则引擎开发，基于 Redis 结构与多维索引提升命中效率").sortOrder(1).build(),
+                                HighlightBO.builder().highlightMarkdown("推进 MyBatis-Plus 版本升级与分页查询优化，减少冗余SQL").sortOrder(2).build()
                         ))
                         .build()
         );
@@ -332,19 +333,19 @@ public class CvDemoMain {
     /**
      * 构建项目经验
      */
-    private static List<Project> buildProjects() {
+    private static List<ProjectBO> buildProjects() {
         return List.of(
-                Project.builder()
+                ProjectBO.builder()
                         .name("乐谱主题服务平台")
                         .role("后端开发")
-                        .description(RichText.builder().markdown("""
+                        .descriptionMarkdown("""
                                 - 平台提供高并发消息通知与用户信息查询，支持秒级延迟
                                 - 技术栈：SpringBoot + MySQL + Redis + RocketMQ + Caffeine + MyBatis-Plus
-                                """).build())
+                                """)
                         .highlights(List.of(
-                                RichText.builder().markdown("使用 Redis 与 Lua 实现幂等与限流，保障接口稳定性").build(),
-                                RichText.builder().markdown("构建消息投递重试与死信队列，提升消息可靠性").build(),
-                                RichText.builder().markdown("设计缓存淘汰与预热策略，降低数据库压力").build()
+                                HighlightBO.builder().highlightMarkdown("使用 Redis 与 Lua 实现幂等与限流，保障接口稳定性").sortOrder(0).build(),
+                                HighlightBO.builder().highlightMarkdown("构建消息投递重试与死信队列，提升消息可靠性").sortOrder(1).build(),
+                                HighlightBO.builder().highlightMarkdown("设计缓存淘汰与预热策略，降低数据库压力").sortOrder(2).build()
                         ))
                         .build()
         );
@@ -353,21 +354,21 @@ public class CvDemoMain {
     /**
      * 构建技能列表
      */
-    private static List<Skill> buildSkills() {
+    private static List<SkillBO> buildSkills() {
         return List.of(
-                Skill.builder().name("Java / SpringBoot").level("熟练").build(),
-                Skill.builder().name("MySQL / MyBatis-Plus").level("熟练").build(),
-                Skill.builder().name("Redis / RocketMQ").level("良好").build(),
-                Skill.builder().name("HTTP / TCP / 负载均衡").level("了解").build()
+                SkillBO.builder().name("Java / SpringBoot").level("熟练").build(),
+                SkillBO.builder().name("MySQL / MyBatis-Plus").level("熟练").build(),
+                SkillBO.builder().name("Redis / RocketMQ").level("良好").build(),
+                SkillBO.builder().name("HTTP / TCP / 负载均衡").level("了解").build()
         );
     }
 
     /**
      * 构建证书列表
      */
-    private static List<Certificate> buildCertificates() {
+    private static List<CertificateBO> buildCertificates() {
         return List.of(
-                Certificate.builder()
+                CertificateBO.builder()
                         .name("ACM 校内竞赛奖项")
                         .issuer("校方")
                         .date(LocalDate.of(2024, 6, 1))
@@ -378,9 +379,9 @@ public class CvDemoMain {
     /**
      * 构建版式配置（统一日期格式，避免冗余）
      */
-    private static FormatMeta buildFormatMeta() {
+    private static FormatMetaBO buildFormatMeta() {
         String datePattern = "yyyy.MM";
-        return FormatMeta.builder()
+        return FormatMetaBO.builder()
                 .alignment("left")
                 .lineSpacing(1.4)
                 .fontFamily("\"Noto Sans SC\", \"PingFang SC\", \"Microsoft YaHei\", \"SimSun\", sans-serif")
@@ -389,7 +390,7 @@ public class CvDemoMain {
                 .showAvatar(false)
                 .showSocial(true)
                 .twoColumnLayout(false)
-                .localeConfig(LocaleConfig.builder()
+                .localeConfig(LocaleConfigBO.builder()
                         .locale("zh-CN")
                         .datePattern(datePattern) // 复用日期格式，避免不一致
                         .build())

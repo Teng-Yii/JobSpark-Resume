@@ -1,6 +1,6 @@
 package com.tengYii.jobspark.domain.agent;
 
-import com.tengYii.jobspark.model.cv.CvReview;
+import com.tengYii.jobspark.model.llm.CvReview;
 import dev.langchain4j.agentic.declarative.ExitCondition;
 import dev.langchain4j.agentic.declarative.LoopAgent;
 import dev.langchain4j.agentic.declarative.Output;

@@ -9,7 +9,7 @@ import com.tengYii.jobspark.domain.cv.render.markdown.MarkdownService;
 import com.tengYii.jobspark.domain.cv.render.markdown.TemplateFieldMapper;
 import com.tengYii.jobspark.domain.cv.render.markdown.TemplateService;
 import com.tengYii.jobspark.domain.cv.render.pdf.PdfService;
-import com.tengYii.jobspark.model.cv.Cv;
+import com.tengYii.jobspark.model.bo.CvBO;
 import org.commonmark.parser.Parser;
 import org.commonmark.node.Node;
 import org.commonmark.renderer.html.HtmlRenderer;
@@ -42,9 +42,9 @@ public class CvRendererFacade {
     }
 
     /**
-     * Cv -> Markdown
+     * CvBO -> Markdown
      */
-    public String toMarkdown(Cv cv, MarkdownConfig markdownConfig, TemplateFieldMapper mapper) {
+    public String toMarkdown(CvBO cv, MarkdownConfig markdownConfig, TemplateFieldMapper mapper) {
         String md = templateService.renderMarkdown(cv, markdownConfig, mapper);
         log.info("toMarkdown 完成，字数={}", md.length());
         return md;

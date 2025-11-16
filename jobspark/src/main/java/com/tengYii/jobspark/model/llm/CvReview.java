@@ -1,4 +1,4 @@
-package com.tengYii.jobspark.model.cv;
+package com.tengYii.jobspark.model.llm;
 
 import dev.langchain4j.model.output.structured.Description;
 

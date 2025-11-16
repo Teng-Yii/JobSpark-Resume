@@ -2,7 +2,7 @@ package com.tengYii.jobspark.domain.cv.render.markdown;
 
 import com.tengYii.jobspark.common.exception.RenderException;
 import com.tengYii.jobspark.config.cv.MarkdownConfig;
-import com.tengYii.jobspark.model.cv.Cv;
+import com.tengYii.jobspark.model.bo.CvBO;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
 import freemarker.template.TemplateExceptionHandler;
@@ -61,7 +61,7 @@ public class TemplateService {
      * @param fieldMapper 字段映射器（别名表与缺失检查）
      * @return Markdown 文本
      */
-    public String renderMarkdown(Cv cv, MarkdownConfig markdownConfig, TemplateFieldMapper fieldMapper) {
+    public String renderMarkdown(CvBO cv, MarkdownConfig markdownConfig, TemplateFieldMapper fieldMapper) {
         try {
             Map<String, Object> dataModel = fieldMapper.toTemplateData(cv);
             // 额外的渲染配置注入（供模板条件判断）

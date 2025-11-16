@@ -1,4 +1,4 @@
-package com.tengYii.jobspark.model.cv;
+package com.tengYii.jobspark.model.bo;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -12,7 +12,15 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Link {
-    private String label;    // 链接名称
-    private String url;      // 链接地址
+public class LinkBO {
+
+    /**
+     * 社交链接名称（如：GitHub/CSDN）
+     */
+    private String label;
+
+    /**
+     * 链接地址
+     */
+    private String url;
 }

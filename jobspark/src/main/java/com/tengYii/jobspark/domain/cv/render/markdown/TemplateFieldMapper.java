@@ -2,13 +2,15 @@ package com.tengYii.jobspark.domain.cv.render.markdown;
 
 
 import com.tengYii.jobspark.common.exception.ValidationException;
-import com.tengYii.jobspark.model.cv.*;
+import com.tengYii.jobspark.model.bo.*;
 import lombok.Builder;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.util.CollectionUtils;
 
 import java.util.*;
 
 /**
- * 将领域模型 Cv 映射为 FreeMarker 模板期望的 Map。
+ * 将领域模型 CvBO 映射为 FreeMarker 模板期望的 Map。
  * - 支持别名表（当 .ftl 字段命名与模型不一致时）
  * - 缺失字段报告（抛出 ValidationException）
  *
@@ -28,12 +30,12 @@ public class TemplateFieldMapper {
     }
 
     /**
-     * 将 Cv 映射为模板数据 Map。
+     * 将 CvBO 映射为模板数据 Map。
      * 若必填字段缺失，抛出 ValidationException。
      */
-    public Map<String, Object> toTemplateData(Cv cv) {
+    public Map<String, Object> toTemplateData(CvBO cv) {
         if (cv == null) {
-            throw ValidationException.illegal("Cv 为空");
+            throw ValidationException.illegal("CvBO 为空");
         }
         // 必填校验：姓名、联系方式至少一种、教育或经历至少一项
         validateRequired(cv);
@@ -41,15 +43,15 @@ public class TemplateFieldMapper {
         Map<String, Object> data = new LinkedHashMap<>();
         // 基本
         put(data, "name", cv.getName());
-        put(data, "age", cv.getAge());
+        put(data, "birthDate", cv.getBirthDate());
         put(data, "title", cv.getTitle());
         put(data, "avatarUrl", cv.getAvatarUrl());
 
         // 富文本摘要
-        put(data, "summary", Optional.ofNullable(cv.getSummary()).map(RichText::getMarkdown).orElse(""));
+        put(data, "summary", Optional.ofNullable(cv.getSummary()).orElse(""));
 
         // 联系方式
-        Contact c = cv.getContact();
+        ContactBO c = cv.getContact();
         Map<String, Object> contactMap = new LinkedHashMap<>();
         if (c != null) {
             contactMap.put("phone", nullToEmpty(c.getPhone()));
@@ -62,7 +64,7 @@ public class TemplateFieldMapper {
         // 社交链接
         List<Map<String, Object>> social = new ArrayList<>();
         if (cv.getSocialLinks() != null) {
-            for (Link link : cv.getSocialLinks()) {
+            for (LinkBO link : cv.getSocialLinks()) {
                 Map<String, Object> m = new LinkedHashMap<>();
                 m.put("label", nullToEmpty(link.getLabel()));
                 m.put("url", nullToEmpty(link.getUrl()));
@@ -74,13 +76,13 @@ public class TemplateFieldMapper {
         // 教育
         List<Map<String, Object>> edus = new ArrayList<>();
         if (cv.getEducations() != null) {
-            for (Education e : cv.getEducations()) {
+            for (EducationBO e : cv.getEducations()) {
                 Map<String, Object> m = new LinkedHashMap<>();
                 m.put("school", nullToEmpty(e.getSchool()));
                 m.put("major", nullToEmpty(e.getMajor()));
                 m.put("startDate", e.getStartDate());
                 m.put("endDate", e.getEndDate());
-                m.put("description", Optional.ofNullable(e.getDescription()).map(RichText::getMarkdown).orElse(""));
+                m.put("description", Optional.ofNullable(e.getDescription()).orElse(""));
                 edus.add(m);
             }
         }
@@ -89,19 +91,13 @@ public class TemplateFieldMapper {
         // 经历
         List<Map<String, Object>> exps = new ArrayList<>();
         if (cv.getExperiences() != null) {
-            for (Experience e : cv.getExperiences()) {
+            for (ExperienceBO e : cv.getExperiences()) {
                 Map<String, Object> m = new LinkedHashMap<>();
                 m.put("company", nullToEmpty(e.getCompany()));
                 m.put("role", nullToEmpty(e.getRole()));
                 m.put("startDate", e.getStartDate());
                 m.put("endDate", e.getEndDate());
-                List<String> hl = new ArrayList<>();
-                if (e.getHighlights() != null) {
-                    for (RichText rt : e.getHighlights()) {
-                        hl.add(Optional.ofNullable(rt).map(RichText::getMarkdown).orElse(""));
-                    }
-                }
-                m.put("highlights", hl);
+                m.put("highlights", e.getHighlights());
                 exps.add(m);
             }
         }
@@ -109,28 +105,27 @@ public class TemplateFieldMapper {
 
         // 项目
         List<Map<String, Object>> projects = new ArrayList<>();
-        if (cv.getProjects() != null) {
-            for (Project p : cv.getProjects()) {
+            for (ProjectBO p : cv.getProjects()) {
                 Map<String, Object> m = new LinkedHashMap<>();
                 m.put("name", nullToEmpty(p.getName()));
                 m.put("role", nullToEmpty(p.getRole()));
-                m.put("description", Optional.ofNullable(p.getDescription()).map(RichText::getMarkdown).orElse(""));
+                m.put("descriptionMarkdown", Optional.ofNullable(p.getDescriptionMarkdown()).orElse(""));
                 List<String> hl = new ArrayList<>();
                 if (p.getHighlights() != null) {
-                    for (RichText rt : p.getHighlights()) {
-                        hl.add(Optional.ofNullable(rt).map(RichText::getMarkdown).orElse(""));
+                    for (HighlightBO highlightBO : p.getHighlights()) {
+                        hl.add(Optional.ofNullable(highlightBO).map(HighlightBO::getHighlightMarkdown).orElse(""));
                     }
                 }
                 m.put("highlights", hl);
                 projects.add(m);
             }
-        }
+
         put(data, "projects", projects);
 
         // 技能
         List<Map<String, Object>> skills = new ArrayList<>();
         if (cv.getSkills() != null) {
-            for (Skill s : cv.getSkills()) {
+            for (SkillBO s : cv.getSkills()) {
                 Map<String, Object> m = new LinkedHashMap<>();
                 m.put("name", nullToEmpty(s.getName()));
                 m.put("level", nullToEmpty(s.getLevel()));
@@ -142,7 +137,7 @@ public class TemplateFieldMapper {
         // 证书
         List<Map<String, Object>> certs = new ArrayList<>();
         if (cv.getCertificates() != null) {
-            for (Certificate ctf : cv.getCertificates()) {
+            for (CertificateBO ctf : cv.getCertificates()) {
                 Map<String, Object> m = new LinkedHashMap<>();
                 m.put("name", nullToEmpty(ctf.getName()));
                 m.put("issuer", nullToEmpty(ctf.getIssuer()));
@@ -153,7 +148,7 @@ public class TemplateFieldMapper {
         put(data, "certificates", certs);
 
         // 版式元数据
-        FormatMeta meta = cv.getMeta();
+        FormatMetaBO meta = cv.getMeta();
         Map<String, Object> metaMap = new LinkedHashMap<>();
         if (meta != null) {
             metaMap.put("alignment", nullToEmpty(meta.getAlignment()));
@@ -164,7 +159,7 @@ public class TemplateFieldMapper {
             metaMap.put("showAvatar", meta.getShowAvatar());
             metaMap.put("showSocial", meta.getShowSocial());
             metaMap.put("twoColumnLayout", meta.getTwoColumnLayout());
-            LocaleConfig lc = meta.getLocaleConfig();
+            LocaleConfigBO lc = meta.getLocaleConfig();
             Map<String, Object> lcm = new LinkedHashMap<>();
             if (lc != null) {
                 lcm.put("locale", nullToEmpty(lc.getLocale()));
@@ -180,15 +175,19 @@ public class TemplateFieldMapper {
         return data;
     }
 
-    private void validateRequired(Cv cv) {
-        if (isBlank(cv.getName())) throw ValidationException.missing("name");
-        Contact c = cv.getContact();
-        boolean hasContact = c != null && (notBlank(c.getPhone()) || notBlank(c.getEmail()) || notBlank(c.getWechat()));
-        if (!hasContact) throw ValidationException.missing("contact.phone/email/wechat 之一");
+    private void validateRequired(CvBO cv) {
+        if (StringUtils.isBlank(cv.getName())) {
+            throw ValidationException.missing("name");
+        }
+        ContactBO contactBO = cv.getContact();
+        boolean hasContact = contactBO != null && (StringUtils.isNotBlank(contactBO.getPhone()) || StringUtils.isNotBlank(contactBO.getEmail()) || StringUtils.isNotBlank(contactBO.getWechat()));
+        if (!hasContact) {
+            throw ValidationException.missing("contact.phone/email/wechat 之一");
+        }
 
-        boolean hasEdu = cv.getEducations() != null && !cv.getEducations().isEmpty();
-        boolean hasExp = cv.getExperiences() != null && !cv.getExperiences().isEmpty();
-        if (!hasEdu && !hasExp) throw ValidationException.missing("educations 或 experiences 至少一项");
+        if (CollectionUtils.isEmpty(cv.getEducations())){
+            throw ValidationException.missing("教育经历 至少一项");
+        }
     }
 
     private void put(Map<String, Object> data, String key, Object value) {
@@ -211,13 +210,5 @@ public class TemplateFieldMapper {
 
     private static String nullToEmpty(String s) {
         return s == null ? "" : s;
-    }
-
-    private static boolean isBlank(String s) {
-        return s == null || s.trim().isEmpty();
-    }
-
-    private static boolean notBlank(String s) {
-        return s != null && !s.trim().isEmpty();
     }
 }
