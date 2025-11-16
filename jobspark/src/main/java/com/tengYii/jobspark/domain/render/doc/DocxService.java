@@ -1,4 +1,4 @@
-package com.tengYii.jobspark.domain.cv.render.doc;
+package com.tengYii.jobspark.domain.render.doc;
 
 import com.tengYii.jobspark.common.exception.RenderException;
 import com.tengYii.jobspark.config.cv.DocxConfig;

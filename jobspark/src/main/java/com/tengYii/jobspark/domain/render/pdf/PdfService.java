@@ -1,4 +1,4 @@
-package com.tengYii.jobspark.domain.cv.render.pdf;
+package com.tengYii.jobspark.domain.render.pdf;
 
 import com.openhtmltopdf.outputdevice.helper.BaseRendererBuilder;
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;

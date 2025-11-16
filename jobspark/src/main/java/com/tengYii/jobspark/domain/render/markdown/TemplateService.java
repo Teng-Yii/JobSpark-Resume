@@ -1,4 +1,4 @@
-package com.tengYii.jobspark.domain.cv.render.markdown;
+package com.tengYii.jobspark.domain.render.markdown;
 
 import com.tengYii.jobspark.common.exception.RenderException;
 import com.tengYii.jobspark.config.cv.MarkdownConfig;

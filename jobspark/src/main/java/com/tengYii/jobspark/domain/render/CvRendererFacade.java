@@ -1,14 +1,14 @@
-package com.tengYii.jobspark.domain.cv.render;
+package com.tengYii.jobspark.domain.render;
 
 import com.tengYii.jobspark.config.cv.DocxConfig;
 import com.tengYii.jobspark.config.cv.HtmlConfig;
 import com.tengYii.jobspark.config.cv.MarkdownConfig;
 import com.tengYii.jobspark.config.cv.PdfConfig;
-import com.tengYii.jobspark.domain.cv.render.doc.DocxService;
-import com.tengYii.jobspark.domain.cv.render.markdown.MarkdownService;
-import com.tengYii.jobspark.domain.cv.render.markdown.TemplateFieldMapper;
-import com.tengYii.jobspark.domain.cv.render.markdown.TemplateService;
-import com.tengYii.jobspark.domain.cv.render.pdf.PdfService;
+import com.tengYii.jobspark.domain.render.doc.DocxService;
+import com.tengYii.jobspark.domain.render.markdown.MarkdownService;
+import com.tengYii.jobspark.domain.render.markdown.TemplateFieldMapper;
+import com.tengYii.jobspark.domain.render.markdown.TemplateService;
+import com.tengYii.jobspark.domain.render.pdf.PdfService;
 import com.tengYii.jobspark.model.bo.CvBO;
 import org.commonmark.parser.Parser;
 import org.commonmark.node.Node;
