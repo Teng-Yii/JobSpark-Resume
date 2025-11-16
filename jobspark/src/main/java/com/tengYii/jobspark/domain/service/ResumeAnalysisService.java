@@ -4,6 +4,7 @@ import com.tengYii.jobspark.domain.agent.CvOptimizationAgent;
 import com.tengYii.jobspark.model.*;
 import com.tengYii.jobspark.common.utils.llm.ChatModelProvider;
 import com.tengYii.jobspark.common.utils.StringLoader;
+import com.tengYii.jobspark.model.bo.CvBO;
 import dev.langchain4j.agentic.AgenticServices;
 import dev.langchain4j.model.chat.ChatModel;
 import lombok.RequiredArgsConstructor;
@@ -23,16 +24,6 @@ public class ResumeAnalysisService {
     private final FileStorageService fileStorageService;
     private final ChatModel chatModel = ChatModelProvider.createChatModel();
 
-    public static void main(String[] args)  throws IOException {
-        String masterCv = StringLoader.loadFromResource("/documents/master_cv.txt");
-        String jobDescription = StringLoader.loadFromResource("/documents/job_description_backend.txt");
-        ChatModel chatModel = ChatModelProvider.createChatModel();
-        CvOptimizationAgent cvOptimizationAgent = AgenticServices.createAgenticSystem(CvOptimizationAgent.class, chatModel);
-        String optimizeCv = cvOptimizationAgent.optimizeCv(masterCv, jobDescription);
-//        CvBO optimizeCv = cvOptimizationAgent.optimizeCv(masterCv, jobDescription);
-
-        System.out.println(optimizeCv);
-    }
 
     public Resume analyzeResume(MultipartFile file, String memoryId, String industry) {
         try {

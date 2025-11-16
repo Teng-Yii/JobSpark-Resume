@@ -1,5 +1,6 @@
 package com.tengYii.jobspark.domain.agent;
 
+import com.tengYii.jobspark.model.bo.CvBO;
 import com.tengYii.jobspark.model.llm.CvReview;
 import dev.langchain4j.agentic.declarative.ExitCondition;
 import dev.langchain4j.agentic.declarative.LoopAgent;
@@ -24,7 +25,7 @@ public interface CvOptimizationAgent {
             @SubAgent(type = CvReviewer.class, outputName = "cvReview"),
             @SubAgent(type = ScoredCvTailor.class, outputName = "cv")
     })
-    String optimizeCv(String cv, String jobDescription);
+    CvBO optimizeCv(CvBO cv, String jobDescription);
 
 
     @ExitCondition(testExitAtLoopEnd = true)
@@ -35,8 +36,8 @@ public interface CvOptimizationAgent {
     }
 
     @Output
-    private String outputOptimizedCv(@V("cv") String cv) {
-        System.out.println("=== 优化后的简历如下： ===");
-        return cv;
+    private CvBO outputOptimizedCv(@V("cv") CvBO cvBO) {
+        System.out.println("=== 简历优化完成，返回CvBO对象 ===");
+        return cvBO;
     }
 }
