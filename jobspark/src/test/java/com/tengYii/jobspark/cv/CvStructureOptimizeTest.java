@@ -31,13 +31,29 @@ public class CvStructureOptimizeTest {
         ChatModel chatModel = ChatModelProvider.createChatModel();
         
         try {
+            System.out.println("开始创建代理系统...");
+            System.out.println("CvBO对象: " + mockCvBO.getName());
+            System.out.println("职位描述长度: " + jobDescription.length());
+            
             CvOptimizationAgent cvOptimizationAgent = AgenticServices.createAgenticSystem(CvOptimizationAgent.class, chatModel);
+            System.out.println("代理系统创建成功，开始优化简历...");
+            
             CvBO optimizeCv = cvOptimizationAgent.optimizeCv(mockCvBO, jobDescription);
     //        CvBO optimizeCv = cvOptimizationAgent.optimizeCv(masterCv, jobDescription);
+            System.out.println("简历优化完成:");
             System.out.println(optimizeCv);
         } catch (Exception e) {
             System.err.println("创建代理系统失败: " + e.getMessage());
             e.printStackTrace();
+            
+            // 提供更详细的调试信息
+            System.err.println("=== 调试信息 ===");
+            System.err.println("CvBO类: " + mockCvBO.getClass().getName());
+            System.err.println("职位描述: " + (jobDescription != null ? jobDescription.substring(0, Math.min(100, jobDescription.length())) : "null"));
+            
+            // 检查API密钥
+            String apiKey = System.getenv("DASHSCOPE_API_KEY");
+            System.err.println("API密钥是否设置: " + (apiKey != null && !apiKey.trim().isEmpty()));
         }
     }
 }
