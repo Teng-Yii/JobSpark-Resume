@@ -57,6 +57,8 @@ public class ExperienceBO {
      */
     private Integer sortOrder;
 
-
+    /**
+     * 工作经历亮点（Markdown格式）
+     */
     private List<HighlightBO> highlights;
 }

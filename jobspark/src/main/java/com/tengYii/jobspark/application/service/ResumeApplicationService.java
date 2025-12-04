@@ -1,8 +1,9 @@
 package com.tengYii.jobspark.application.service;
 
+import com.tengYii.jobspark.model.bo.CvBO;
+import com.tengYii.jobspark.model.dto.FileStorageResultDTO;
 import com.tengYii.jobspark.model.dto.ResumeUploadRequest;
 import com.tengYii.jobspark.model.dto.ResumeUploadResponse;
-import com.tengYii.jobspark.model.Resume;
 import com.tengYii.jobspark.domain.service.ResumeAnalysisService;
 import com.tengYii.jobspark.domain.service.ResumeOptimizationService;
 import com.tengYii.jobspark.domain.service.FileStorageService;
@@ -24,13 +25,17 @@ public class ResumeApplicationService {
     public ResumeUploadResponse uploadResume(ResumeUploadRequest request) {
         try {
             // 1、保存文件
-            String resumeId = fileStorageService.storeResumeFile(request.getFile());
+            FileStorageResultDTO storageResultDTO = fileStorageService.saveUploadedFile(request.getFile(), null);
 
-            // 解析简历内容
-            Resume resume = resumeAnalysisService.analyzeResume(request.getFile(), request.getUserId(), request.getUserMessage());
+            // 2. 解析简历内容
+            CvBO cvBO = resumeAnalysisService.analyzeResume(request);
 
+            // 3. 将结构化简历对象落库
+            // TODO
+
+            // 4.
             return new ResumeUploadResponse(
-                    resumeId,
+                    storageResultDTO.getUniqueFileName(),
                     request.getFile().getOriginalFilename(),
                     "SUCCESS",
                     "简历上传成功，已开始解析",

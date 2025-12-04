@@ -47,5 +47,8 @@ public class ProjectBO {
      */
     private Integer sortOrder;
 
+    /**
+     * 项目经历亮点（Markdown格式）
+     */
     private List<HighlightBO> highlights;
 }

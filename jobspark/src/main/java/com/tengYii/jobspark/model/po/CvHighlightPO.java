@@ -3,8 +3,10 @@ package com.tengYii.jobspark.model.po;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
+
 import java.time.LocalDateTime;
 import java.io.Serializable;
+
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -30,12 +32,14 @@ public class CvHighlightPO implements Serializable {
     private Long id;
 
     /**
-     * 亮点类型：1-工作经历亮点 2-项目经历亮点
+     * 亮点类型：1-工作经历亮点，2-项目经历亮点，3-专业技能亮点
+     *
+     * @see com.tengYii.jobspark.common.enums.CvHighLightTypeEnum
      */
     private Integer type;
 
     /**
-     * 关联ID：根据type对应工作经历ID(cv_experience.id)或项目ID(cv_project.id)
+     * 关联ID：根据type对应工作经历/项目经历/专业技能ID
      */
     private Long relatedId;
 

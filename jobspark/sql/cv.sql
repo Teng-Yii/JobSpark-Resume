@@ -104,8 +104,8 @@ CREATE TABLE `cv_project` (
 -- 统一亮点表
 CREATE TABLE `cv_highlight` (
   `id` BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主键ID',
-  `type` TINYINT NOT NULL COMMENT '亮点类型：1-工作经历亮点 2-项目经历亮点',
-  `related_id` BIGINT NOT NULL COMMENT '关联ID：根据type对应工作经历ID(cv_experience.id)或项目ID(cv_project.id)',
+  `type` TINYINT NOT NULL COMMENT '亮点类型：1-工作经历亮点，2-项目经历亮点，3-专业技能亮点',
+  `related_id` BIGINT NOT NULL COMMENT '关联ID：根据type对应工作经历/项目经历/专业技能ID',
   `highlight_markdown` TEXT NOT NULL COMMENT '亮点内容（职责/业绩/贡献，Markdown格式）',
   `sort_order` INT DEFAULT 0 COMMENT '排序顺序（升序）',
   `is_deleted` TINYINT(1) DEFAULT 0 COMMENT '逻辑删除：0-未删除 1-已删除',

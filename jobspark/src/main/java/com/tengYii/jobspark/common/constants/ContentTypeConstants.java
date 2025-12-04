@@ -1,5 +1,6 @@
 package com.tengYii.jobspark.common.constants;
 
+import java.util.Map;
 import java.util.Set;
 
 public class ContentTypeConstants {
@@ -33,8 +34,33 @@ public class ContentTypeConstants {
      */
     public static final String MD = "text/markdown";
 
+
     /**
-     * 包含所有支持的文档类型的集合
+     * 支持的文件扩展名集合
      */
-    public static final Set<String> SUPPORTED_TYPES = Set.of(PDF, DOC, DOCX, TEXT, HTML, MD);
+    public static final Set<String> SUPPORTED_EXTENSIONS = Set.of(
+            "pdf", "doc", "docx", "txt", "md"
+    );
+
+    /**
+     * 支持的Content-Type集合
+     */
+    public static final Set<String> SUPPORTED_CONTENT_TYPES = Set.of(
+            "application/pdf",
+            "application/msword",
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            "text/plain",
+            "text/markdown"
+    );
+
+    /**
+     * 文件扩展名与Content-Type的映射关系
+     */
+    public static final Map<String, String> EXTENSION_TO_CONTENT_TYPE = Map.of(
+            "pdf", "application/pdf",
+            "doc", "application/msword",
+            "docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            "txt", "text/plain",
+            "md", "text/plain"
+    );
 }

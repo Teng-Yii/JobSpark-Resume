@@ -9,8 +9,26 @@ import lombok.Data;
 @Builder
 @Data
 public class HighlightBO {
+
     /**
-     * 职责/业绩要点（Markdown格式）
+     * 主键ID
+     */
+    private Long id;
+
+    /**
+     * 亮点类型：1-工作经历亮点，2-项目经历亮点，3-专业技能亮点
+     *
+     * @see com.tengYii.jobspark.common.enums.CvHighLightTypeEnum
+     */
+    private Integer type;
+
+    /**
+     * 关联ID：根据type对应工作经历/项目经历/专业技能ID
+     */
+    private Long relatedId;
+
+    /**
+     * 亮点内容（职责/业绩/贡献，Markdown格式）
      */
     private String highlightMarkdown;
 

@@ -5,6 +5,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 /**
  * 技能/亮点
  */
@@ -33,4 +35,9 @@ public class SkillBO {
      * 排序顺序（升序）
      */
     private Integer sortOrder;
+
+    /**
+     * 专业技能亮点（Markdown格式）
+     */
+    private List<HighlightBO> highlights;
 }
