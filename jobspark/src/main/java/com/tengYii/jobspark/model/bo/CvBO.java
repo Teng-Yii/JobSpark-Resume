@@ -49,7 +49,7 @@ public class CvBO {
     /**
      * 社交链接名称（如：GitHub/CSDN）
      */
-    private List<LinkBO> socialLinks;
+    private List<SocialLinkBO> socialLinks;
 
     /**
      * 教育经历

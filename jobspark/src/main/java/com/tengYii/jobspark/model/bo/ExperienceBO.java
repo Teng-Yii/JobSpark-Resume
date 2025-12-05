@@ -50,7 +50,7 @@ public class ExperienceBO {
     /**
      * 工作概述（Markdown格式）
      */
-    private String descriptionMarkdown;
+    private String description;
 
     /**
      * 排序顺序（升序）

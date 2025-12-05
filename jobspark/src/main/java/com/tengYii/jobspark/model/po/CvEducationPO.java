@@ -2,10 +2,14 @@ package com.tengYii.jobspark.model.po;
 
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.annotation.IdType;
+
 import java.time.LocalDate;
+
 import com.baomidou.mybatisplus.annotation.TableId;
+
 import java.time.LocalDateTime;
 import java.io.Serializable;
+
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -47,6 +51,8 @@ public class CvEducationPO implements Serializable {
 
     /**
      * 学历（如：本科/硕士/博士）
+     *
+     * @see com.tengYii.jobspark.common.enums.EducationDegreeEnum
      */
     private String degree;
 
@@ -63,7 +69,7 @@ public class CvEducationPO implements Serializable {
     /**
      * 描述（如：GPA/荣誉等，Markdown格式）
      */
-    private String descriptionMarkdown;
+    private String description;
 
     /**
      * 排序顺序（升序）
@@ -72,8 +78,10 @@ public class CvEducationPO implements Serializable {
 
     /**
      * 逻辑删除：0-未删除 1-已删除
+     *
+     * @see com.tengYii.jobspark.common.enums.DeleteFlagEnum
      */
-    private Boolean isDeleted;
+    private Integer deleteFlag;
 
     /**
      * 创建时间

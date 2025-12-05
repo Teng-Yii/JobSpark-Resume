@@ -46,7 +46,7 @@ public class CvHighlightPO implements Serializable {
     /**
      * 亮点内容（职责/业绩/贡献，Markdown格式）
      */
-    private String highlightMarkdown;
+    private String highlight;
 
     /**
      * 排序顺序（升序）
@@ -55,8 +55,10 @@ public class CvHighlightPO implements Serializable {
 
     /**
      * 逻辑删除：0-未删除 1-已删除
+     *
+     * @see com.tengYii.jobspark.common.enums.DeleteFlagEnum
      */
-    private Boolean isDeleted;
+    private Integer deleteFlag;
 
     /**
      * 创建时间

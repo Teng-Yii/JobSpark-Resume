@@ -8,11 +8,11 @@ import lombok.Getter;
 @Getter
 public enum CvHighLightTypeEnum {
 
-    EXPERIENCE(2, "工作经历"),
+    EXPERIENCE(1, "工作经历"),
 
-    PROJECT(1, "项目经历"),
+    PROJECT(2, "项目经历"),
 
-    SKILL(1, "专业技能"),
+    SKILL(3, "专业技能"),
 
     ;
 

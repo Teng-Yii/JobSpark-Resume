@@ -12,10 +12,12 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class LinkBO {
+public class SocialLinkBO {
 
     /**
-     * 社交链接名称（如：GitHub/CSDN）
+     * 社交链接名称（如：GitHub/CSDN等）
+     *
+     * @see com.tengYii.jobspark.common.enums.SocialLinkTypeEnum
      */
     private String label;
 
@@ -23,4 +25,9 @@ public class LinkBO {
      * 链接地址
      */
     private String url;
+
+    /**
+     * 排序顺序（升序）
+     */
+    private Integer sortOrder;
 }

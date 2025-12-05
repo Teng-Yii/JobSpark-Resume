@@ -2,10 +2,14 @@ package com.tengYii.jobspark.model.po;
 
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.annotation.IdType;
+
 import java.time.LocalDate;
+
 import com.baomidou.mybatisplus.annotation.TableId;
+
 import java.time.LocalDateTime;
 import java.io.Serializable;
+
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -53,7 +57,7 @@ public class CvCertificatePO implements Serializable {
     /**
      * 证书描述（如：等级/分数，Markdown格式）
      */
-    private String descriptionMarkdown;
+    private String description;
 
     /**
      * 排序顺序（升序）
@@ -62,8 +66,10 @@ public class CvCertificatePO implements Serializable {
 
     /**
      * 逻辑删除：0-未删除 1-已删除
+     *
+     * @see com.tengYii.jobspark.common.enums.DeleteFlagEnum
      */
-    private Boolean isDeleted;
+    private Integer deleteFlag;
 
     /**
      * 创建时间

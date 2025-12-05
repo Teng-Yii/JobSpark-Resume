@@ -3,8 +3,10 @@ package com.tengYii.jobspark.model.po;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
+
 import java.time.LocalDateTime;
 import java.io.Serializable;
+
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -56,8 +58,10 @@ public class CvContactPO implements Serializable {
 
     /**
      * 逻辑删除：0-未删除 1-已删除
+     *
+     * @see com.tengYii.jobspark.common.enums.DeleteFlagEnum
      */
-    private Boolean isDeleted;
+    private Integer deleteFlag;
 
     /**
      * 创建时间

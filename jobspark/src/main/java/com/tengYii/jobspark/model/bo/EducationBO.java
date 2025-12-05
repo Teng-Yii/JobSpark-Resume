@@ -28,8 +28,15 @@ public class EducationBO {
 
     /**
      * 学历（如：本科/硕士/博士）
+     *
+     * @see com.tengYii.jobspark.common.enums.EducationDegreeEnum
      */
     private String degree;
+
+    /**
+     * 排序顺序（升序）
+     */
+    private Integer sortOrder;
 
     /**
      * 开始日期
