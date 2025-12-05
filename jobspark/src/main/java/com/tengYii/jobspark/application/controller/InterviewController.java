@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class InterviewController {
     
-    private final InterviewApplicationService interviewApplicationService;
+    private final InterviewApplicationService interviewApplicationServiceImpl;
     
     /**
      * 创建新的面试会话
@@ -28,7 +28,7 @@ public class InterviewController {
     public ResponseEntity<ApiResponse<InterviewSessionResponse>> createInterviewSession(
             @RequestBody CreateInterviewRequest request) {
         try {
-            InterviewSession session = interviewApplicationService.createInterviewSession(
+            InterviewSession session = interviewApplicationServiceImpl.createInterviewSession(
                 request.getResumeId(), 
                 request.getInterviewType(), 
                 request.getQuestionCount()
@@ -58,7 +58,7 @@ public class InterviewController {
     public ResponseEntity<ApiResponse<InterviewQuestionResponse>> getCurrentQuestion(
             @PathVariable String sessionId) {
         try {
-            InterviewQuestion question = interviewApplicationService.getCurrentQuestion(sessionId);
+            InterviewQuestion question = interviewApplicationServiceImpl.getCurrentQuestion(sessionId);
             
             if (question == null) {
                 return ResponseEntity.ok(ApiResponse.success(null, "没有更多问题"));
@@ -89,7 +89,7 @@ public class InterviewController {
             @PathVariable String sessionId,
             @RequestBody SubmitAnswerRequest request) {
         try {
-            InterviewEvaluation evaluation = interviewApplicationService.evaluateAnswer(
+            InterviewEvaluation evaluation = interviewApplicationServiceImpl.evaluateAnswer(
                 sessionId, request.getAnswer()
             );
             
@@ -120,7 +120,7 @@ public class InterviewController {
             @PathVariable String sessionId,
             @RequestBody CompleteInterviewRequest request) {
         try {
-            InterviewEvaluation evaluation = interviewApplicationService.completeInterview(
+            InterviewEvaluation evaluation = interviewApplicationServiceImpl.completeInterview(
                 sessionId, request.getAllAnswers()
             );
             
@@ -151,7 +151,7 @@ public class InterviewController {
             @RequestParam String resumeId,
             @RequestParam String targetPosition) {
         try {
-            String suggestions = interviewApplicationService.generateInterviewSuggestions(
+            String suggestions = interviewApplicationServiceImpl.generateInterviewSuggestions(
                 resumeId, targetPosition
             );
             
@@ -171,8 +171,8 @@ public class InterviewController {
     public ResponseEntity<ApiResponse<InterviewStatusResponse>> getInterviewStatus(
             @PathVariable String sessionId) {
         try {
-            boolean isCompleted = interviewApplicationService.isInterviewCompleted(sessionId);
-            InterviewQuestion currentQuestion = interviewApplicationService.getCurrentQuestion(sessionId);
+            boolean isCompleted = interviewApplicationServiceImpl.isInterviewCompleted(sessionId);
+            InterviewQuestion currentQuestion = interviewApplicationServiceImpl.getCurrentQuestion(sessionId);
             
             InterviewStatusResponse response = new InterviewStatusResponse(
                 sessionId,
@@ -196,7 +196,7 @@ public class InterviewController {
     @PostMapping("/sessions/{sessionId}/terminate")
     public ResponseEntity<ApiResponse<Void>> terminateInterview(@PathVariable String sessionId) {
         try {
-            interviewApplicationService.terminateInterview(sessionId);
+            interviewApplicationServiceImpl.terminateInterview(sessionId);
             return ResponseEntity.ok(ApiResponse.success(null, "面试已终止"));
             
         } catch (Exception e) {
