@@ -64,7 +64,7 @@ public class TemplateFieldMapper {
         // 社交链接
         List<Map<String, Object>> social = new ArrayList<>();
         if (cv.getSocialLinks() != null) {
-            for (LinkBO link : cv.getSocialLinks()) {
+            for (SocialLinkBO link : cv.getSocialLinks()) {
                 Map<String, Object> m = new LinkedHashMap<>();
                 m.put("label", nullToEmpty(link.getLabel()));
                 m.put("url", nullToEmpty(link.getUrl()));
