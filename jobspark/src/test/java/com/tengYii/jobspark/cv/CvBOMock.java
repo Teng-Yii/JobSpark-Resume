@@ -21,12 +21,12 @@ public class CvBOMock {
                 .build();
 
         // 创建社交链接
-        List<LinkBO> socialLinks = Arrays.asList(
-                LinkBO.builder()
+        List<SocialLinkBO> socialLinks = Arrays.asList(
+                SocialLinkBO.builder()
                         .label("GitHub")
                         .url("https://github.com/zhangsan")
                         .build(),
-                LinkBO.builder()
+                SocialLinkBO.builder()
                         .label("LinkedIn")
                         .url("https://linkedin.com/in/zhangsan")
                         .build()
@@ -87,7 +87,7 @@ public class CvBOMock {
                         .role("高级Java工程师")
                         .startDate(LocalDate.of(2022, 7, 1))
                         .endDate(LocalDate.of(2023, 12, 31))
-                        .descriptionMarkdown("负责电商平台核心交易系统的开发与维护")
+                        .description("负责电商平台核心交易系统的开发与维护")
                         .sortOrder(2)
                         .highlights(experienceHighlights1)
                         .build(),
@@ -98,7 +98,7 @@ public class CvBOMock {
                         .role("算法工程师")
                         .startDate(LocalDate.of(2024, 1, 1))
                         .endDate(null) // 当前在职
-                        .descriptionMarkdown("负责推荐系统算法的研发与优化")
+                        .description("负责推荐系统算法的研发与优化")
                         .sortOrder(1)
                         .highlights(experienceHighlights2)
                         .build()

@@ -9,6 +9,7 @@ import com.aliyun.oss.common.auth.EnvironmentVariableCredentialsProvider;
 import com.aliyun.oss.common.comm.SignVersion;
 import com.aliyun.oss.model.OSSObject;
 import com.aliyuncs.exceptions.ClientException;
+import com.tengYii.jobspark.common.constants.FileStoreConstants;
 import com.tengYii.jobspark.model.dto.FileStorageResultDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -16,9 +17,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Objects;
 import java.util.Random;
 import java.util.UUID;
@@ -32,69 +30,51 @@ import java.util.UUID;
 public class FileStorageService {
 
     /**
-     * 本地文件存储路径
+     * OSS客户端实例（懒汉式单例）
      */
-    private final Path fileStorageLocation;
+    private volatile OSS ossClient;
 
     /**
-     * OSS配置常量
-     */
-    private static final String OSS_ENDPOINT = "https://oss-cn-hangzhou.aliyuncs.com";
-    private static final String OSS_REGION = "cn-hangzhou";
-    private static final String BUCKET_PREFIX = "jobspark-resume";
-
-    /**
-     * 构造函数
-     * 初始化本地文件存储目录
-     */
-    public FileStorageService() {
-        this.fileStorageLocation = Paths.get("uploads/resumes")
-                .toAbsolutePath().normalize();
-
-        try {
-            Files.createDirectories(fileStorageLocation);
-        } catch (Exception ex) {
-            log.error("无法创建文件存储目录: {}", ex.getMessage(), ex);
-            throw new RuntimeException("无法创建文件存储目录", ex);
-        }
-    }
-
-    /**
-     * 核心方法1：构建OSS基本信息并创建客户端
+     * 构建OSS基本信息并创建客户端
      *
      * @return OSS客户端实例
      * @throws ClientException 客户端异常
      */
-    public OSS buildOssClient() throws ClientException {
-        try {
-            // 从环境变量中获取访问凭证
-            EnvironmentVariableCredentialsProvider credentialsProvider =
-                    CredentialsProviderFactory.newEnvironmentVariableCredentialsProvider();
+    public OSS getOssClient() throws ClientException {
+        if (Objects.isNull(this.ossClient)) {
+            synchronized (this) {
+                if (Objects.isNull(this.ossClient)) {
+                    try {
+                        // 从环境变量中获取访问凭证
+                        EnvironmentVariableCredentialsProvider credentialsProvider =
+                                CredentialsProviderFactory.newEnvironmentVariableCredentialsProvider();
 
-            // 创建客户端配置
-            ClientBuilderConfiguration clientBuilderConfiguration = new ClientBuilderConfiguration();
-            // 显式声明使用 V4 签名算法
-            clientBuilderConfiguration.setSignatureVersion(SignVersion.V4);
+                        // 创建客户端配置
+                        ClientBuilderConfiguration clientBuilderConfiguration = new ClientBuilderConfiguration();
+                        // 显式声明使用 V4 签名算法
+                        clientBuilderConfiguration.setSignatureVersion(SignVersion.V4);
 
-            // 创建并返回OSS客户端实例
-            OSS ossClient = OSSClientBuilder.create()
-                    .endpoint(OSS_ENDPOINT)
-                    .credentialsProvider(credentialsProvider)
-                    .region(OSS_REGION)
-                    .clientConfiguration(clientBuilderConfiguration)
-                    .build();
+                        // 创建OSS客户端实例
+                        this.ossClient = OSSClientBuilder.create()
+                                .endpoint(FileStoreConstants.OSS_ENDPOINT)
+                                .credentialsProvider(credentialsProvider)
+                                .region(FileStoreConstants.OSS_REGION)
+                                .clientConfiguration(clientBuilderConfiguration)
+                                .build();
 
-            log.info("OSS客户端创建成功");
-            return ossClient;
-
-        } catch (Exception e) {
-            log.error("构建OSS客户端失败: {}", e.getMessage(), e);
-            throw new ClientException("构建OSS客户端失败: " + e.getMessage());
+                        log.info("OSS客户端懒加载创建成功");
+                    } catch (Exception e) {
+                        log.error("创建OSS客户端失败: {}", e.getMessage(), e);
+                        throw new ClientException("创建OSS客户端失败: " + e.getMessage());
+                    }
+                }
+            }
         }
+        return this.ossClient;
     }
 
     /**
-     * 核心方法2：保存上传文件到OSS
+     * 保存上传文件到OSS
      *
      * @param file 上传的文件
      * @param bucketName 存储桶名称，如果为空则自动生成
@@ -109,11 +89,11 @@ public class FileStorageService {
         OSS ossClient = null;
         try {
             // 构建OSS客户端
-            ossClient = buildOssClient();
+            ossClient = getOssClient();
 
             // 如果未指定bucket名称，则生成唯一的bucket名称
             if (StringUtils.isEmpty(bucketName)) {
-                bucketName = generateUniqueBucketName(BUCKET_PREFIX);
+                bucketName = generateUniqueBucketName(FileStoreConstants.BUCKET_PREFIX);
             }
 
             // 创建存储空间（如果不存在）
@@ -150,7 +130,7 @@ public class FileStorageService {
     }
 
     /**
-     * 核心方法3：根据bucket和文件名下载文件
+     * 根据bucket和文件名下载文件
      *
      * @param bucketName 存储桶名称
      * @param objectName 文件对象名称
@@ -168,7 +148,7 @@ public class FileStorageService {
         OSS ossClient = null;
         try {
             // 构建OSS客户端
-            ossClient = buildOssClient();
+            ossClient = getOssClient();
 
             // 检查文件是否存在
             if (!ossClient.doesObjectExist(bucketName, objectName)) {
@@ -286,7 +266,7 @@ public class FileStorageService {
 
         OSS ossClient = null;
         try {
-            ossClient = buildOssClient();
+            ossClient = getOssClient();
 
             if (ossClient.doesObjectExist(bucketName, objectName)) {
                 ossClient.deleteObject(bucketName, objectName);

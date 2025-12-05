@@ -285,10 +285,10 @@ public class CvDemoMain {
     /**
      * 构建社交链接
      */
-    private static List<LinkBO> buildSocialLinks() {
+    private static List<SocialLinkBO> buildSocialLinks() {
         return List.of(
-                LinkBO.builder().label("GitHub").url("https://github.com/example").build(),
-                LinkBO.builder().label("Blog").url("https://blog.example.com").build()
+                SocialLinkBO.builder().label("GitHub").url("https://github.com/example").build(),
+                SocialLinkBO.builder().label("Blog").url("https://blog.example.com").build()
         );
     }
 
