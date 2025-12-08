@@ -1,6 +1,7 @@
 package com.tengYii.jobspark.application.service.impl;
 
 import com.tengYii.jobspark.application.service.ResumeApplicationService;
+import com.tengYii.jobspark.domain.service.ResumePersistenceService;
 import com.tengYii.jobspark.model.bo.CvBO;
 import com.tengYii.jobspark.model.dto.FileStorageResultDTO;
 import com.tengYii.jobspark.model.dto.ResumeUploadRequest;
@@ -29,6 +30,9 @@ public class ResumeApplicationServiceImpl implements ResumeApplicationService {
     @Autowired
     private ResumeOptimizationService resumeOptimizationService;
 
+    @Autowired
+    private ResumePersistenceService resumePersistenceService;
+
     public ResumeUploadResponse uploadResume(ResumeUploadRequest request) {
         try {
             // 1、保存文件
@@ -38,24 +42,20 @@ public class ResumeApplicationServiceImpl implements ResumeApplicationService {
             CvBO cvBO = resumeAnalysisService.analyzeResume(request);
 
             // 3. 将结构化简历对象落库
-            // TODO
+            Long resumeId = resumePersistenceService.convertAndSaveCv(cvBO);
 
-            // 4.
-            return new ResumeUploadResponse(
+            // 4. 返回结果
+            return ResumeUploadResponse.success(
+                    resumeId,
                     storageResultDTO.getUniqueFileName(),
-                    request.getFile().getOriginalFilename(),
-                    "SUCCESS",
-                    "简历上传成功，已开始解析",
-                    LocalDateTime.now()
+                    request.getFile().getSize(),
+                    request.getFile().getContentType()
             );
         } catch (Exception e) {
             log.error("简历上传失败", e);
-            return new ResumeUploadResponse(
-                    null,
+            return ResumeUploadResponse.failure(
                     request.getFile().getOriginalFilename(),
-                    "FAILED",
-                    "简历上传失败: " + e.getMessage(),
-                    LocalDateTime.now()
+                    e.getMessage()
             );
         }
     }
