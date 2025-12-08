@@ -105,20 +105,20 @@ public class TemplateFieldMapper {
 
         // 项目
         List<Map<String, Object>> projects = new ArrayList<>();
-            for (ProjectBO p : cv.getProjects()) {
-                Map<String, Object> m = new LinkedHashMap<>();
-                m.put("name", nullToEmpty(p.getName()));
-                m.put("role", nullToEmpty(p.getRole()));
-                m.put("descriptionMarkdown", Optional.ofNullable(p.getDescriptionMarkdown()).orElse(""));
-                List<String> hl = new ArrayList<>();
-                if (p.getHighlights() != null) {
-                    for (HighlightBO highlightBO : p.getHighlights()) {
-                        hl.add(Optional.ofNullable(highlightBO).map(HighlightBO::getHighlightMarkdown).orElse(""));
-                    }
+        for (ProjectBO p : cv.getProjects()) {
+            Map<String, Object> m = new LinkedHashMap<>();
+            m.put("name", nullToEmpty(p.getName()));
+            m.put("role", nullToEmpty(p.getRole()));
+            m.put("descriptionMarkdown", Optional.ofNullable(p.getDescription()).orElse(""));
+            List<String> hl = new ArrayList<>();
+            if (p.getHighlights() != null) {
+                for (HighlightBO highlightBO : p.getHighlights()) {
+                    hl.add(Optional.ofNullable(highlightBO).map(HighlightBO::getHighlight).orElse(""));
                 }
-                m.put("highlights", hl);
-                projects.add(m);
             }
+            m.put("highlights", hl);
+            projects.add(m);
+        }
 
         put(data, "projects", projects);
 

@@ -124,8 +124,8 @@ public class CvPipelineTest {
         ProjectBO proj = ProjectBO.builder()
                 .name("示例项目")
                 .role("后端开发")
-                .descriptionMarkdown("- SpringBoot + MySQL + Redis")
-                .highlights(List.of(HighlightBO.builder().highlightMarkdown("实现接口幂等与限流").build()))
+                .description("- SpringBoot + MySQL + Redis")
+                .highlights(List.of(HighlightBO.builder().highlight("实现接口幂等与限流").build()))
                 .build();
         SkillBO skill = SkillBO.builder().name("Java / SpringBoot").level("熟练").build();
 
