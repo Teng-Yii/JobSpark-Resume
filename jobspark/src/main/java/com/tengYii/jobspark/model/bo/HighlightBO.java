@@ -1,13 +1,17 @@
 package com.tengYii.jobspark.model.bo;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * 工作经历要点
  */
 @Builder
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class HighlightBO {
 
     /**
@@ -30,7 +34,7 @@ public class HighlightBO {
     /**
      * 亮点内容（职责/业绩/贡献，Markdown格式）
      */
-    private String highlightMarkdown;
+    private String highlight;
 
     /**
      * 排序顺序（升序）

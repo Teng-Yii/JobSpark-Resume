@@ -322,9 +322,9 @@ public class CvDemoMain {
                         .startDate(LocalDate.of(2025, 4, 1))
                         .endDate(LocalDate.of(2025, 8, 1))
                         .highlights(List.of(
-                                HighlightBO.builder().highlightMarkdown("负责核心接口的改造与性能优化，关键接口响应延迟降低约20%").sortOrder(0).build(),
-                                HighlightBO.builder().highlightMarkdown("参与风控规则引擎开发，基于 Redis 结构与多维索引提升命中效率").sortOrder(1).build(),
-                                HighlightBO.builder().highlightMarkdown("推进 MyBatis-Plus 版本升级与分页查询优化，减少冗余SQL").sortOrder(2).build()
+                                HighlightBO.builder().highlight("负责核心接口的改造与性能优化，关键接口响应延迟降低约20%").sortOrder(0).build(),
+                                HighlightBO.builder().highlight("参与风控规则引擎开发，基于 Redis 结构与多维索引提升命中效率").sortOrder(1).build(),
+                                HighlightBO.builder().highlight("推进 MyBatis-Plus 版本升级与分页查询优化，减少冗余SQL").sortOrder(2).build()
                         ))
                         .build()
         );
@@ -338,14 +338,14 @@ public class CvDemoMain {
                 ProjectBO.builder()
                         .name("乐谱主题服务平台")
                         .role("后端开发")
-                        .descriptionMarkdown("""
+                        .description("""
                                 - 平台提供高并发消息通知与用户信息查询，支持秒级延迟
                                 - 技术栈：SpringBoot + MySQL + Redis + RocketMQ + Caffeine + MyBatis-Plus
                                 """)
                         .highlights(List.of(
-                                HighlightBO.builder().highlightMarkdown("使用 Redis 与 Lua 实现幂等与限流，保障接口稳定性").sortOrder(0).build(),
-                                HighlightBO.builder().highlightMarkdown("构建消息投递重试与死信队列，提升消息可靠性").sortOrder(1).build(),
-                                HighlightBO.builder().highlightMarkdown("设计缓存淘汰与预热策略，降低数据库压力").sortOrder(2).build()
+                                HighlightBO.builder().highlight("使用 Redis 与 Lua 实现幂等与限流，保障接口稳定性").sortOrder(0).build(),
+                                HighlightBO.builder().highlight("构建消息投递重试与死信队列，提升消息可靠性").sortOrder(1).build(),
+                                HighlightBO.builder().highlight("设计缓存淘汰与预热策略，降低数据库压力").sortOrder(2).build()
                         ))
                         .build()
         );

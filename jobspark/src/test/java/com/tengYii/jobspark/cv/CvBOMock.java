@@ -55,26 +55,26 @@ public class CvBOMock {
         // 创建工作经历
         List<HighlightBO> experienceHighlights1 = Arrays.asList(
                 HighlightBO.builder()
-                        .highlightMarkdown("负责后端核心业务模块的设计与开发，使用Spring Boot框架")
+                        .highlight("负责后端核心业务模块的设计与开发，使用Spring Boot框架")
                         .sortOrder(1)
                         .build(),
                 HighlightBO.builder()
-                        .highlightMarkdown("优化数据库查询性能，将关键接口响应时间从500ms降低到100ms")
+                        .highlight("优化数据库查询性能，将关键接口响应时间从500ms降低到100ms")
                         .sortOrder(2)
                         .build(),
                 HighlightBO.builder()
-                        .highlightMarkdown("参与系统架构设计，引入微服务架构提升系统可维护性")
+                        .highlight("参与系统架构设计，引入微服务架构提升系统可维护性")
                         .sortOrder(3)
                         .build()
         );
 
         List<HighlightBO> experienceHighlights2 = Arrays.asList(
                 HighlightBO.builder()
-                        .highlightMarkdown("负责推荐算法的设计与实现，提升推荐准确率15%")
+                        .highlight("负责推荐算法的设计与实现，提升推荐准确率15%")
                         .sortOrder(1)
                         .build(),
                 HighlightBO.builder()
-                        .highlightMarkdown("使用TensorFlow搭建深度学习模型，处理大规模数据")
+                        .highlight("使用TensorFlow搭建深度学习模型，处理大规模数据")
                         .sortOrder(2)
                         .build()
         );
@@ -107,22 +107,22 @@ public class CvBOMock {
         // 创建项目经验
         List<HighlightBO> projectHighlights1 = Arrays.asList(
                 HighlightBO.builder()
-                        .highlightMarkdown("设计并实现分布式任务调度系统，支持每日千万级任务调度")
+                        .highlight("设计并实现分布式任务调度系统，支持每日千万级任务调度")
                         .sortOrder(1)
                         .build(),
                 HighlightBO.builder()
-                        .highlightMarkdown("引入Redis缓存提升系统性能，QPS提升3倍")
+                        .highlight("引入Redis缓存提升系统性能，QPS提升3倍")
                         .sortOrder(2)
                         .build()
         );
 
         List<HighlightBO> projectHighlights2 = Arrays.asList(
                 HighlightBO.builder()
-                        .highlightMarkdown("使用协同过滤和深度学习模型构建推荐系统")
+                        .highlight("使用协同过滤和深度学习模型构建推荐系统")
                         .sortOrder(1)
                         .build(),
                 HighlightBO.builder()
-                        .highlightMarkdown("实现实时特征工程，支持模型动态更新")
+                        .highlight("实现实时特征工程，支持模型动态更新")
                         .sortOrder(2)
                         .build()
         );
@@ -133,7 +133,7 @@ public class CvBOMock {
                         .startDate(LocalDate.of(2022, 9, 1))
                         .endDate(LocalDate.of(2023, 6, 30))
                         .role("技术负责人")
-                        .descriptionMarkdown("基于Spring Cloud和Quartz构建的企业级任务调度平台，支持分布式环境下的任务执行与监控")
+                        .description("基于Spring Cloud和Quartz构建的企业级任务调度平台，支持分布式环境下的任务执行与监控")
                         .sortOrder(2)
                         .highlights(projectHighlights1)
                         .build(),
@@ -142,7 +142,7 @@ public class CvBOMock {
                         .startDate(LocalDate.of(2024, 1, 15))
                         .endDate(LocalDate.of(2024, 6, 30))
                         .role("算法工程师")
-                        .descriptionMarkdown("基于深度学习的个性化推荐系统，支持多种推荐场景，包括商品推荐、内容推荐等")
+                        .description("基于深度学习的个性化推荐系统，支持多种推荐场景，包括商品推荐、内容推荐等")
                         .sortOrder(1)
                         .highlights(projectHighlights2)
                         .build()
@@ -206,14 +206,14 @@ public class CvBOMock {
                         .name("Oracle Certified Professional Java SE Programmer")
                         .issuer("Oracle")
                         .date(LocalDate.of(2021, 5, 15))
-                        .descriptionMarkdown("分数：95%\n\n等级：优秀")
+                        .description("分数：95%\n\n等级：优秀")
                         .sortOrder(2)
                         .build(),
                 CertificateBO.builder()
                         .name("AWS Certified Solutions Architect")
                         .issuer("Amazon Web Services")
                         .date(LocalDate.of(2022, 8, 20))
-                        .descriptionMarkdown("分数：88%\n\n有效期：3年")
+                        .description("分数：88%\n\n有效期：3年")
                         .sortOrder(1)
                         .build()
         );

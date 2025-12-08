@@ -40,7 +40,7 @@ public class ProjectBO {
     /**
      * 项目描述（Markdown格式）
      */
-    private String descriptionMarkdown;
+    private String description;
 
     /**
      * 排序顺序（升序）

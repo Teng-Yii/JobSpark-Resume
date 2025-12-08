@@ -69,6 +69,4 @@ public class CvHighlightPO implements Serializable {
      * 更新时间
      */
     private LocalDateTime updatedTime;
-
-
 }

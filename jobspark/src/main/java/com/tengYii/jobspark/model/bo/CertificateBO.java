@@ -34,7 +34,7 @@ public class CertificateBO {
     /**
      * 证书描述（如：等级/分数，Markdown格式）
      */
-    private String descriptionMarkdown;
+    private String description;
 
     /**
      * 排序顺序（升序）
