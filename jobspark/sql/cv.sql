@@ -191,7 +191,7 @@ CREATE TABLE `cv_locale_config` (
 DROP TABLE IF EXISTS resume_task;
 CREATE TABLE `resume_task` (
     `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '主键ID',
-    `task_id` VARCHAR(64) NOT NULL COMMENT '任务唯一标识符',
+    `task_id` VARCHAR(2) NOT NULL COMMENT '任务唯一标识符',
     `user_id` BIGINT DEFAULT NULL COMMENT '用户ID（如果有用户体系）',
     `file_name` VARCHAR(255) NOT NULL COMMENT '存储的文件名',
     `original_file_name` VARCHAR(255) NOT NULL COMMENT '原始文件名',

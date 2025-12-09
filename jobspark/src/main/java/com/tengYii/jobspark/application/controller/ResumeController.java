@@ -39,7 +39,7 @@ public class ResumeController {
             throw new ValidationException(String.valueOf(HttpStatus.BAD_REQUEST.value()), validationResult);
         }
 
-        ResumeUploadResponse response = resumeApplicationService.uploadResume(request);
+        ResumeUploadResponse response = resumeApplicationService.uploadAndParseResumeAsync(request);
         return ResponseEntity.ok(response);
     }
 
