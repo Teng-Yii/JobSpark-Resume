@@ -9,5 +9,5 @@ public class FileStoreConstants {
 
     public static final String OSS_REGION = "cn-beijing";
 
-    public static final String BUCKET_PREFIX = "jobspark-resume";
+    public static final String BUCKET_NAME = "jobspark-resume";
 }

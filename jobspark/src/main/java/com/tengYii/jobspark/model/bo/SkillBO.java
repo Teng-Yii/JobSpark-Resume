@@ -18,6 +18,8 @@ public class SkillBO {
 
     /**
      * 技能分类（如：技术/语言/软技能）
+     *
+     * @see com.tengYii.jobspark.common.enums.SkillCategoryEnum
      */
     private String category;
 
@@ -28,6 +30,8 @@ public class SkillBO {
 
     /**
      * 熟练度（熟练/良好/了解/精通）
+     *
+     * @see com.tengYii.jobspark.common.enums.SkillLevelEnum
      */
     private String level;
 

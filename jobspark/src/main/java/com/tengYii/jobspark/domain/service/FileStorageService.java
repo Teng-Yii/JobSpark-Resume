@@ -17,6 +17,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.*;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.Objects;
 import java.util.Random;
 import java.util.UUID;
@@ -76,7 +78,7 @@ public class FileStorageService {
     /**
      * 保存上传文件到OSS
      *
-     * @param file 上传的文件
+     * @param file       上传的文件
      * @param bucketName 存储桶名称，如果为空则自动生成
      * @return 文件存储信息对象
      * @throws ClientException 客户端异常
@@ -93,7 +95,7 @@ public class FileStorageService {
 
             // 如果未指定bucket名称，则生成唯一的bucket名称
             if (StringUtils.isEmpty(bucketName)) {
-                bucketName = generateUniqueBucketName(FileStoreConstants.BUCKET_PREFIX);
+                bucketName = FileStoreConstants.BUCKET_NAME;
             }
 
             // 创建存储空间（如果不存在）
@@ -133,16 +135,17 @@ public class FileStorageService {
      * 根据bucket和文件名下载文件
      *
      * @param bucketName 存储桶名称
-     * @param objectName 文件对象名称
+     * @param fileName   文件对象名称
      * @return 文件输入流
      * @throws ClientException 客户端异常
      */
-    public InputStream downloadFileByBucketAndName(String bucketName, String objectName) throws ClientException {
-        if (StringUtils.isEmpty(bucketName)) {
-            throw new IllegalArgumentException("存储桶名称不能为空");
-        }
-        if (StringUtils.isEmpty(objectName)) {
+    public InputStream downloadFileByBucketAndName(String bucketName, String fileName) throws ClientException {
+        if (StringUtils.isEmpty(fileName)) {
             throw new IllegalArgumentException("文件对象名称不能为空");
+        }
+        if (StringUtils.isEmpty(bucketName)) {
+            // 如果未指定bucket名称，则使用默认的bucket名称
+            bucketName = FileStoreConstants.BUCKET_NAME;
         }
 
         OSS ossClient = null;
@@ -151,13 +154,13 @@ public class FileStorageService {
             ossClient = getOssClient();
 
             // 检查文件是否存在
-            if (!ossClient.doesObjectExist(bucketName, objectName)) {
-                throw new ClientException("文件不存在: " + bucketName + "/" + objectName);
+            if (!ossClient.doesObjectExist(bucketName, fileName)) {
+                throw new ClientException("文件不存在: " + bucketName + "/" + fileName);
             }
 
             // 获取文件对象
-            OSSObject ossObject = ossClient.getObject(bucketName, objectName);
-            log.info("文件下载成功 - Bucket: {}, Object: {}", bucketName, objectName);
+            OSSObject ossObject = ossClient.getObject(bucketName, fileName);
+            log.info("文件下载成功 - Bucket: {}, Object: {}", bucketName, fileName);
 
             return ossObject.getObjectContent();
 
@@ -194,10 +197,10 @@ public class FileStorageService {
     }
 
     /**
-     * 辅助方法：生成唯一的文件对象名称
+     * 生成简洁的唯一对象名称
      *
      * @param file 上传的文件
-     * @return 唯一的对象名称
+     * @return 唯一的对象名称，格式：resumes/yyyy-MM/filename.extension
      */
     private String generateUniqueObjectName(MultipartFile file) {
         String originalFileName = file.getOriginalFilename();
@@ -208,17 +211,22 @@ public class FileStorageService {
             fileExtension = originalFileName.substring(originalFileName.lastIndexOf("."));
         }
 
-        // 生成带时间戳和UUID的唯一文件名
-        String timestamp = String.valueOf(System.currentTimeMillis());
-        String uuid = UUID.randomUUID().toString().replace("-", "");
+        // 按年月分层
+        LocalDate now = LocalDate.now();
+        String yearMonth = now.format(DateTimeFormatter.ofPattern("yyyy-MM"));
 
-        return "resumes/" + timestamp + "/" + uuid + fileExtension;
+        // 生成唯一文件名：时间戳 + UUID前8位
+        String timestamp = String.valueOf(System.currentTimeMillis());
+        String uuid = UUID.randomUUID().toString().replace("-", "").substring(0, 8);
+        String fileName = String.format("%s_%s%s", timestamp, uuid, fileExtension);
+
+        return String.format("resumes/%s/%s", yearMonth, fileName);
     }
 
     /**
-     * 辅助方法：创建存储桶（如果不存在）
+     * 创建存储桶（如果不存在）
      *
-     * @param ossClient OSS客户端
+     * @param ossClient  OSS客户端
      * @param bucketName 存储桶名称
      */
     private void createBucketIfNotExists(OSS ossClient, String bucketName) {
