@@ -735,7 +735,15 @@ public class ResumePersistenceService {
         if (Objects.nonNull(formatMetaBO)) {
             CvFormatMetaPO formatMetaPO = new CvFormatMetaPO();
             BeanUtils.copyProperties(formatMetaBO, formatMetaPO);
+
+            // 预生成FormatMeta主键ID
+            long formatMetaId = SnowflakeUtil.snowflakeId();
+            formatMetaPO.setId(formatMetaId);
             formatMetaPO.setCvId(cvId);
+
+            formatMetaPO.setDeleteFlag(DeleteFlagEnum.NOT_DELETED.getCode());
+            formatMetaPO.setCreatedTime(nowTime);
+            formatMetaPO.setUpdatedTime(nowTime);
 
             // 如果包含LocaleConfigBO，需要单独处理
             if (Objects.nonNull(formatMetaBO.getLocaleConfig())) {
@@ -743,7 +751,10 @@ public class ResumePersistenceService {
 
                 CvLocaleConfigPO cvLocaleConfigPO = new CvLocaleConfigPO();
                 BeanUtils.copyProperties(localeConfigBO, cvLocaleConfigPO);
+                cvLocaleConfigPO.setFormatMetaId(formatMetaId);
                 cvLocaleConfigPO.setDeleteFlag(DeleteFlagEnum.NOT_DELETED.getCode());
+                cvLocaleConfigPO.setCreatedTime(nowTime);
+                cvLocaleConfigPO.setUpdatedTime(nowTime);
 
                 localeConfigRepository.save(cvLocaleConfigPO);
             }

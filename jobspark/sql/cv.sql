@@ -11,7 +11,7 @@ CREATE TABLE `cv` (
   `created_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `updated_time` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   INDEX `idx_name` (`name`),
-  INDEX `idx_is_deleted` (`is_deleted`) COMMENT '逻辑删除查询索引'
+  INDEX `idx_delete_flag` (`delete_flag`) COMMENT '逻辑删除查询索引'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='简历基本信息表';
 
 -- 联系方式表
@@ -26,9 +26,8 @@ CREATE TABLE `cv_contact` (
   `delete_flag` TINYINT(1) DEFAULT 0 COMMENT '逻辑删除：0-未删除 1-已删除',
   `created_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `updated_time` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-  FOREIGN KEY (`cv_id`) REFERENCES `cv`(`id`) ON DELETE CASCADE,
   INDEX `idx_cv_id` (`cv_id`) COMMENT '按简历ID查询联系方式',
-  INDEX `idx_is_deleted` (`is_deleted`)
+  INDEX `idx_delete_flag` (`delete_flag`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='简历联系方式表';
 
 -- 社交链接表
@@ -42,9 +41,8 @@ CREATE TABLE `cv_social_link` (
   `delete_flag` TINYINT(1) DEFAULT 0 COMMENT '逻辑删除：0-未删除 1-已删除',
   `created_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `updated_time` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-  FOREIGN KEY (`cv_id`) REFERENCES `cv`(`id`) ON DELETE CASCADE,
   INDEX `idx_cv_id` (`cv_id`) COMMENT '按简历ID查询社交链接',
-  INDEX `idx_is_deleted` (`is_deleted`)
+  INDEX `idx_delete_flag` (`delete_flag`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='简历社交链接表';
 
 -- 教育经历表
@@ -62,9 +60,8 @@ CREATE TABLE `cv_education` (
   `delete_flag` TINYINT(1) DEFAULT 0 COMMENT '逻辑删除：0-未删除 1-已删除',
   `created_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `updated_time` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-  FOREIGN KEY (`cv_id`) REFERENCES `cv`(`id`) ON DELETE CASCADE,
   INDEX `idx_cv_edu` (`cv_id`, `start_date` DESC) COMMENT '按简历ID+开始时间倒序查询（最新在前）',
-  INDEX `idx_is_deleted` (`is_deleted`)
+  INDEX `idx_delete_flag` (`delete_flag`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='简历教育经历表';
 
 -- 工作/实习经历表
@@ -83,9 +80,8 @@ CREATE TABLE `cv_experience` (
   `delete_flag` TINYINT(1) DEFAULT 0 COMMENT '逻辑删除：0-未删除 1-已删除',
   `created_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `updated_time` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-  FOREIGN KEY (`cv_id`) REFERENCES `cv`(`id`) ON DELETE CASCADE,
   INDEX `idx_cv_exp` (`cv_id`, `start_date` DESC) COMMENT '按简历ID+开始时间倒序查询（最新在前）',
-  INDEX `idx_is_deleted` (`is_deleted`)
+  INDEX `idx_delete_flag` (`delete_flag`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='简历工作经历表';
 
 -- 项目经验表
@@ -102,9 +98,8 @@ CREATE TABLE `cv_project` (
   `delete_flag` TINYINT(1) DEFAULT 0 COMMENT '逻辑删除：0-未删除 1-已删除',
   `created_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `updated_time` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-  FOREIGN KEY (`cv_id`) REFERENCES `cv`(`id`) ON DELETE CASCADE,
   INDEX `idx_cv_project` (`cv_id`, `start_date` DESC) COMMENT '按简历ID+开始时间倒序查询',
-  INDEX `idx_is_deleted` (`is_deleted`)
+  INDEX `idx_delete_flag` (`delete_flag`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='简历项目经验表';
 
 -- 统一亮点表
@@ -120,7 +115,7 @@ CREATE TABLE `cv_highlight` (
   `updated_time` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   -- 索引：按类型+关联ID查询（核心查询场景）
   INDEX `idx_type_related` (`type`, `related_id`) COMMENT '按类型+关联ID查询亮点（如：type=1+related_id=工作经历ID）',
-  INDEX `idx_is_deleted` (`is_deleted`) COMMENT '逻辑删除过滤索引'
+  INDEX `idx_delete_flag` (`delete_flag`) COMMENT '逻辑删除过滤索引'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='统一亮点表（工作经历/项目经历的亮点）';
 
 -- 技能表
@@ -135,9 +130,8 @@ CREATE TABLE `cv_skill` (
   `delete_flag` TINYINT(1) DEFAULT 0 COMMENT '逻辑删除：0-未删除 1-已删除',
   `created_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `updated_time` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-  FOREIGN KEY (`cv_id`) REFERENCES `cv`(`id`) ON DELETE CASCADE,
   INDEX `idx_cv_skill` (`cv_id`, `category`) COMMENT '按简历ID+分类查询技能',
-  INDEX `idx_is_deleted` (`is_deleted`)
+  INDEX `idx_delete_flag` (`delete_flag`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='简历技能表';
 
 -- 证书/获奖表
@@ -153,9 +147,8 @@ CREATE TABLE `cv_certificate` (
   `delete_flag` TINYINT(1) DEFAULT 0 COMMENT '逻辑删除：0-未删除 1-已删除',
   `created_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `updated_time` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-  FOREIGN KEY (`cv_id`) REFERENCES `cv`(`id`) ON DELETE CASCADE,
   INDEX `idx_cv_cert` (`cv_id`, `date` DESC) COMMENT '按简历ID+获得时间倒序查询',
-  INDEX `idx_is_deleted` (`is_deleted`)
+  INDEX `idx_delete_flag` (`delete_flag`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='简历证书获奖表';
 
 -- 格式元数据表
@@ -175,9 +168,8 @@ CREATE TABLE `cv_format_meta` (
   `delete_flag` TINYINT(1) DEFAULT 0 COMMENT '逻辑删除：0-未删除 1-已删除',
   `created_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `updated_time` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-  FOREIGN KEY (`cv_id`) REFERENCES `cv`(`id`) ON DELETE CASCADE,
   INDEX `idx_cv_id` (`cv_id`) COMMENT '按简历ID查询格式配置',
-  INDEX `idx_is_deleted` (`is_deleted`)
+  INDEX `idx_delete_flag` (`delete_flag`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='简历格式元数据表';
 
 -- 国际化配置表
@@ -187,11 +179,39 @@ CREATE TABLE `cv_locale_config` (
   `format_meta_id` BIGINT NOT NULL COMMENT '格式元数据ID',
   `locale` VARCHAR(10) DEFAULT 'zh-CN' COMMENT '语言标识（如：zh-CN, en-US, ja-JP）',
   `date_pattern` VARCHAR(20) DEFAULT 'yyyy.MM' COMMENT '本地化日期格式',
-  `section_labels` JSON NULL COMMENT '区块名称本地化（如：{"education":"教育经历","experience":"工作经历"}）',
+  `section_labels` VARCHAR(500) NULL COMMENT '区块名称本地化（如：{"education":"教育经历","experience":"工作经历"}）',
   `delete_flag` TINYINT(1) DEFAULT 0 COMMENT '逻辑删除：0-未删除 1-已删除',
   `created_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `updated_time` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-  FOREIGN KEY (`format_meta_id`) REFERENCES `cv_format_meta`(`id`) ON DELETE CASCADE,
   UNIQUE INDEX `uk_format_locale` (`format_meta_id`, `locale`) COMMENT '唯一约束：同一格式元数据下语言标识不重复',
-  INDEX `idx_is_deleted` (`is_deleted`)
+  INDEX `idx_delete_flag` (`delete_flag`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='简历国际化配置表';
+
+-- 简历处理任务表
+DROP TABLE IF EXISTS resume_task;
+CREATE TABLE `resume_task` (
+    `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+    `task_id` VARCHAR(64) NOT NULL COMMENT '任务唯一标识符',
+    `user_id` BIGINT DEFAULT NULL COMMENT '用户ID（如果有用户体系）',
+    `file_name` VARCHAR(255) NOT NULL COMMENT '存储的文件名',
+    `original_file_name` VARCHAR(255) NOT NULL COMMENT '原始文件名',
+    `file_size` BIGINT NOT NULL COMMENT '文件大小（字节）',
+    `content_type` VARCHAR(100) DEFAULT NULL COMMENT '文件MIME类型',
+    `file_path` VARCHAR(500) DEFAULT NULL COMMENT '文件存储路径',
+    `status` VARCHAR(20) NOT NULL DEFAULT 'PROCESSING' COMMENT '任务状态：PROCESSING-处理中，ANALYZING-解析中，SAVING-存储中，COMPLETED-完成，FAILED-失败',
+    `resume_id` BIGINT DEFAULT NULL COMMENT '关联的简历ID（完成后填充）',
+    `error_code` VARCHAR(50) DEFAULT NULL COMMENT '错误代码',
+    `error_message` TEXT DEFAULT NULL COMMENT '错误详细信息',
+    `retry_count` INT DEFAULT 0 COMMENT '重试次数',
+    `max_retry_count` INT DEFAULT 3 COMMENT '最大重试次数',
+    `start_time` DATETIME DEFAULT NULL COMMENT '开始处理时间',
+    `complete_time` DATETIME DEFAULT NULL COMMENT '完成时间',
+    `expire_time` DATETIME DEFAULT NULL COMMENT '任务过期时间',
+    `create_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `update_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    `is_deleted` TINYINT(1) NOT NULL DEFAULT 0 COMMENT '是否删除：0-否，1-是',
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uk_task_id` (`task_id`),
+    KEY `idx_user_id` (`user_id`),
+    KEY `idx_resume_id_status` (`resume_id`,`status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='简历处理任务表';
