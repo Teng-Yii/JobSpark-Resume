@@ -7,7 +7,9 @@ public class ChatModelProvider {
     public static ChatModel createChatModel() {
         return OpenAiChatModel.builder()
                 .apiKey(System.getenv("DASHSCOPE_API_KEY"))
-                .modelName("qwen-flash")
+//                .modelName("qwen-flash")
+                .modelName("qwen-vl-plus")
+//                .modelName("qwen-plus")
                 .baseUrl("https://dashscope.aliyuncs.com/compatible-mode/v1")
 //                .logRequests(true)
 //                .logResponses(true)
