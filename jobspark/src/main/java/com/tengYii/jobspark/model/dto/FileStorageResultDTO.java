@@ -34,5 +34,10 @@ public class FileStorageResultDTO {
      * 存储文件的内容类型。
      */
     private String contentType;
+
+    /**
+     * 文件存储路径
+     */
+    private String filePath;
 }
 

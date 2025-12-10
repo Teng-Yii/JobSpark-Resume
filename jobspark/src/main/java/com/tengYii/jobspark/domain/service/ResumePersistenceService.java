@@ -63,14 +63,14 @@ public class ResumePersistenceService {
      * 将CvBO转换并保存为PO对象
      *
      * @param cvBO 简历业务对象
+     * @param  nowTime 当前时间
      * @return 保存后的简历ID
      */
-    public Long convertAndSaveCv(CvBO cvBO) {
+    public Long convertAndSaveCv(CvBO cvBO, LocalDateTime nowTime) {
         if (Objects.isNull(cvBO)) {
             throw new IllegalArgumentException("简历对象不能为空");
         }
 
-        LocalDateTime nowTime = LocalDateTime.now();
         // 1. 转换并保存主简历信息
         CvPO cvPO = convertToCvPO(cvBO, nowTime);
         cvRepository.save(cvPO);

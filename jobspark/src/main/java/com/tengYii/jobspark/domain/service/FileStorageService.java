@@ -110,6 +110,9 @@ public class FileStorageService {
                 log.info("文件上传成功 - Bucket: {}, Object: {}", bucketName, uniqueFileName);
             }
 
+            // 构建完整的文件访问URL
+            String fileUrl = String.format("https://%s.%s/%s", bucketName, FileStoreConstants.OSS_ENDPOINT, uniqueFileName);
+
             // 返回文件存储结果
             return FileStorageResultDTO.builder()
                     .bucketName(bucketName)
@@ -117,6 +120,7 @@ public class FileStorageService {
                     .originalFileName(file.getOriginalFilename())
                     .fileSize(file.getSize())
                     .contentType(file.getContentType())
+                    .filePath(fileUrl)  // 添加完整访问路径
                     .build();
 
         } catch (OSSException oe) {

@@ -91,16 +91,6 @@ public class ResumeTaskPO implements Serializable {
     private String errorMessage;
 
     /**
-     * 重试次数
-     */
-    private Integer retryCount;
-
-    /**
-     * 最大重试次数
-     */
-    private Integer maxRetryCount;
-
-    /**
      * 开始处理时间
      */
     private LocalDateTime startTime;
@@ -109,11 +99,6 @@ public class ResumeTaskPO implements Serializable {
      * 完成时间
      */
     private LocalDateTime completeTime;
-
-    /**
-     * 任务过期时间
-     */
-    private LocalDateTime expireTime;
 
     /**
      * 创建时间
@@ -126,7 +111,9 @@ public class ResumeTaskPO implements Serializable {
     private LocalDateTime updateTime;
 
     /**
-     * 是否删除：0-否，1-是
+     * 逻辑删除：0-未删除 1-已删除
+     *
+     * @see com.tengYii.jobspark.common.enums.DeleteFlagEnum
      */
-    private Boolean isDeleted;
+    private Integer deleteFlag;
 }
