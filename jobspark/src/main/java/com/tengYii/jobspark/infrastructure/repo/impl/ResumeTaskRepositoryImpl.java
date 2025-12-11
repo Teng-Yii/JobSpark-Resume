@@ -11,6 +11,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Objects;
 
 /**
  * <p>
@@ -56,5 +58,32 @@ public class ResumeTaskRepositoryImpl extends ServiceImpl<ResumeTaskMapper, Resu
                 .set(ResumeTaskPO::getUpdateTime, updateTime);
 
         baseMapper.update(null, updateWrapper);
+    }
+
+    /**
+     * 获取用户任务列表
+     *
+     * @param userId 用户ID（可选）
+     * @param status 任务状态（可选）
+     * @return 任务列表
+     */
+    @Override
+    public List<ResumeTaskPO> getUserTasks(Long userId, String status) {
+        LambdaQueryWrapper<ResumeTaskPO> queryWrapper = new LambdaQueryWrapper<>();
+
+        // 如果提供了用户ID，则按用户ID筛选
+        if (Objects.nonNull(userId)) {
+            queryWrapper.eq(ResumeTaskPO::getUserId, userId);
+        }
+
+        // 如果提供了状态，则按状态筛选
+        if (StringUtils.isNotEmpty(status)) {
+            queryWrapper.eq(ResumeTaskPO::getStatus, status);
+        }
+
+        // 按创建时间倒序排列，最新的任务在前面
+        queryWrapper.orderByDesc(ResumeTaskPO::getCreateTime);
+
+        return baseMapper.selectList(queryWrapper);
     }
 }

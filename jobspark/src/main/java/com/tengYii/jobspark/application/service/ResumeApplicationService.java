@@ -3,6 +3,9 @@ package com.tengYii.jobspark.application.service;
 import com.tengYii.jobspark.model.dto.ResumeUploadAsyncResponse;
 import com.tengYii.jobspark.model.dto.ResumeUploadRequest;
 import com.tengYii.jobspark.model.dto.ResumeUploadResponse;
+import com.tengYii.jobspark.model.dto.TaskStatusResponse;
+
+import java.util.List;
 
 public interface ResumeApplicationService {
 
@@ -30,4 +33,29 @@ public interface ResumeApplicationService {
      * @return 包含优化建议的对象。
      */
     Object getOptimizationSuggestions(String resumeId);
+
+    /**
+     * 获取任务状态
+     *
+     * @param taskId 任务ID
+     * @return 任务状态响应对象
+     */
+    TaskStatusResponse getTaskStatus(String taskId);
+
+    /**
+     * 获取用户任务列表
+     *
+     * @param userId 用户ID（可选）
+     * @param status 任务状态（可选）
+     * @return 任务列表
+     */
+    List<TaskStatusResponse> getUserTasks(Long userId, String status);
+
+    /**
+     * 取消任务
+     *
+     * @param taskId 任务ID
+     * @return 取消是否成功
+     */
+    Boolean cancelTask(String taskId);
 }

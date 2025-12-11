@@ -1,16 +1,12 @@
 package com.tengYii.jobspark.domain.service;
 
-//import com.tengYii.jobspark.infrastructure.mapper.ResumeTaskMapper;
-
-import com.aliyuncs.utils.StringUtils;
 import com.tengYii.jobspark.common.enums.TaskStatusEnum;
 import com.tengYii.jobspark.infrastructure.repo.ResumeTaskRepository;
-import com.tengYii.jobspark.model.bo.CvBO;
 import com.tengYii.jobspark.model.po.ResumeTaskPO;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -49,6 +45,12 @@ public class ResumeTaskService {
         }
     }
 
+    /**
+     * 根据任务ID获取任务信息
+     *
+     * @param taskId 任务ID
+     * @return 任务信息对象，若任务ID为空或查询失败则返回null
+     */
     public ResumeTaskPO getByTaskId(String taskId) {
         if (StringUtils.isEmpty(taskId)) {
             log.warn("查询任务失败，任务ID为空");
@@ -113,6 +115,14 @@ public class ResumeTaskService {
         }
     }
 
+    /**
+     * 处理任务失败并更新任务状态。
+     *
+     * @param taskId       任务ID。
+     * @param resumeId     简历ID。
+     * @param nowTime      当前时间。
+     * @param errorMessage 失败错误信息。
+     */
     public void failTask(String taskId, Long resumeId, LocalDateTime nowTime, String errorMessage) {
         if (StringUtils.isEmpty(taskId)) {
             log.error("任务失败处理失败，任务ID为空");
@@ -129,6 +139,22 @@ public class ResumeTaskService {
             resumeTaskRepository.updateById(resumeTaskPO);
         } catch (Exception e) {
             log.error("任务失败处理异常，taskId: {}", taskId, e);
+        }
+    }
+
+    /**
+     * 获取用户任务列表
+     *
+     * @param userId 用户ID（可选）
+     * @param status 任务状态（可选）
+     * @return 任务列表
+     */
+    public List<ResumeTaskPO> getUserTasks(Long userId, String status) {
+        try {
+            return resumeTaskRepository.getUserTasks(userId, status);
+        } catch (Exception e) {
+            log.error("获取用户任务列表失败，userId: {}, status: {}", userId, status, e);
+            return null;
         }
     }
 }

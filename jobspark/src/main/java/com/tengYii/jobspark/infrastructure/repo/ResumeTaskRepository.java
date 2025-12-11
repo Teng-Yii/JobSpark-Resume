@@ -5,6 +5,7 @@ import com.tengYii.jobspark.model.po.ResumeTaskPO;
 import com.baomidou.mybatisplus.extension.service.IService;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * <p>
@@ -32,4 +33,13 @@ public interface ResumeTaskRepository extends IService<ResumeTaskPO> {
      * @param updateTime     当前时间
      */
     void updateTaskStatus(String taskId, TaskStatusEnum taskStatusEnum, LocalDateTime updateTime);
+
+    /**
+     * 获取用户任务列表
+     *
+     * @param userId 用户ID（可选）
+     * @param status 任务状态（可选）
+     * @return 任务列表
+     */
+    List<ResumeTaskPO> getUserTasks(Long userId, String status);
 }
