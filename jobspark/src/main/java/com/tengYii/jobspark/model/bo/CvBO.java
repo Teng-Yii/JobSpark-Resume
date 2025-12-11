@@ -18,6 +18,11 @@ import java.util.List;
 public class CvBO {
 
     /**
+     * 用户ID
+     */
+    private Long userId;
+
+    /**
      * 姓名（必填）
      */
     private String name;

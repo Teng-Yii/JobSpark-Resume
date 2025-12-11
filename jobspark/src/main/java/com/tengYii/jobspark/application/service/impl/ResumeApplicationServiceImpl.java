@@ -26,7 +26,6 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 
@@ -71,10 +70,11 @@ public class ResumeApplicationServiceImpl implements ResumeApplicationService {
             String taskId = String.valueOf(SnowflakeUtil.snowflakeId());
 
             // 3. 创建任务记录（状态：处理中）
+            Long userId = Long.parseLong(request.getUserId());
             LocalDateTime nowTime = LocalDateTime.now();
             ResumeTaskPO taskPO = ResumeTaskPO.builder()
                     .taskId(taskId)
-//                    .userId(null)
+                    .userId(userId)
                     .fileName(storageResultDTO.getUniqueFileName())
                     .originalFileName(request.getFile().getOriginalFilename())
                     .fileSize(request.getFile().getSize())
@@ -89,7 +89,7 @@ public class ResumeApplicationServiceImpl implements ResumeApplicationService {
 
             Boolean saveTaskSuccessFlag = resumeTaskService.saveTask(taskPO);
             if (Boolean.FALSE.equals(saveTaskSuccessFlag)) {
-                log.error("简历上传解析，创建异步任务记录失败，userId: {}", request.getUserId());
+                log.error("简历上传解析，创建异步任务记录失败，userId: {}", userId);
             }
 
             // 4. 异步执行耗时操作
@@ -131,6 +131,7 @@ public class ResumeApplicationServiceImpl implements ResumeApplicationService {
             // 解析简历内容（耗时操作）
             stopWatch.start("agent解析简历内容");
             CvBO cvBO = resumeAnalysisService.analyzeResume(request);
+            cvBO.setUserId(Long.parseLong(request.getUserId()));
             stopWatch.stop();
 
             // 更新任务状态为存储中

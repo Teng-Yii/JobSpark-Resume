@@ -2,6 +2,7 @@
 DROP TABLE IF EXISTS cv;
 CREATE TABLE `cv` (
   `id` BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '简历ID',
+  `user_id` BIGINT DEFAULT NULL COMMENT '用户ID',
   `name` VARCHAR(100) NOT NULL COMMENT '姓名（必填）',
   `birth_date` DATE NULL COMMENT '出生日期（用于计算年龄，可选）',
   `title` VARCHAR(200) NULL COMMENT '期望岗位/头衔（可选）',

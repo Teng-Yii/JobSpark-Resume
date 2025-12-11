@@ -35,6 +35,11 @@ public class CvPO implements Serializable {
     private Long id;
 
     /**
+     * 用户ID
+     */
+    private Long userId;
+
+    /**
      * 姓名（必填）
      */
     private String name;
