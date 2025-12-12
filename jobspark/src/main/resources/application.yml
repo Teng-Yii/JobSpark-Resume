@@ -7,6 +7,17 @@ spring:
     url: jdbc:mysql://localhost:3306/jobspark?useSSL=false&serverTimezone=UTC&useUnicode=true&characterEncoding=utf-8
     username: root
     password: 031008
+  redis:
+    host: localhost
+    port: 6379
+    # password: your_password
+    timeout: 2000ms
+    lettuce:
+      pool:
+        max-active: 8
+        max-idle: 8
+        min-idle: 0
+        max-wait: -1ms
 
 # MyBatis-Plus configuration
 mybatis-plus:
@@ -19,3 +30,9 @@ mybatis-plus:
       logic-delete-field: deleted
       logic-delete-value: 1
       logic-not-delete-value: 0
+
+
+jwt:
+  # token密钥生成在线地址：https://www.btool.cn/token-generator?symbols=true
+  secret: Z!{Q'I#FU|+PlA#CG0Rd0yDZBU@QU-L\RMqpPF-smXxp}7,o:OHzhTd[![oqf-"f # 至少32位
+  access-token-expiration: 7200    # Access Token 有效期：两小时（秒）

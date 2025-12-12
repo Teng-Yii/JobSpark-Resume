@@ -94,7 +94,7 @@ public class ResumeApplicationServiceImpl implements ResumeApplicationService {
 
             // 4. 异步执行耗时操作
             CompletableFuture.runAsync(() -> {
-                processResumeAsync(taskId, request);
+            processResumeAsync(taskId, request);
             }, resumeTaskExecutor);
 
             // 5. 立即返回任务ID

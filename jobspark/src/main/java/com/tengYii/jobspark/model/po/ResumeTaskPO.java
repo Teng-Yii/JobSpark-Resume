@@ -81,11 +81,6 @@ public class ResumeTaskPO implements Serializable {
     private Long resumeId;
 
     /**
-     * 错误代码
-     */
-    private String errorCode;
-
-    /**
      * 错误详细信息
      */
     private String errorMessage;

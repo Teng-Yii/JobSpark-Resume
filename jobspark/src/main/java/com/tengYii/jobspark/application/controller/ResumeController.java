@@ -1,5 +1,6 @@
 package com.tengYii.jobspark.application.controller;
 
+import com.tengYii.jobspark.common.utils.login.UserContext;
 import com.tengYii.jobspark.model.dto.ResumeUploadAsyncResponse;
 import com.tengYii.jobspark.model.dto.ResumeUploadRequest;
 import com.tengYii.jobspark.model.dto.ResumeUploadResponse;
@@ -128,5 +129,15 @@ public class ResumeController {
         } else {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
+    }
+
+    /**
+     * 获取当前登录用户的ID。
+     *
+     * @return 当前登录用户的ID。
+     */
+    private Long getLoginUserId() {
+        // 直接从ThreadLocal获取当前用户ID，无需手动传递
+        return UserContext.getCurrentUserId();
     }
 }
