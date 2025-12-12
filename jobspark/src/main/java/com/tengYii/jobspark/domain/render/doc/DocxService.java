@@ -2,15 +2,20 @@ package com.tengYii.jobspark.domain.render.doc;
 
 import com.tengYii.jobspark.common.exception.RenderException;
 import com.tengYii.jobspark.config.cv.DocxConfig;
+import org.apache.commons.lang3.StringUtils;
 import org.docx4j.openpackaging.exceptions.Docx4JException;
 import org.docx4j.openpackaging.packages.WordprocessingMLPackage;
 import org.docx4j.convert.in.xhtml.XHTMLImporterImpl;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Entities;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 
 /**
  * HTML -> DOCX (docx4j ImportXHTML)
@@ -37,8 +42,11 @@ public class DocxService {
         try {
             WordprocessingMLPackage wordMLPackage = WordprocessingMLPackage.createPackage();
             XHTMLImporterImpl importer = new XHTMLImporterImpl(wordMLPackage);
-            // 基于 HTML 的导入；对于分页/标题大小等，通过 CSS/HTML 调整
-            wordMLPackage.getMainDocumentPart().getContent().addAll(importer.convert(html, baseUri == null ? "" : baseUri));
+
+            // XMLResource要求严格的html，需要提前处理
+            String preprocessHtml = preprocessHtml(html);
+            List<Object> convert = importer.convert(preprocessHtml, baseUri == null ? "" : baseUri);
+            wordMLPackage.getMainDocumentPart().getContent().addAll(convert);
             wordMLPackage.save(outFile);
 
             if (outFile.length() == 0) {
@@ -60,5 +68,22 @@ public class DocxService {
         if (!dir.exists() && !dir.mkdirs()) {
             throw RenderException.io("创建输出目录失败: " + dir.getAbsolutePath());
         }
+    }
+
+    /**
+     * 将HTML转换为有效的XHTML格式
+     */
+    private String preprocessHtml(String htmlContent) {
+        if (StringUtils.isEmpty(htmlContent)) {
+            return htmlContent;
+        }
+
+        // 使用 Jsoup 解析并输出为 XHTML
+        Document doc = Jsoup.parse(htmlContent);
+        doc.outputSettings()
+                .syntax(Document.OutputSettings.Syntax.xml)
+                .escapeMode(Entities.EscapeMode.xhtml);
+
+        return doc.html();
     }
 }

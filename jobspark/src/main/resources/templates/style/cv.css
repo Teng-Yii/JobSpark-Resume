@@ -1,7 +1,6 @@
 /* 简历通用样式（HTML 作为中间格式；PDF 与 Docx 共用） */
 /* 字体栈：优先 Noto Sans SC -> PingFang SC -> Microsoft YaHei -> SimSun -> sans-serif */
 :root {
-  --font-stack: "Noto Sans SC","PingFang SC","Microsoft YaHei","SimSun",sans-serif;
   --text-color: #222;
   --muted-color: #666;
   --accent-color: #0b5fff;
@@ -20,7 +19,7 @@ html, body {
   margin: 0;
 }
 body.resume-body {
-  font-family: var(--font-stack);
+  font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", "SimSun", sans-serif;
   color: var(--text-color);
   line-height: 1.5;
   font-size: 12.5pt;

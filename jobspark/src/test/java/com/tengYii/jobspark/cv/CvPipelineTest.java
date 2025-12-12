@@ -13,6 +13,10 @@ import com.tengYii.jobspark.domain.render.markdown.TemplateService;
 import com.tengYii.jobspark.domain.render.doc.DocxService;
 import com.tengYii.jobspark.application.validate.CvValidator;
 import com.tengYii.jobspark.model.bo.*;
+import org.apache.commons.lang3.StringUtils;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Entities;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
@@ -92,22 +96,36 @@ public class CvPipelineTest {
         // HTML -> PDF
         try {
             PdfService ps = new PdfService();
-            File pdf = ps.toPdf(html, PdfConfig.defaults(), outDir, "");
+            File pdf = ps.toPdf(html, PdfConfig.defaults(), outDir, "myPdf");
             Assertions.assertTrue(pdf.exists() && pdf.length() > 0, "PDF 文件应存在且非零大小");
         } catch (RenderException e) {
             // 依赖缺失时跳过
-            Assumptions.assumeTrue(false, "跳过 PDF 测试：缺少依赖或环境不支持 - " + e.getMessage());
+            Assumptions.assumeTrue(false, "跳过 PDF 测试 - " + e.getMessage());
         }
 
         // HTML -> Docx
         try {
             DocxService ds = new DocxService();
-            File docx = ds.toDocx(html, DocxConfig.defaults(), outDir, "");
+            File docx = ds.toDocx(html, DocxConfig.defaults(), outDir, "myDocx");
             Assertions.assertTrue(docx.exists() && docx.length() > 0, "Docx 文件应存在且非零大小");
         } catch (RenderException e) {
             // 依赖缺失时跳过
-            Assumptions.assumeTrue(false, "跳过 Docx 测试：缺少依赖或环境不支持 - " + e.getMessage());
+            Assumptions.assumeTrue(false, "跳过 Docx 测试： - " + e.getMessage());
         }
+    }
+
+    private String preprocessHtml(String htmlContent) {
+        if (StringUtils.isEmpty(htmlContent)) {
+            return htmlContent;
+        }
+
+        // 使用 Jsoup 解析并输出为 XHTML
+        Document doc = Jsoup.parse(htmlContent);
+        doc.outputSettings()
+                .syntax(Document.OutputSettings.Syntax.xml)
+                .escapeMode(Entities.EscapeMode.xhtml);
+
+        return doc.html();
     }
 
     // 构建一个最小可用的 CvBO（中文内容）
