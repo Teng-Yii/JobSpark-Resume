@@ -1,4 +1,4 @@
-package com.tengYii.jobspark.model.dto;
+package com.tengYii.jobspark.dto.request;
 
 import lombok.Data;
 import org.springframework.web.multipart.MultipartFile;
@@ -11,9 +11,9 @@ public class ResumeUploadRequest {
     private MultipartFile file;
 
     /**
-     * 用户唯一标识
+     * 用户ID,唯一标识
      */
-    private String userId;
+    private Long userId;
 
     /**
      * 用户信息

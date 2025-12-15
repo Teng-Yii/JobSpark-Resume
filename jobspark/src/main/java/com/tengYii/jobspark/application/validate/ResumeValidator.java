@@ -1,7 +1,8 @@
 package com.tengYii.jobspark.application.validate;
 
 import com.google.common.base.Joiner;
-import com.tengYii.jobspark.model.dto.ResumeUploadRequest;
+import com.tengYii.jobspark.dto.request.LoginRequest;
+import com.tengYii.jobspark.dto.request.ResumeUploadRequest;
 import com.tengYii.jobspark.common.constants.ContentTypeConstants;
 import com.tengYii.jobspark.common.constants.ParseConstant;
 import org.apache.commons.lang3.StringUtils;
@@ -21,13 +22,33 @@ public class ResumeValidator {
      */
     public static final long MAX_FILE_SIZE = 5 * 1024 * 1024;
 
+    public static String validateLogin(LoginRequest loginRequest) {
+        List<String> errorMessages = new ArrayList<>();
+
+        // 参数验证
+        if (Objects.isNull(loginRequest)) {
+            errorMessages.add("登录请求不能为空");
+        }
+
+        if (StringUtils.isEmpty(loginRequest.getUsername())) {
+            errorMessages.add("用户名不能为空");
+        }
+
+        if (StringUtils.isEmpty(loginRequest.getPassword())) {
+            errorMessages.add("密码不能为空");
+        }
+
+        // 返回所有错误信息（逗号分隔）
+        return Joiner.on(ParseConstant.COMMA).join(errorMessages);
+    }
+
     /**
      * 统一校验入口（文件类型 + 文件大小 + userId）
      *
      * @param request 简历上传请求
      * @return 错误信息，无错误则返回空字符串
      */
-    public static String validate(ResumeUploadRequest request) {
+    public static String validateUploadRequest(ResumeUploadRequest request) {
         List<String> errorMessages = new ArrayList<>();
         MultipartFile file = request.getFile();
 
@@ -43,11 +64,6 @@ public class ResumeValidator {
         // 3. 校验文件大小
         validateFileSize(file, errorMessages);
 
-        // 4. 校验 userId
-        if (StringUtils.isEmpty(request.getUserId())) {
-            errorMessages.add("userId 不能为空");
-        }
-
         // 返回所有错误信息（逗号分隔）
         return Joiner.on(ParseConstant.COMMA).join(errorMessages);
     }
@@ -55,7 +71,7 @@ public class ResumeValidator {
     /**
      * 双重校验：文件后缀 + Content-Type（避免单一校验被绕过）
      *
-     * @param file 上传文件
+     * @param file          上传文件
      * @param errorMessages 错误信息列表
      */
     private static void validateFileType(MultipartFile file, List<String> errorMessages) {
@@ -103,7 +119,7 @@ public class ResumeValidator {
     /**
      * 校验文件大小（5MB 限制）
      *
-     * @param file 上传文件
+     * @param file          上传文件
      * @param errorMessages 错误信息列表
      */
     private static void validateFileSize(MultipartFile file, List<String> errorMessages) {
