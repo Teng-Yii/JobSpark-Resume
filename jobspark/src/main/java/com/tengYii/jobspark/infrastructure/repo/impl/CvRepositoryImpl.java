@@ -17,4 +17,16 @@ import org.springframework.stereotype.Service;
 @Service
 public class CvRepositoryImpl extends ServiceImpl<CvMapper, CvPO> implements CvRepository {
 
+    /**
+     * 根据简历ID和用户ID获取简历对象
+     *
+     * @param resumeId 简历ID
+     * @param userId   用户ID
+     * @return 匹配条件的简历对象
+     */
+    @Override
+    public CvPO getCvByCondition(Long resumeId, Long userId) {
+
+        return null;
+    }
 }

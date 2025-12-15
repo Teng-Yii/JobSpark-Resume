@@ -13,4 +13,13 @@ import com.baomidou.mybatisplus.extension.service.IService;
  */
 public interface CvRepository extends IService<CvPO> {
 
+    /**
+     * 根据简历ID和用户ID获取简历对象
+     *
+     * @param resumeId 简历ID
+     * @param userId   用户ID
+     * @return 匹配条件的简历对象
+     */
+    CvPO getCvByCondition(Long resumeId, Long userId);
+
 }
