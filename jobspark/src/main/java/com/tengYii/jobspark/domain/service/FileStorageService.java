@@ -10,7 +10,7 @@ import com.aliyun.oss.common.comm.SignVersion;
 import com.aliyun.oss.model.OSSObject;
 import com.aliyuncs.exceptions.ClientException;
 import com.tengYii.jobspark.common.constants.FileStoreConstants;
-import com.tengYii.jobspark.model.dto.FileStorageResultDTO;
+import com.tengYii.jobspark.dto.response.FileStorageResultDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;

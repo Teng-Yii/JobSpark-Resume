@@ -3,7 +3,7 @@ package com.tengYii.jobspark.domain.service;
 import com.tengYii.jobspark.domain.agent.CvAnalysisAgent;
 import com.tengYii.jobspark.common.utils.llm.ChatModelProvider;
 import com.tengYii.jobspark.model.bo.CvBO;
-import com.tengYii.jobspark.model.dto.ResumeUploadRequest;
+import com.tengYii.jobspark.dto.request.ResumeUploadRequest;
 import dev.langchain4j.agentic.AgenticServices;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.output.TokenUsage;
@@ -59,9 +59,9 @@ public class ResumeAnalysisService {
         }
     }
 
-    public Object getResumeAnalysis(String resumeId) {
+    public CvBO getResumeAnalysis(Long resumeId) {
         // 获取简历分析结果
         // 这里可以返回解析后的结构化数据
-        return "简历分析结果";
+        return new CvBO();
     }
 }

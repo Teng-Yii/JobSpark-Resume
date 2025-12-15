@@ -5,11 +5,13 @@ import com.tengYii.jobspark.common.enums.DeleteFlagEnum;
 import com.tengYii.jobspark.common.enums.TaskStatusEnum;
 import com.tengYii.jobspark.common.utils.SnowflakeUtil;
 import com.tengYii.jobspark.domain.service.*;
+import com.tengYii.jobspark.infrastructure.repo.CvRepository;
 import com.tengYii.jobspark.model.bo.CvBO;
-import com.tengYii.jobspark.model.dto.FileStorageResultDTO;
-import com.tengYii.jobspark.model.dto.ResumeUploadAsyncResponse;
-import com.tengYii.jobspark.model.dto.ResumeUploadRequest;
-import com.tengYii.jobspark.model.dto.TaskStatusResponse;
+import com.tengYii.jobspark.dto.response.FileStorageResultDTO;
+import com.tengYii.jobspark.dto.response.ResumeUploadAsyncResponse;
+import com.tengYii.jobspark.dto.request.ResumeUploadRequest;
+import com.tengYii.jobspark.dto.response.TaskStatusResponse;
+import com.tengYii.jobspark.model.po.CvPO;
 import com.tengYii.jobspark.model.po.ResumeTaskPO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -51,6 +53,9 @@ public class ResumeApplicationServiceImpl implements ResumeApplicationService {
     private ResumeTaskService resumeTaskService;
 
     @Autowired
+    private CvRepository cvRepository;
+
+    @Autowired
     @Qualifier("resumeTaskExecutor")
     private Executor resumeTaskExecutor;
 
@@ -70,7 +75,7 @@ public class ResumeApplicationServiceImpl implements ResumeApplicationService {
             String taskId = String.valueOf(SnowflakeUtil.snowflakeId());
 
             // 3. 创建任务记录（状态：处理中）
-            Long userId = Long.parseLong(request.getUserId());
+            Long userId = request.getUserId();
             LocalDateTime nowTime = LocalDateTime.now();
             ResumeTaskPO taskPO = ResumeTaskPO.builder()
                     .taskId(taskId)
@@ -94,7 +99,7 @@ public class ResumeApplicationServiceImpl implements ResumeApplicationService {
 
             // 4. 异步执行耗时操作
             CompletableFuture.runAsync(() -> {
-            processResumeAsync(taskId, request);
+                processResumeAsync(taskId, request);
             }, resumeTaskExecutor);
 
             // 5. 立即返回任务ID
@@ -131,7 +136,7 @@ public class ResumeApplicationServiceImpl implements ResumeApplicationService {
             // 解析简历内容（耗时操作）
             stopWatch.start("agent解析简历内容");
             CvBO cvBO = resumeAnalysisService.analyzeResume(request);
-            cvBO.setUserId(Long.parseLong(request.getUserId()));
+            cvBO.setUserId(request.getUserId());
             stopWatch.stop();
 
             // 更新任务状态为存储中
@@ -161,7 +166,18 @@ public class ResumeApplicationServiceImpl implements ResumeApplicationService {
         }
     }
 
-    public Object getResumeAnalysis(String resumeId) {
+    /**
+     * 根据简历ID获取简历分析结果。
+     *
+     * @param resumeId 简历的唯一标识符
+     * @param userId   用户ID
+     * @return 简历分析的结果对象
+     */
+    public CvBO getResumeAnalysis(Long resumeId, Long userId) {
+
+        // TODO 使用用户Id进行校验
+        CvPO cvPO = cvRepository.getCvByCondition(resumeId, userId);
+
         // 获取简历解析结果
         return resumeAnalysisService.getResumeAnalysis(resumeId);
     }

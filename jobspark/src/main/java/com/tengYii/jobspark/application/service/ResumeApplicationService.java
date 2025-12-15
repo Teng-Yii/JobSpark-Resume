@@ -1,9 +1,9 @@
 package com.tengYii.jobspark.application.service;
 
-import com.tengYii.jobspark.model.dto.ResumeUploadAsyncResponse;
-import com.tengYii.jobspark.model.dto.ResumeUploadRequest;
-import com.tengYii.jobspark.model.dto.ResumeUploadResponse;
-import com.tengYii.jobspark.model.dto.TaskStatusResponse;
+import com.tengYii.jobspark.dto.response.ResumeUploadAsyncResponse;
+import com.tengYii.jobspark.dto.request.ResumeUploadRequest;
+import com.tengYii.jobspark.dto.response.TaskStatusResponse;
+import com.tengYii.jobspark.model.bo.CvBO;
 
 import java.util.List;
 
@@ -21,16 +21,17 @@ public interface ResumeApplicationService {
     /**
      * 根据简历ID获取简历分析结果。
      *
-     * @param resumeId 简历的唯一标识符。
-     * @return 简历分析的结果对象。
+     * @param resumeId 简历的唯一标识符
+     * @param userId   用户ID
+     * @return 简历分析的结果对象
      */
-    Object getResumeAnalysis(String resumeId);
+    CvBO getResumeAnalysis(Long resumeId, Long userId);
 
     /**
-     * 根据提供的简历ID获取优化建议。
+     * 根据提供的简历ID获取优化建议
      *
-     * @param resumeId 简历的唯一标识符。
-     * @return 包含优化建议的对象。
+     * @param resumeId 简历的唯一标识符
+     * @return 包含优化建议的对象
      */
     Object getOptimizationSuggestions(String resumeId);
 

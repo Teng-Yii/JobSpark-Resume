@@ -1,10 +1,9 @@
 package com.tengYii.jobspark.application.controller;
 
 import com.tengYii.jobspark.common.utils.login.UserContext;
-import com.tengYii.jobspark.model.dto.ResumeUploadAsyncResponse;
-import com.tengYii.jobspark.model.dto.ResumeUploadRequest;
-import com.tengYii.jobspark.model.dto.ResumeUploadResponse;
-import com.tengYii.jobspark.model.dto.TaskStatusResponse;
+import com.tengYii.jobspark.dto.response.ResumeUploadAsyncResponse;
+import com.tengYii.jobspark.dto.request.ResumeUploadRequest;
+import com.tengYii.jobspark.dto.response.TaskStatusResponse;
 import com.tengYii.jobspark.application.service.ResumeApplicationService;
 import com.tengYii.jobspark.application.validate.ResumeValidator;
 import com.tengYii.jobspark.common.exception.ValidationException;
@@ -14,6 +13,7 @@ import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.io.RandomAccessReadBuffer;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -21,12 +21,21 @@ import org.springframework.web.bind.annotation.*;
 import java.io.IOException;
 import java.util.List;
 
+/**
+ * 简历controller
+ * <p>
+ * 专门处理简历相关的业务逻辑，包括简历上传、解析、优化等功能
+ *
+ * @author tengYii
+ * @since 1.0.0
+ */
 @RestController
 @RequestMapping("/api/v1/resumes")
 @RequiredArgsConstructor
 public class ResumeController {
 
-    private final ResumeApplicationService resumeApplicationService;
+    @Autowired
+    private ResumeApplicationService resumeApplicationService;
 
     /**
      * 上传简历，并进行简历优化
@@ -38,19 +47,21 @@ public class ResumeController {
     public ResponseEntity<ResumeUploadAsyncResponse> uploadResume(@ModelAttribute ResumeUploadRequest request) {
 
         // 校验请求参数合法性
-        String validationResult = ResumeValidator.validate(request);
+        String validationResult = ResumeValidator.validateUploadRequest(request);
         if (StringUtils.isNotBlank(validationResult)) {
             throw new ValidationException(String.valueOf(HttpStatus.BAD_REQUEST.value()), validationResult);
         }
 
+        Long userId = getLoginUserId();
+        request.setUserId(userId);
         ResumeUploadAsyncResponse response = resumeApplicationService.uploadAndParseResumeAsync(request);
         return ResponseEntity.ok(response);
     }
 
     @PostMapping("/{resumeId}/analysis")
-    public ResponseEntity<?> getResumeAnalysis(@PathVariable String resumeId) {
+    public ResponseEntity<?> getResumeAnalysis(@PathVariable Long resumeId) {
         // 获取简历解析结果
-        return ResponseEntity.ok(resumeApplicationService.getResumeAnalysis(resumeId));
+        return ResponseEntity.ok(resumeApplicationService.getResumeAnalysis(resumeId, getLoginUserId()));
     }
 
     @PostMapping("/{resumeId}/suggestions")

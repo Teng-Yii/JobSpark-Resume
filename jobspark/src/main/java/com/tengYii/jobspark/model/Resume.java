@@ -19,7 +19,7 @@ public class Resume {
     /**
      * 简历ID
      */
-    private String resumeId;
+    private Long resumeId;
 
     /**
      * 文件名
@@ -74,7 +74,7 @@ public class Resume {
     /**
      * 构造函数
      */
-    public Resume(String resumeId, String fileName, String originalContent) {
+    public Resume(Long resumeId, String fileName, String originalContent) {
         this.resumeId = resumeId;
         this.fileName = fileName;
         this.originalContent = originalContent;
@@ -98,15 +98,6 @@ public class Resume {
         this.skills = skills;
         this.analysisStatus = "已分析";
         this.updateTime = LocalDateTime.now();
-    }
-
-    /**
-     * 验证简历有效性
-     */
-    public boolean isValid() {
-        return resumeId != null && !resumeId.trim().isEmpty() &&
-                fileName != null && !fileName.trim().isEmpty() &&
-                originalContent != null && !originalContent.trim().isEmpty();
     }
 
     /**
