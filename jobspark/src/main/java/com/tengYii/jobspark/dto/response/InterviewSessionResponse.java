@@ -1,4 +1,4 @@
-package com.tengYii.jobspark.model.dto;
+package com.tengYii.jobspark.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class InterviewSessionResponse {
     private String sessionId;
-    private String resumeId;
+    private Long resumeId;
     private String interviewType;
     private int questionCount;
     private String status;

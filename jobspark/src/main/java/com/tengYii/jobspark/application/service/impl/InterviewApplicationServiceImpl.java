@@ -4,9 +4,9 @@ import com.tengYii.jobspark.application.service.InterviewApplicationService;
 import com.tengYii.jobspark.model.InterviewEvaluation;
 import com.tengYii.jobspark.model.InterviewQuestion;
 import com.tengYii.jobspark.model.InterviewSession;
-import com.tengYii.jobspark.model.Resume;
 import com.tengYii.jobspark.domain.service.InterviewService;
 import com.tengYii.jobspark.domain.service.ResumeAnalysisService;
+import com.tengYii.jobspark.model.bo.CvBO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -30,10 +30,10 @@ public class InterviewApplicationServiceImpl implements InterviewApplicationServ
     /**
      * 创建面试会话
      */
-    public InterviewSession createInterviewSession(String resumeId, String interviewType, int questionCount) {
+    public InterviewSession createInterviewSession(Long resumeId, String interviewType, int questionCount) {
         try {
             // 验证简历是否存在
-            Resume resume = getResumeById(resumeId);
+            CvBO resume = getResumeById(resumeId);
             if (resume == null) {
                 throw new IllegalArgumentException("简历不存在: " + resumeId);
             }
@@ -94,14 +94,14 @@ public class InterviewApplicationServiceImpl implements InterviewApplicationServ
     /**
      * 生成面试建议
      */
-    public String generateInterviewSuggestions(String resumeId, String targetPosition) {
+    public String generateInterviewSuggestions(Long resumeId, String targetPosition) {
         try {
-            Resume resume = getResumeById(resumeId);
-            if (resume == null) {
+            CvBO cvBO = getResumeById(resumeId);
+            if (cvBO == null) {
                 throw new IllegalArgumentException("简历不存在: " + resumeId);
             }
 
-            return interviewService.generateInterviewSuggestions(resume, targetPosition);
+            return interviewService.generateInterviewSuggestions(cvBO, targetPosition);
 
         } catch (Exception e) {
             log.error("生成面试建议失败", e);
@@ -168,10 +168,10 @@ public class InterviewApplicationServiceImpl implements InterviewApplicationServ
     /**
      * 根据ID获取简历（需要实现持久化逻辑）
      */
-    private Resume getResumeById(String resumeId) {
+    private CvBO getResumeById(Long resumeId) {
         // TODO: 实现简历获取逻辑
         // 这里返回模拟数据
-        return (Resume) resumeAnalysisService.getResumeAnalysis(resumeId);
+        return resumeAnalysisService.getResumeAnalysis(resumeId);
     }
 
     /**
@@ -180,6 +180,6 @@ public class InterviewApplicationServiceImpl implements InterviewApplicationServ
     private InterviewSession getSessionById(String sessionId) {
         // TODO: 实现会话获取逻辑
         // 这里返回模拟数据
-        return interviewService.createInterviewSession("sample_resume_id", "技术面试", 5);
+        return interviewService.createInterviewSession(1L, "技术面试", 5);
     }
 }

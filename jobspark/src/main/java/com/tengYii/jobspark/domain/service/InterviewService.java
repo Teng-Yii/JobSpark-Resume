@@ -1,6 +1,7 @@
 package com.tengYii.jobspark.domain.service;
 
 import com.tengYii.jobspark.model.*;
+import com.tengYii.jobspark.model.bo.CvBO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -23,7 +24,7 @@ public class InterviewService {
     /**
      * 创建新的面试会话
      */
-    public InterviewSession createInterviewSession(String resumeId, String interviewType, int questionCount) {
+    public InterviewSession createInterviewSession(Long resumeId, String interviewType, int questionCount) {
         try {
             // 生成唯一会话ID
             String sessionId = UUID.randomUUID().toString();
@@ -111,9 +112,9 @@ public class InterviewService {
     /**
      * 生成个性化面试建议
      */
-    public String generateInterviewSuggestions(Resume resume, String targetPosition) {
+    public String generateInterviewSuggestions(CvBO cvBO, String targetPosition) {
         try {
-            return chatService.generateInterviewSuggestions(resume, targetPosition);
+            return chatService.generateInterviewSuggestions(cvBO, targetPosition);
         } catch (Exception e) {
             log.error("生成面试建议失败", e);
             throw new RuntimeException("生成面试建议失败: " + e.getMessage(), e);
@@ -158,7 +159,7 @@ public class InterviewService {
     /**
      * 根据ID获取简历（需要实现）
      */
-    private Resume getResumeById(String resumeId) {
+    private Resume getResumeById(Long resumeId) {
         // TODO: 实现简历获取逻辑
         // 这里返回模拟数据
         ResumeBasicInfo basicInfo = new ResumeBasicInfo(

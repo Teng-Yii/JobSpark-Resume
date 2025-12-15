@@ -3,6 +3,7 @@ package com.tengYii.jobspark.domain.service;
 import com.tengYii.jobspark.model.InterviewSession;
 import com.tengYii.jobspark.model.Resume;
 import com.tengYii.jobspark.common.utils.llm.ChatModelProvider;
+import com.tengYii.jobspark.model.bo.CvBO;
 import dev.langchain4j.model.chat.ChatModel;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -49,9 +50,9 @@ public class ChatService {
     /**
      * 生成面试建议
      */
-    public String generateInterviewSuggestions(Resume resume, String targetPosition) {
+    public String generateInterviewSuggestions(CvBO cvBO, String targetPosition) {
         try {
-            String prompt = buildSuggestionPrompt(resume, targetPosition);
+            String prompt = buildSuggestionPrompt(cvBO, targetPosition);
             return chatModel.chat(prompt);
             
         } catch (Exception e) {
@@ -117,26 +118,26 @@ public class ChatService {
     /**
      * 构建建议提示词
      */
-    private String buildSuggestionPrompt(Resume resume, String targetPosition) {
+    private String buildSuggestionPrompt(CvBO cvBO, String targetPosition) {
         StringBuilder prompt = new StringBuilder();
         prompt.append("请基于以下简历信息为目标职位生成面试准备建议：\n\n");
         
-        if (resume.getBasicInfo() != null) {
+        /*if (cvBO.getBasicInfo() != null) {
             prompt.append("基本信息：\n");
-            prompt.append("- 姓名：").append(resume.getBasicInfo().getName()).append("\n");
-            prompt.append("- 当前职位：").append(resume.getBasicInfo().getCurrentPosition()).append("\n");
-            prompt.append("- 目标职位：").append(resume.getBasicInfo().getTargetPosition()).append("\n");
-            prompt.append("- 工作年限：").append(resume.getBasicInfo().getWorkExperience()).append("\n\n");
+            prompt.append("- 姓名：").append(cvBO.getBasicInfo().getName()).append("\n");
+            prompt.append("- 当前职位：").append(cvBO.getBasicInfo().getCurrentPosition()).append("\n");
+            prompt.append("- 目标职位：").append(cvBO.getBasicInfo().getTargetPosition()).append("\n");
+            prompt.append("- 工作年限：").append(cvBO.getBasicInfo().getWorkExperience()).append("\n\n");
         }
         
-        if (resume.getSkills() != null && !resume.getSkills().isEmpty()) {
+        if (cvBO.getSkills() != null && !cvBO.getSkills().isEmpty()) {
             prompt.append("技能列表：\n");
-            for (var skill : resume.getSkills()) {
+            for (var skill : cvBO.getSkills()) {
                 prompt.append("- ").append(skill.getSkillName()).append(" (").append(skill.getProficiency()).append(")\n");
             }
             prompt.append("\n");
         }
-        
+        */
         prompt.append("目标职位：").append(targetPosition).append("\n\n");
         
         prompt.append("请从以下方面提供建议：\n");

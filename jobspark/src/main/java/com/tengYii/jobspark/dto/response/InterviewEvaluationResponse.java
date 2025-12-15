@@ -1,4 +1,4 @@
-package com.tengYii.jobspark.model.dto;
+package com.tengYii.jobspark.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

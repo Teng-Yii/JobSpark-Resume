@@ -23,7 +23,7 @@ public class InterviewSession {
     /**
      * 简历ID
      */
-    private String resumeId;
+    private Long resumeId;
     
     /**
      * 面试类型（技术面试、行为面试、综合面试等）
@@ -63,7 +63,7 @@ public class InterviewSession {
     /**
      * 创建新的面试会话
      */
-    public InterviewSession(String sessionId, String resumeId, String interviewType) {
+    public InterviewSession(String sessionId, Long resumeId, String interviewType) {
         this.sessionId = sessionId;
         this.resumeId = resumeId;
         this.interviewType = interviewType;
@@ -119,14 +119,5 @@ public class InterviewSession {
     public void terminateInterview() {
         this.status = "已终止";
         this.endTime = System.currentTimeMillis();
-    }
-    
-    /**
-     * 验证会话有效性
-     */
-    public boolean isValid() {
-        return sessionId != null && !sessionId.trim().isEmpty() && 
-               resumeId != null && !resumeId.trim().isEmpty() && 
-               interviewType != null && !interviewType.trim().isEmpty();
     }
 }

@@ -16,7 +16,7 @@ public interface InterviewApplicationService {
      * @param questionCount 面试问题数量
      * @return 新创建的面试会话对象
      */
-    InterviewSession createInterviewSession(String resumeId, String interviewType, int questionCount);
+    InterviewSession createInterviewSession(Long resumeId, String interviewType, int questionCount);
 
     /**
      * 评估面试答案
@@ -42,7 +42,7 @@ public interface InterviewApplicationService {
      * @param targetPosition 目标职位，用于匹配面试建议。
      * @return 生成的面试建议，可能包含多条建议。
      */
-    String generateInterviewSuggestions(String resumeId, String targetPosition);
+    String generateInterviewSuggestions(Long resumeId, String targetPosition);
 
     InterviewQuestion getCurrentQuestion(String sessionId);
 
