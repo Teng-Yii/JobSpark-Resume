@@ -1,6 +1,8 @@
 package com.tengYii.jobspark.application.controller;
 
 import com.tengYii.jobspark.common.utils.login.UserContext;
+import com.tengYii.jobspark.dto.request.ResumeOptimizedRequest;
+import com.tengYii.jobspark.dto.response.ResumeOptimizedResponse;
 import com.tengYii.jobspark.dto.response.ResumeUploadAsyncResponse;
 import com.tengYii.jobspark.dto.request.ResumeUploadRequest;
 import com.tengYii.jobspark.dto.response.TaskStatusResponse;
@@ -14,12 +16,15 @@ import org.apache.pdfbox.io.RandomAccessReadBuffer;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * 简历controller
@@ -58,16 +63,36 @@ public class ResumeController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/{resumeId}/analysis")
-    public ResponseEntity<?> getResumeAnalysis(@PathVariable Long resumeId) {
-        // 获取简历解析结果
-        return ResponseEntity.ok(resumeApplicationService.getResumeAnalysis(resumeId, getLoginUserId()));
+    /**
+     * 获取优化建议及优化后的简历对象
+     *
+     * @param resumeId 简历ID
+     * @return 简历优化返回结果
+     */
+    @GetMapping("/resumes/{resumeId}/optimized")
+    public ResponseEntity<ResumeOptimizedResponse> getOptimizedResume(@PathVariable String resumeId) {
+        ResumeOptimizedResponse response = resumeApplicationService.getOptimizedResume(Long.parseLong(resumeId), getLoginUserId());
+        return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/{resumeId}/suggestions")
-    public ResponseEntity<?> getOptimizationSuggestions(@PathVariable String resumeId) {
-        // 获取优化建议
-        return ResponseEntity.ok(resumeApplicationService.getOptimizationSuggestions(resumeId));
+    /**
+     * 生成已优化的简历文件
+     *
+     * @param request 优化请求DTO，包含resumeId和优化后的CvBO
+     * @return 响应实体，包含生成的优化后PDF文件字节数组
+     */
+    @PostMapping("/resumes/generateOptimizedFile")
+    public ResponseEntity<byte[]> generateOptimizedFile(@RequestBody ResumeOptimizedRequest request) {
+        // 校验请求参数有效性
+        if (Objects.isNull(request) || !request.isValid()) {
+            throw new ValidationException(String.valueOf(HttpStatus.BAD_REQUEST.value()), "请求参数不能为空且简历内容必须完整");
+        }
+        // 调用Service层，传递resumeId和优化后的CvBO对象
+        byte[] pdfBytes = resumeApplicationService.generateOptimizedFile(request);
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_PDF)
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=optimized_resume.pdf")
+                .body(pdfBytes);
     }
 
     @PostMapping("/test")

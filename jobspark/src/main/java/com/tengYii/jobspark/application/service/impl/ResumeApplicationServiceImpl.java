@@ -2,9 +2,12 @@ package com.tengYii.jobspark.application.service.impl;
 
 import com.tengYii.jobspark.application.service.ResumeApplicationService;
 import com.tengYii.jobspark.common.enums.DeleteFlagEnum;
+import com.tengYii.jobspark.common.enums.DownloadFileTypeEnum;
 import com.tengYii.jobspark.common.enums.TaskStatusEnum;
 import com.tengYii.jobspark.common.utils.SnowflakeUtil;
 import com.tengYii.jobspark.domain.service.*;
+import com.tengYii.jobspark.dto.request.ResumeOptimizedRequest;
+import com.tengYii.jobspark.dto.response.ResumeOptimizedResponse;
 import com.tengYii.jobspark.infrastructure.repo.CvRepository;
 import com.tengYii.jobspark.model.bo.CvBO;
 import com.tengYii.jobspark.dto.response.FileStorageResultDTO;
@@ -167,24 +170,51 @@ public class ResumeApplicationServiceImpl implements ResumeApplicationService {
     }
 
     /**
-     * 根据简历ID获取简历分析结果。
+     * 获取优化后的简历信息
      *
-     * @param resumeId 简历的唯一标识符
+     * @param resumeId 简历ID
      * @param userId   用户ID
-     * @return 简历分析的结果对象
+     * @return 优化后的简历响应对象
      */
-    public CvBO getResumeAnalysis(Long resumeId, Long userId) {
+    public ResumeOptimizedResponse getOptimizedResume(Long resumeId, Long userId) {
 
         // TODO 使用用户Id进行校验
         CvPO cvPO = cvRepository.getCvByCondition(resumeId, userId);
 
         // 获取简历解析结果
-        return resumeAnalysisService.getResumeAnalysis(resumeId);
+        CvBO cvBO = resumeAnalysisService.getResumeAnalysis(resumeId);
+        return new ResumeOptimizedResponse();
     }
 
-    public Object getOptimizationSuggestions(String resumeId) {
-        // 获取优化建议
-        return resumeOptimizationService.getOptimizationSuggestions(resumeId);
+
+    /**
+     * 生成优化后的简历文件。
+     *
+     * @param request 包含简历优化请求信息的对象。
+     * @return 优化后的简历文件的字节数组。
+     */
+    @Override
+    public byte[] generateOptimizedFile(ResumeOptimizedRequest request) {
+        // TODO，根据文件类型生成不同的文件
+
+        DownloadFileTypeEnum downloadFileType = request.getDownloadFileType();
+
+        switch (downloadFileType) {
+            case HTML:
+//                generatePdfFile(request);
+                break;
+            case PDF:
+//                generateWordFile(request);
+                break;
+            case DOCX:
+//                generateMarkdownFile(request);
+                break;
+            default:
+                throw new IllegalArgumentException("不支持的文件类型");
+        }
+
+
+        return null;
     }
 
     /**
