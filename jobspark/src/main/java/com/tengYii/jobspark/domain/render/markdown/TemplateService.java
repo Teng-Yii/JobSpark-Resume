@@ -9,8 +9,7 @@ import freemarker.template.TemplateExceptionHandler;
 import freemarker.cache.ClassTemplateLoader;
 import freemarker.cache.MultiTemplateLoader;
 import freemarker.cache.TemplateLoader;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.StringWriter;
 import java.net.URL;
@@ -20,9 +19,8 @@ import java.util.Map;
  * FreeMarker 模板服务：加载并渲染 .ftl -> Markdown 文本
  * 模板位置：classpath:/templates/cv.md.ftl
  */
+@Slf4j
 public class TemplateService {
-
-    private static final Logger log = LoggerFactory.getLogger(TemplateService.class);
 
     private final Configuration cfg;
 

@@ -5,6 +5,15 @@ import com.tengYii.jobspark.common.enums.DeleteFlagEnum;
 import com.tengYii.jobspark.common.enums.DownloadFileTypeEnum;
 import com.tengYii.jobspark.common.enums.TaskStatusEnum;
 import com.tengYii.jobspark.common.utils.SnowflakeUtil;
+import com.tengYii.jobspark.config.cv.DocxConfig;
+import com.tengYii.jobspark.config.cv.HtmlConfig;
+import com.tengYii.jobspark.config.cv.MarkdownConfig;
+import com.tengYii.jobspark.config.cv.PdfConfig;
+import com.tengYii.jobspark.domain.render.doc.DocxService;
+import com.tengYii.jobspark.domain.render.markdown.MarkdownService;
+import com.tengYii.jobspark.domain.render.markdown.TemplateFieldMapper;
+import com.tengYii.jobspark.domain.render.markdown.TemplateService;
+import com.tengYii.jobspark.domain.render.pdf.PdfService;
 import com.tengYii.jobspark.domain.service.*;
 import com.tengYii.jobspark.dto.request.ResumeOptimizedRequest;
 import com.tengYii.jobspark.dto.response.ResumeOptimizedResponse;
@@ -26,6 +35,9 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StopWatch;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -188,33 +200,266 @@ public class ResumeApplicationServiceImpl implements ResumeApplicationService {
 
 
     /**
-     * 生成优化后的简历文件。
+     * 生成优化后的简历文件
+     * 根据请求中的文件类型（HTML、PDF、DOCX）生成对应格式的简历文件
+     * 转换流程：CvBO -> Markdown -> HTML -> PDF/DOCX
      *
-     * @param request 包含简历优化请求信息的对象。
-     * @return 优化后的简历文件的字节数组。
+     * @param request 包含简历优化请求信息的对象，必须包含resumeId、downloadFileType和cvBO
+     * @return 优化后的简历文件的字节数组
+     * @throws IllegalArgumentException 当请求参数无效或文件类型不支持时抛出
+     * @throws RuntimeException 当文件生成过程中发生异常时抛出
      */
     @Override
     public byte[] generateOptimizedFile(ResumeOptimizedRequest request) {
-        // TODO，根据文件类型生成不同的文件
+        log.info("开始生成优化简历文件，resumeId: {}, fileType: {}",
+                request.getResumeId(), request.getDownloadFileType());
 
-        DownloadFileTypeEnum downloadFileType = request.getDownloadFileType();
-
-        switch (downloadFileType) {
-            case HTML:
-//                generatePdfFile(request);
-                break;
-            case PDF:
-//                generateWordFile(request);
-                break;
-            case DOCX:
-//                generateMarkdownFile(request);
-                break;
-            default:
-                throw new IllegalArgumentException("不支持的文件类型");
+        // 参数校验
+        if (Objects.isNull(request) || !request.isValid()) {
+            log.error("简历优化请求参数无效");
+            throw new IllegalArgumentException("请求参数无效，必须包含resumeId和cvBO");
         }
 
+        DownloadFileTypeEnum downloadFileType = request.getDownloadFileType();
+        if (Objects.isNull(downloadFileType)) {
+            log.warn("未指定下载文件类型，默认使用PDF格式");
+            downloadFileType = DownloadFileTypeEnum.PDF;
+        }
 
-        return null;
+        CvBO cvBO = request.getCvBO();
+
+        try {
+            StopWatch stopWatch = new StopWatch();
+            stopWatch.start("生成简历文件");
+
+            // 第一步：CvBO -> Markdown
+            stopWatch.start("CvBO转换为Markdown");
+            String markdownContent = convertCvToMarkdown(cvBO);
+            stopWatch.stop();
+            log.debug("Markdown内容生成完成，长度: {}", markdownContent.length());
+
+            // 第二步：Markdown -> HTML
+            stopWatch.start("Markdown转换为HTML");
+            String htmlContent = convertMarkdownToHtml(markdownContent);
+            stopWatch.stop();
+            log.debug("HTML内容生成完成，长度: {}", htmlContent.length());
+
+            byte[] result;
+
+            // 第三步：根据文件类型生成最终文件
+            switch (downloadFileType) {
+                case HTML:
+                    stopWatch.start("生成HTML文件");
+                    result = htmlContent.getBytes("UTF-8");
+                    stopWatch.stop();
+                    log.info("HTML文件生成完成，大小: {} bytes", result.length);
+                    break;
+
+                case PDF:
+                    stopWatch.start("HTML转换为PDF");
+                    result = convertHtmlToPdf(htmlContent);
+                    stopWatch.stop();
+                    log.info("PDF文件生成完成，大小: {} bytes", result.length);
+                    break;
+
+                case DOCX:
+                    stopWatch.start("HTML转换为DOCX");
+                    result = convertHtmlToDocx(htmlContent);
+                    stopWatch.stop();
+                    log.info("DOCX文件生成完成，大小: {} bytes", result.length);
+                    break;
+
+                default:
+                    log.error("不支持的文件类型: {}", downloadFileType);
+                    throw new IllegalArgumentException("不支持的文件类型: " + downloadFileType);
+            }
+
+            stopWatch.stop();
+            log.info("简历文件生成完成，resumeId: {}, fileType: {}, 总耗时: {} ms",
+                    request.getResumeId(), downloadFileType, stopWatch.getTotalTimeMillis());
+
+            return result;
+
+        } catch (Exception e) {
+            log.error("生成简历文件失败，resumeId: {}, fileType: {}",
+                    request.getResumeId(), downloadFileType, e);
+            throw new RuntimeException("生成简历文件失败: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * 将CvBO对象转换为Markdown格式
+     *
+     * @param cvBO 简历业务对象
+     * @return Markdown格式的简历内容
+     * @throws RuntimeException 当转换过程中发生异常时抛出
+     */
+    private String convertCvToMarkdown(CvBO cvBO) {
+        try {
+            // 创建模板服务
+            TemplateService templateService = new TemplateService();
+
+            // 使用默认的Markdown配置
+            MarkdownConfig markdownConfig = MarkdownConfig.defaults();
+
+            // 创建字段映射器，使用空的别名映射
+            TemplateFieldMapper fieldMapper = TemplateFieldMapper.builder()
+                    .aliases(java.util.Map.of())
+                    .build();
+
+            // 渲染Markdown内容
+            String markdownContent = templateService.renderMarkdown(cvBO, markdownConfig, fieldMapper);
+
+            if (StringUtils.isEmpty(markdownContent)) {
+                log.warn("生成的Markdown内容为空");
+                throw new RuntimeException("生成的Markdown内容为空");
+            }
+
+            return markdownContent;
+
+        } catch (Exception e) {
+            log.error("CvBO转换为Markdown失败", e);
+            throw new RuntimeException("CvBO转换为Markdown失败: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * 将Markdown内容转换为HTML格式
+     *
+     * @param markdownContent Markdown格式的内容
+     * @return HTML格式的内容
+     * @throws RuntimeException 当转换过程中发生异常时抛出
+     */
+    private String convertMarkdownToHtml(String markdownContent) {
+        try {
+            // 创建Markdown服务
+            MarkdownService markdownService = new MarkdownService();
+
+            // 使用默认的HTML配置
+            HtmlConfig htmlConfig = HtmlConfig.defaults();
+
+            // 转换为HTML
+            String htmlContent = markdownService.toHtmlFromMarkdown(markdownContent, htmlConfig);
+
+            if (StringUtils.isEmpty(htmlContent)) {
+                log.warn("生成的HTML内容为空");
+                throw new RuntimeException("生成的HTML内容为空");
+            }
+
+            return htmlContent;
+
+        } catch (Exception e) {
+            log.error("Markdown转换为HTML失败", e);
+            throw new RuntimeException("Markdown转换为HTML失败: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * 将HTML内容转换为PDF文件的字节数组
+     *
+     * @param htmlContent HTML格式的内容
+     * @return PDF文件的字节数组
+     * @throws RuntimeException 当转换过程中发生异常时抛出
+     */
+    private byte[] convertHtmlToPdf(String htmlContent) {
+        File tempFile = null;
+        try {
+            // 创建PDF服务
+            PdfService pdfService = new PdfService();
+
+            // 使用默认的PDF配置
+            PdfConfig pdfConfig = PdfConfig.defaults();
+
+            // 创建临时输出目录
+            File tempDir = Files.createTempDirectory("resume-pdf").toFile();
+            String fileName = "resume_" + System.currentTimeMillis();
+
+            // 生成PDF文件
+            tempFile = pdfService.toPdf(htmlContent, pdfConfig, tempDir, fileName);
+
+            if (Objects.isNull(tempFile) || !tempFile.exists() || tempFile.length() == 0) {
+                log.error("PDF文件生成失败或文件为空");
+                throw new RuntimeException("PDF文件生成失败");
+            }
+
+            // 读取文件内容为字节数组
+            byte[] pdfBytes = Files.readAllBytes(tempFile.toPath());
+            log.debug("PDF文件读取完成，大小: {} bytes", pdfBytes.length);
+
+            return pdfBytes;
+
+        } catch (Exception e) {
+            log.error("HTML转换为PDF失败", e);
+            throw new RuntimeException("HTML转换为PDF失败: " + e.getMessage(), e);
+        } finally {
+            // 清理临时文件
+            if (Objects.nonNull(tempFile) && tempFile.exists()) {
+                try {
+                    Files.deleteIfExists(tempFile.toPath());
+                    // 尝试删除临时目录（如果为空）
+                    File parentDir = tempFile.getParentFile();
+                    if (Objects.nonNull(parentDir) && parentDir.exists()) {
+                        parentDir.delete();
+                    }
+                } catch (IOException e) {
+                    log.warn("清理临时PDF文件失败: {}", tempFile.getAbsolutePath(), e);
+                }
+            }
+        }
+    }
+
+    /**
+     * 将HTML内容转换为DOCX文件的字节数组
+     *
+     * @param htmlContent HTML格式的内容
+     * @return DOCX文件的字节数组
+     * @throws RuntimeException 当转换过程中发生异常时抛出
+     */
+    private byte[] convertHtmlToDocx(String htmlContent) {
+        File tempFile = null;
+        try {
+            // 创建DOCX服务
+            DocxService docxService = new DocxService();
+
+            // 使用默认的DOCX配置
+            DocxConfig docxConfig = DocxConfig.defaults();
+
+            // 创建临时输出目录
+            File tempDir = Files.createTempDirectory("resume-docx").toFile();
+            String fileName = "resume_" + System.currentTimeMillis();
+
+            // 生成DOCX文件
+            tempFile = docxService.toDocx(htmlContent, docxConfig, tempDir, fileName);
+
+            if (Objects.isNull(tempFile) || !tempFile.exists() || tempFile.length() == 0) {
+                log.error("DOCX文件生成失败或文件为空");
+                throw new RuntimeException("DOCX文件生成失败");
+            }
+
+            // 读取文件内容为字节数组
+            byte[] docxBytes = Files.readAllBytes(tempFile.toPath());
+            log.debug("DOCX文件读取完成，大小: {} bytes", docxBytes.length);
+
+            return docxBytes;
+
+        } catch (Exception e) {
+            log.error("HTML转换为DOCX失败", e);
+            throw new RuntimeException("HTML转换为DOCX失败: " + e.getMessage(), e);
+        } finally {
+            // 清理临时文件
+            if (Objects.nonNull(tempFile) && tempFile.exists()) {
+                try {
+                    Files.deleteIfExists(tempFile.toPath());
+                    // 尝试删除临时目录（如果为空）
+                    File parentDir = tempFile.getParentFile();
+                    if (Objects.nonNull(parentDir) && parentDir.exists()) {
+                        parentDir.delete();
+                    }
+                } catch (IOException e) {
+                    log.warn("清理临时DOCX文件失败: {}", tempFile.getAbsolutePath(), e);
+                }
+            }
+        }
     }
 
     /**
