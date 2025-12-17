@@ -8,6 +8,7 @@ import com.tengYii.jobspark.domain.agent.ScoredCvTailor;
 import com.tengYii.jobspark.model.bo.CvBO;
 import dev.langchain4j.agentic.AgenticServices;
 import dev.langchain4j.model.chat.ChatModel;
+import dev.langchain4j.service.Result;
 
 import java.io.IOException;
 
@@ -37,8 +38,9 @@ public class CvStructureOptimizeTest {
             
             CvOptimizationAgent cvOptimizationAgent = AgenticServices.createAgenticSystem(CvOptimizationAgent.class, chatModel);
             System.out.println("代理系统创建成功，开始优化简历...");
-            
-            CvBO optimizeCv = cvOptimizationAgent.optimizeCv(mockCvBO, jobDescription);
+
+            Result<CvBO> cvBOResult = cvOptimizationAgent.optimizeCv(mockCvBO, jobDescription);
+            CvBO optimizeCv = cvBOResult.content();
     //        CvBO optimizeCv = cvOptimizationAgent.optimizeCv(masterCv, jobDescription);
             System.out.println("简历优化完成:");
             System.out.println(optimizeCv);

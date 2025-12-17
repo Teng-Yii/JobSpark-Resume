@@ -3,6 +3,7 @@ package com.tengYii.jobspark.model.llm;
 import dev.langchain4j.model.output.structured.Description;
 
 public class CvReview {
+
     @Description("请按0到1的评分标准，评估您邀请该候选人参加面试的可能性。")
     public double score;
 
