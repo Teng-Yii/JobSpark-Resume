@@ -3,12 +3,16 @@ package com.tengYii.jobspark.application.service.impl;
 import com.tengYii.jobspark.application.service.ResumeApplicationService;
 import com.tengYii.jobspark.common.enums.DeleteFlagEnum;
 import com.tengYii.jobspark.common.enums.DownloadFileTypeEnum;
+import com.tengYii.jobspark.common.enums.ResultCodeEnum;
 import com.tengYii.jobspark.common.enums.TaskStatusEnum;
+import com.tengYii.jobspark.common.exception.BusinessException;
 import com.tengYii.jobspark.common.utils.SnowflakeUtil;
+import com.tengYii.jobspark.common.utils.llm.ChatModelProvider;
 import com.tengYii.jobspark.config.cv.DocxConfig;
 import com.tengYii.jobspark.config.cv.HtmlConfig;
 import com.tengYii.jobspark.config.cv.MarkdownConfig;
 import com.tengYii.jobspark.config.cv.PdfConfig;
+import com.tengYii.jobspark.domain.agent.CvOptimizationAgent;
 import com.tengYii.jobspark.domain.render.doc.DocxService;
 import com.tengYii.jobspark.domain.render.markdown.MarkdownService;
 import com.tengYii.jobspark.domain.render.markdown.TemplateFieldMapper;
@@ -16,6 +20,7 @@ import com.tengYii.jobspark.domain.render.markdown.TemplateService;
 import com.tengYii.jobspark.domain.render.pdf.PdfService;
 import com.tengYii.jobspark.domain.service.*;
 import com.tengYii.jobspark.dto.request.ResumeOptimizedRequest;
+import com.tengYii.jobspark.dto.request.ResumeOptimizeRequest;
 import com.tengYii.jobspark.dto.response.ResumeOptimizedResponse;
 import com.tengYii.jobspark.infrastructure.repo.CvRepository;
 import com.tengYii.jobspark.model.bo.CvBO;
@@ -25,6 +30,9 @@ import com.tengYii.jobspark.dto.request.ResumeUploadRequest;
 import com.tengYii.jobspark.dto.response.TaskStatusResponse;
 import com.tengYii.jobspark.model.po.CvPO;
 import com.tengYii.jobspark.model.po.ResumeTaskPO;
+import dev.langchain4j.agentic.AgenticServices;
+import dev.langchain4j.model.chat.ChatModel;
+import dev.langchain4j.service.Result;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -73,6 +81,8 @@ public class ResumeApplicationServiceImpl implements ResumeApplicationService {
     @Autowired
     @Qualifier("resumeTaskExecutor")
     private Executor resumeTaskExecutor;
+
+    private final ChatModel chatModel = ChatModelProvider.createChatModel();
 
     /**
      * 上传简历
@@ -184,17 +194,40 @@ public class ResumeApplicationServiceImpl implements ResumeApplicationService {
     /**
      * 获取优化后的简历信息
      *
-     * @param resumeId 简历ID
-     * @param userId   用户ID
+     * @param request 简历优化请求对象，包含resumeId和jobDescription
+     * @param userId  用户ID
      * @return 优化后的简历响应对象
      */
-    public ResumeOptimizedResponse getOptimizedResume(Long resumeId, Long userId) {
+    public ResumeOptimizedResponse optimizeResume(ResumeOptimizeRequest request, Long userId) {
 
-        // TODO 使用用户Id进行校验
+        // 从request对象中获取参数
+        Long resumeId = Long.parseLong(request.getResumeId());
+        String jobDescription = request.getJobDescription();
+        log.info("简历优化开始：userId:{}, resumeId: {}, jobDescription: {}", userId, resumeId, jobDescription);
+
+        StopWatch stopWatch = new StopWatch("简历优化");
+        stopWatch.start("根据条件查询简历对象");
+        // 使用用户Id进行校验
         CvPO cvPO = cvRepository.getCvByCondition(resumeId, userId);
+        if (Objects.isNull(cvPO)) {
+            throw new BusinessException(ResultCodeEnum.RESUME_NOT_FOUND, "简历不存在，请重新上传简历");
+        }
+        stopWatch.stop();
 
-        // 获取简历解析结果
-        CvBO cvBO = resumeAnalysisService.getResumeAnalysis(resumeId);
+        // 获取简历bo对象
+        stopWatch.start("转换简历bo对象");
+        CvBO cvBO = resumePersistenceService.convertToCvBO(cvPO);
+        stopWatch.stop();
+
+        // 创建简历优化Agent，开始优化简历
+        stopWatch.start("开始优化简历");
+        CvOptimizationAgent cvOptimizationAgent = AgenticServices.createAgenticSystem(CvOptimizationAgent.class, chatModel);
+        Result<CvBO> cvBOResult = cvOptimizationAgent.optimizeCv(cvBO, jobDescription);
+        CvBO optimizeCv = cvBOResult.content();
+        stopWatch.stop();
+
+
+        ResumeOptimizedResponse response = resumeAnalysisService.getResumeAnalysis(cvBO);
         return new ResumeOptimizedResponse();
     }
 
@@ -207,7 +240,7 @@ public class ResumeApplicationServiceImpl implements ResumeApplicationService {
      * @param request 包含简历优化请求信息的对象，必须包含resumeId、downloadFileType和cvBO
      * @return 优化后的简历文件的字节数组
      * @throws IllegalArgumentException 当请求参数无效或文件类型不支持时抛出
-     * @throws RuntimeException 当文件生成过程中发生异常时抛出
+     * @throws RuntimeException         当文件生成过程中发生异常时抛出
      */
     @Override
     public byte[] generateOptimizedFile(ResumeOptimizedRequest request) {
@@ -215,7 +248,7 @@ public class ResumeApplicationServiceImpl implements ResumeApplicationService {
                 request.getResumeId(), request.getDownloadFileType());
 
         // 参数校验
-        if (Objects.isNull(request) || !request.isValid()) {
+        if (!request.isValid()) {
             log.error("简历优化请求参数无效");
             throw new IllegalArgumentException("请求参数无效，必须包含resumeId和cvBO");
         }

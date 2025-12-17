@@ -2,6 +2,7 @@ package com.tengYii.jobspark.application.controller;
 
 import com.tengYii.jobspark.common.utils.login.UserContext;
 import com.tengYii.jobspark.dto.request.ResumeOptimizedRequest;
+import com.tengYii.jobspark.dto.request.ResumeOptimizeRequest;
 import com.tengYii.jobspark.dto.response.ResumeOptimizedResponse;
 import com.tengYii.jobspark.dto.response.ResumeUploadAsyncResponse;
 import com.tengYii.jobspark.dto.request.ResumeUploadRequest;
@@ -66,12 +67,20 @@ public class ResumeController {
     /**
      * 获取优化建议及优化后的简历对象
      *
-     * @param resumeId 简历ID
+     * @param request 简历优化请求对象，包含resumeId和jobDescription
      * @return 简历优化返回结果
      */
-    @GetMapping("/resumes/{resumeId}/optimized")
-    public ResponseEntity<ResumeOptimizedResponse> getOptimizedResume(@PathVariable String resumeId) {
-        ResumeOptimizedResponse response = resumeApplicationService.getOptimizedResume(Long.parseLong(resumeId), getLoginUserId());
+    @PostMapping("/optimize")
+    public ResponseEntity<ResumeOptimizedResponse> optimizeResume(@RequestBody ResumeOptimizeRequest request) {
+
+        // 校验请求参数合法性
+        String validationResult = ResumeValidator.validateOptimizeRequest(request);
+        if (StringUtils.isNotEmpty(validationResult)) {
+            throw new ValidationException(String.valueOf(HttpStatus.BAD_REQUEST.value()), validationResult);
+        }
+
+        Long userId = getLoginUserId();
+        ResumeOptimizedResponse response = resumeApplicationService.optimizeResume(request, 123L);
         return ResponseEntity.ok(response);
     }
 
@@ -81,7 +90,7 @@ public class ResumeController {
      * @param request 优化请求DTO，包含resumeId和优化后的CvBO
      * @return 响应实体，包含生成的优化后PDF文件字节数组
      */
-    @PostMapping("/resumes/generateOptimizedFile")
+    @PostMapping("/generateOptimizedFile")
     public ResponseEntity<byte[]> generateOptimizedFile(@RequestBody ResumeOptimizedRequest request) {
         // 校验请求参数有效性
         if (Objects.isNull(request) || !request.isValid()) {

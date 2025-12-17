@@ -2,6 +2,7 @@ package com.tengYii.jobspark.domain.service;
 
 import com.tengYii.jobspark.domain.agent.CvAnalysisAgent;
 import com.tengYii.jobspark.common.utils.llm.ChatModelProvider;
+import com.tengYii.jobspark.dto.response.ResumeOptimizedResponse;
 import com.tengYii.jobspark.model.bo.CvBO;
 import com.tengYii.jobspark.dto.request.ResumeUploadRequest;
 import dev.langchain4j.agentic.AgenticServices;
@@ -14,6 +15,7 @@ import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.io.RandomAccessReadBuffer;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -21,11 +23,18 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class ResumeAnalysisService {
 
-    private final FileStorageService fileStorageService;
+    @Autowired
+    private FileStorageService fileStorageService;
 
     private final ChatModel chatModel = ChatModelProvider.createChatModel();
 
 
+    /**
+     * 分析上传的简历并将其转换为结构化对象。
+     *
+     * @param request 包含简历文件的请求对象。
+     * @return 解析后的简历信息对象。
+     */
     public CvBO analyzeResume(ResumeUploadRequest request) {
         try {
 
@@ -59,9 +68,13 @@ public class ResumeAnalysisService {
         }
     }
 
-    public CvBO getResumeAnalysis(Long resumeId) {
+    public ResumeOptimizedResponse getResumeAnalysis(CvBO cvBO) {
+
+        ResumeOptimizedResponse optimizedResponse = new ResumeOptimizedResponse();
         // 获取简历分析结果
         // 这里可以返回解析后的结构化数据
-        return new CvBO();
+
+
+        return optimizedResponse;
     }
 }

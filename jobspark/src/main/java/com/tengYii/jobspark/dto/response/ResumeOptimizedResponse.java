@@ -24,5 +24,5 @@ public class ResumeOptimizedResponse {
     /**
      * 优化后的结构化CvBO对象，用于生成优化后的简历文件
      */
-    private CvBO optimizedResume;
+    private CvBO optimizedCv;
 }

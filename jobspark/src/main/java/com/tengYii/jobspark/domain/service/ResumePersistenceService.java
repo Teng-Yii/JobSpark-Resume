@@ -62,8 +62,8 @@ public class ResumePersistenceService {
     /**
      * 将CvBO转换并保存为PO对象
      *
-     * @param cvBO 简历业务对象
-     * @param  nowTime 当前时间
+     * @param cvBO    简历业务对象
+     * @param nowTime 当前时间
      * @return 保存后的简历ID
      */
     public Long convertAndSaveCv(CvBO cvBO, LocalDateTime nowTime) {
@@ -104,22 +104,15 @@ public class ResumePersistenceService {
     }
 
     /**
-     * 根据简历ID查询并转换为BO对象
+     * 根据简历po对象查询并转换为BO对象
      *
-     * @param cvId 简历ID
+     * @param cvPO 简历po对象
      * @return 简历业务对象
      */
-    public CvBO convertToCvBO(Long cvId) {
-        if (Objects.isNull(cvId)) {
-            throw new IllegalArgumentException("简历ID不能为空");
-        }
+    public CvBO convertToCvBO(CvPO cvPO) {
 
-        // 1. 查询主简历信息
-        CvPO cvPO = cvRepository.getById(cvId);
-        if (Objects.isNull(cvPO)) {
-            return null;
-        }
-
+        // 1. 填充主cvBO对象
+        Long cvId = cvPO.getId();
         CvBO cvBO = new CvBO();
         BeanUtils.copyProperties(cvPO, cvBO);
 
@@ -157,7 +150,7 @@ public class ResumePersistenceService {
      * @return 联系方式BO
      */
     private ContactBO convertToContactBO(Long cvId) {
-        CvContactPO contactPO = contactRepository.getById(
+        CvContactPO contactPO = contactRepository.getOne(
                 new LambdaQueryWrapper<CvContactPO>()
                         .eq(CvContactPO::getCvId, cvId)
                         .eq(CvContactPO::getDeleteFlag, DeleteFlagEnum.NOT_DELETED.getCode())
@@ -359,7 +352,7 @@ public class ResumePersistenceService {
      * @return 格式元数据BO
      */
     private FormatMetaBO convertToFormatMetaBO(Long cvId) {
-        CvFormatMetaPO formatMetaPO = formatMetaRepository.getById(
+        CvFormatMetaPO formatMetaPO = formatMetaRepository.getOne(
                 new LambdaQueryWrapper<CvFormatMetaPO>()
                         .eq(CvFormatMetaPO::getCvId, cvId)
         );

@@ -2,6 +2,7 @@ package com.tengYii.jobspark.application.validate;
 
 import com.google.common.base.Joiner;
 import com.tengYii.jobspark.dto.request.LoginRequest;
+import com.tengYii.jobspark.dto.request.ResumeOptimizeRequest;
 import com.tengYii.jobspark.dto.request.ResumeUploadRequest;
 import com.tengYii.jobspark.common.constants.ContentTypeConstants;
 import com.tengYii.jobspark.common.constants.ParseConstant;
@@ -128,5 +129,79 @@ public class ResumeValidator {
             double actualSize = fileSize / 1024.0 / 1024.0;
             errorMessages.add(String.format("文件大小超过限制，当前：%.1fMB，最大允许：5.0MB", actualSize));
         }
+    }
+
+    /**
+     * 校验简历优化请求参数
+     *
+     * @param resumeId       简历ID
+     * @param jobDescription 职位描述
+     * @return 错误信息，无错误则返回空字符串
+     */
+    public static String validateOptimizeRequest(String resumeId, String jobDescription) {
+        List<String> errorMessages = new ArrayList<>();
+
+        // 校验简历ID
+        if (StringUtils.isEmpty(resumeId)) {
+            errorMessages.add("简历ID不能为空");
+        }
+
+        // 校验职位描述
+        if (StringUtils.isEmpty(jobDescription)) {
+            errorMessages.add("职位描述不能为空");
+        } else {
+            // 校验职位描述长度
+            if (jobDescription.length() > 5000) {
+                errorMessages.add("职位描述长度不能超过5000个字符");
+            }
+
+            // 校验职位描述内容不能只包含空白字符
+            if (StringUtils.isBlank(jobDescription)) {
+                errorMessages.add("职位描述不能只包含空白字符");
+            }
+        }
+
+        // 返回所有错误信息（逗号分隔）
+        return Joiner.on(ParseConstant.COMMA).join(errorMessages);
+    }
+
+    /**
+     * 校验简历优化请求参数
+     *
+     * @param request 简历优化请求对象
+     * @return 错误信息，无错误则返回空字符串
+     */
+    public static String validateOptimizeRequest(ResumeOptimizeRequest request) {
+        List<String> errorMessages = new ArrayList<>();
+
+        // 校验请求对象是否为空
+        if (Objects.isNull(request)) {
+            errorMessages.add("请求参数不能为空");
+            return Joiner.on(ParseConstant.COMMA).join(errorMessages);
+        }
+
+        // 校验简历ID
+        if (Objects.isNull(request.getResumeId())) {
+            errorMessages.add("简历ID不能为空");
+        }
+
+        // 校验职位描述
+        String jobDescription = request.getJobDescription();
+        if (StringUtils.isEmpty(jobDescription)) {
+            errorMessages.add("职位描述不能为空");
+        } else {
+            // 校验职位描述长度
+            if (jobDescription.length() > 5000) {
+                errorMessages.add("职位描述长度不能超过5000个字符");
+            }
+
+            // 校验职位描述内容不能只包含空白字符
+            if (StringUtils.isBlank(jobDescription)) {
+                errorMessages.add("职位描述不能只包含空白字符");
+            }
+        }
+
+        // 返回所有错误信息（逗号分隔）
+        return Joiner.on(ParseConstant.COMMA).join(errorMessages);
     }
 }

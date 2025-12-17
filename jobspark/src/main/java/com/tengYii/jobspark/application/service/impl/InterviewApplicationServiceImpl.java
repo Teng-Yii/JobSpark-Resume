@@ -12,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
  * 面试应用服务 - 协调领域服务和基础设施
@@ -33,8 +34,8 @@ public class InterviewApplicationServiceImpl implements InterviewApplicationServ
     public InterviewSession createInterviewSession(Long resumeId, String interviewType, int questionCount) {
         try {
             // 验证简历是否存在
-            CvBO resume = getResumeById(resumeId);
-            if (resume == null) {
+            CvBO cvBO = new CvBO();
+            if (Objects.isNull(cvBO)) {
                 throw new IllegalArgumentException("简历不存在: " + resumeId);
             }
 
@@ -96,7 +97,7 @@ public class InterviewApplicationServiceImpl implements InterviewApplicationServ
      */
     public String generateInterviewSuggestions(Long resumeId, String targetPosition) {
         try {
-            CvBO cvBO = getResumeById(resumeId);
+            CvBO cvBO = new CvBO();
             if (cvBO == null) {
                 throw new IllegalArgumentException("简历不存在: " + resumeId);
             }
@@ -161,17 +162,6 @@ public class InterviewApplicationServiceImpl implements InterviewApplicationServ
             log.error("终止面试失败", e);
             throw new RuntimeException("终止面试失败: " + e.getMessage(), e);
         }
-    }
-
-    // 私有方法
-
-    /**
-     * 根据ID获取简历（需要实现持久化逻辑）
-     */
-    private CvBO getResumeById(Long resumeId) {
-        // TODO: 实现简历获取逻辑
-        // 这里返回模拟数据
-        return resumeAnalysisService.getResumeAnalysis(resumeId);
     }
 
     /**

@@ -1,6 +1,7 @@
 package com.tengYii.jobspark.application.service;
 
 import com.tengYii.jobspark.dto.request.ResumeOptimizedRequest;
+import com.tengYii.jobspark.dto.request.ResumeOptimizeRequest;
 import com.tengYii.jobspark.dto.response.ResumeOptimizedResponse;
 import com.tengYii.jobspark.dto.response.ResumeUploadAsyncResponse;
 import com.tengYii.jobspark.dto.request.ResumeUploadRequest;
@@ -22,11 +23,11 @@ public interface ResumeApplicationService {
     /**
      * 获取优化后的简历信息
      *
-     * @param resumeId 简历ID
-     * @param userId   用户ID
+     * @param request 简历优化请求对象，包含resumeId和jobDescription
+     * @param userId  用户ID
      * @return 优化后的简历响应对象
      */
-    ResumeOptimizedResponse getOptimizedResume(Long resumeId, Long userId);
+    ResumeOptimizedResponse optimizeResume(ResumeOptimizeRequest request, Long userId);
 
     /**
      * 生成优化后的简历文件。

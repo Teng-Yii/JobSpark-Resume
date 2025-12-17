@@ -1,10 +1,13 @@
 package com.tengYii.jobspark.infrastructure.repo.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.tengYii.jobspark.model.po.CvPO;
 import com.tengYii.jobspark.infrastructure.mapper.CvMapper;
 import com.tengYii.jobspark.infrastructure.repo.CvRepository;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.stereotype.Service;
+
+import java.util.Objects;
 
 /**
  * <p>
@@ -27,6 +30,13 @@ public class CvRepositoryImpl extends ServiceImpl<CvMapper, CvPO> implements CvR
     @Override
     public CvPO getCvByCondition(Long resumeId, Long userId) {
 
-        return null;
+        if(Objects.isNull(resumeId) || Objects.isNull(userId)) {
+            return null;
+        }
+
+        LambdaQueryWrapper<CvPO> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(CvPO::getId, resumeId);
+        queryWrapper.eq(CvPO::getUserId, userId);
+        return this.getOne(queryWrapper);
     }
 }
