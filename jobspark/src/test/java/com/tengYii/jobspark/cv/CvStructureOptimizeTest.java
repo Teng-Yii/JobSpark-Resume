@@ -39,8 +39,8 @@ public class CvStructureOptimizeTest {
             CvOptimizationAgent cvOptimizationAgent = AgenticServices.createAgenticSystem(CvOptimizationAgent.class, chatModel);
             System.out.println("代理系统创建成功，开始优化简历...");
 
-            Result<CvBO> cvBOResult = cvOptimizationAgent.optimizeCv(mockCvBO, jobDescription);
-            CvBO optimizeCv = cvBOResult.content();
+//            Result<CvBO> cvBOResult = cvOptimizationAgent.optimizeCv(mockCvBO, jobDescription);
+            CvBO optimizeCv = cvOptimizationAgent.optimizeCv(mockCvBO, jobDescription);;
     //        CvBO optimizeCv = cvOptimizationAgent.optimizeCv(masterCv, jobDescription);
             System.out.println("简历优化完成:");
             System.out.println(optimizeCv);

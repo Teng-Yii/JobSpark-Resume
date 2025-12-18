@@ -6,6 +6,7 @@ import dev.langchain4j.agentic.Agent;
 import dev.langchain4j.service.SystemMessage;
 import dev.langchain4j.service.UserMessage;
 import dev.langchain4j.service.V;
+import dev.langchain4j.service.guardrail.OutputGuardrails;
 
 /**
  * 简历定制代理
@@ -251,5 +252,6 @@ public interface ScoredCvTailor {
             
             请基于以上要求，对候选人简历进行专业、精准的定制优化。
             """)
+    @OutputGuardrails(value = {JsonResponseCleanGuard.class})
     CvBO tailorCv(@V("cv") CvBO cv, @V("cvReview") CvReview cvReview);
 }

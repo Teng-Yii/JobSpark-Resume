@@ -6,6 +6,7 @@ import dev.langchain4j.agentic.Agent;
 import dev.langchain4j.service.SystemMessage;
 import dev.langchain4j.service.UserMessage;
 import dev.langchain4j.service.V;
+import dev.langchain4j.service.guardrail.OutputGuardrails;
 
 /**
  * 简历审核评分代理
@@ -175,7 +176,11 @@ public interface CvReviewer {
             2. **分析深入**: 不仅要给出结论，还要说明评分依据和逻辑
             3. **反馈具体**: 避免模糊表述，提供具体、可操作的建议
             4. **语言专业**: 使用专业、客观的语言，保持建设性态度
-            5. **格式规范**: 严格按照CvReview对象结构返回结果
+            5. **格式规范**:
+               - 严格按照CvReview对象结构返回结果
+               - **必须输出纯净的JSON格式，绝对不要使用```json或```等Markdown代码块标记**
+               - **直接返回JSON对象，不要添加任何前缀、后缀或包装标记**
+               - **确保JSON格式完全符合标准，可以直接被解析器处理**
             
             ### 决策建议
             基于最终评分，提供明确的招聘建议：
@@ -186,5 +191,6 @@ public interface CvReviewer {
             
             请基于以上要求，对候选人简历进行专业、全面的审核评估。
             """)
+    @OutputGuardrails(value = {JsonResponseCleanGuard.class})
     CvReview reviewCv(@V("cv") CvBO cv, @V("jobDescription") String jobDescription);
 }

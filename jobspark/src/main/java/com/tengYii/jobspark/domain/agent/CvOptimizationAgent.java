@@ -51,13 +51,13 @@ public interface CvOptimizationAgent {
      */
     @LoopAgent(
             outputName = "cv",
-            maxIterations = 3,
+            maxIterations = 1,
             subAgents = {
                     @SubAgent(type = CvReviewer.class, outputName = "cvReview"),
                     @SubAgent(type = ScoredCvTailor.class, outputName = "cv")
             }
     )
-    Result<CvBO> optimizeCv(CvBO cv, String jobDescription);
+    CvBO optimizeCv(CvBO cv, String jobDescription);
 
     /**
      * 判断简历优化是否达到退出条件
@@ -66,7 +66,7 @@ public interface CvOptimizationAgent {
      * @return 是否达到退出条件
      */
     @ExitCondition(testExitAtLoopEnd = true)
-    default boolean exitCondition(AgenticScope agenticScope) {
+    static boolean exitCondition(AgenticScope agenticScope) {
         try {
             // 从代理作用域中获取最新的审核结果
             CvReview review = (CvReview) agenticScope.readState("cvReview");
@@ -103,27 +103,22 @@ public interface CvOptimizationAgent {
         }
     }
 
-    /**
-     * 优化简历信息并输出简历概览
-     *
-     * @param cvBO 需要优化的简历对象
-     * @return 优化后的简历对象，包含经过验证和评估的候选人信息
-     */
-    @Output
-    default CvBO outputOptimizedCv(@V("cv") CvBO cvBO) {
-        try {
-            // 输出优化完成的提示信息
-            System.out.println("=== 简历优化流程完成 ===");
-
-            // 基础验证：检查简历对象是否为空
-            if (cvBO == null) {
-                throw new IllegalArgumentException("优化后的简历对象不能为空");
-            }
-
-            return cvBO;
-
-        } catch (Exception e) {
-            throw new IllegalStateException("简历优化失败", e);
-        }
-    }
+//    /**
+//     * 优化简历信息并输出简历概览
+//     *
+//     * @param cvBO 需要优化的简历对象
+//     * @return 优化后的简历对象，包含经过验证和评估的候选人信息
+//     */
+//    @Output
+//    static Result<CvBO> outputOptimizedCv(@V("cv") CvBO cvBO) {
+//        try {
+//            // 输出优化完成的提示信息
+//            System.out.println("=== 简历优化流程完成 ===");
+//            return Result.<CvBO>builder()
+//                    .content(cvBO)
+//                    .build();
+//        } catch (Exception e) {
+//            throw new IllegalStateException("简历优化失败", e);
+//        }
+//    }
 }

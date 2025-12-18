@@ -222,8 +222,8 @@ public class ResumeApplicationServiceImpl implements ResumeApplicationService {
         // 创建简历优化Agent，开始优化简历
         stopWatch.start("开始优化简历");
         CvOptimizationAgent cvOptimizationAgent = AgenticServices.createAgenticSystem(CvOptimizationAgent.class, chatModel);
-        Result<CvBO> cvBOResult = cvOptimizationAgent.optimizeCv(cvBO, jobDescription);
-        CvBO optimizeCv = cvBOResult.content();
+//        Result<CvBO> cvBOResult = cvOptimizationAgent.optimizeCv(cvBO, jobDescription);
+        CvBO optimizeCv = cvOptimizationAgent.optimizeCv(cvBO, jobDescription);;
         stopWatch.stop();
 
 
