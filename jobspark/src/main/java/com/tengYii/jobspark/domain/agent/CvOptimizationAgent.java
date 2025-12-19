@@ -51,7 +51,7 @@ public interface CvOptimizationAgent {
      */
     @LoopAgent(
             outputName = "cv",
-            maxIterations = 1,
+            maxIterations = 3,
             subAgents = {
                     @SubAgent(type = CvReviewer.class, outputName = "cvReview"),
                     @SubAgent(type = ScoredCvTailor.class, outputName = "cv")

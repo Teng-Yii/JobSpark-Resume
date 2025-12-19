@@ -252,6 +252,6 @@ public interface ScoredCvTailor {
             
             请基于以上要求，对候选人简历进行专业、精准的定制优化。
             """)
-    @OutputGuardrails(value = {JsonResponseCleanGuard.class})
+    @OutputGuardrails(value = {JsonResponseCleanGuard.class}, maxRetries = 0)
     CvBO tailorCv(@V("cv") CvBO cv, @V("cvReview") CvReview cvReview);
 }

@@ -191,6 +191,6 @@ public interface CvReviewer {
             
             请基于以上要求，对候选人简历进行专业、全面的审核评估。
             """)
-    @OutputGuardrails(value = {JsonResponseCleanGuard.class})
+    @OutputGuardrails(value = {JsonResponseCleanGuard.class}, maxRetries = 0)
     CvReview reviewCv(@V("cv") CvBO cv, @V("jobDescription") String jobDescription);
 }

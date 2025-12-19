@@ -1,6 +1,7 @@
 package com.tengYii.jobspark.model.llm;
 
 import dev.langchain4j.model.output.structured.Description;
+import lombok.Data;
 
 
 /**
@@ -11,6 +12,7 @@ import dev.langchain4j.model.output.structured.Description;
  *
  * @author tengYii
  */
+@Data
 public class CvReview {
 
     /**
