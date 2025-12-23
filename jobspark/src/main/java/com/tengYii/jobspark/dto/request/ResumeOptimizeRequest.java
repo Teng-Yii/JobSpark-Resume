@@ -1,10 +1,8 @@
 package com.tengYii.jobspark.dto.request;
 
 import lombok.Data;
-import org.apache.commons.lang3.StringUtils;
-
 import java.io.Serializable;
-import java.util.Objects;
+
 
 /**
  * 简历优化请求request

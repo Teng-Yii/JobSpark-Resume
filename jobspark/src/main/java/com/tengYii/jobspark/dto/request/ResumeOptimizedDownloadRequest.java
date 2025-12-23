@@ -2,7 +2,6 @@ package com.tengYii.jobspark.dto.request;
 
 import java.io.Serializable;
 
-import com.tengYii.jobspark.common.enums.DownloadFileTypeEnum;
 import lombok.Getter;
 
 /**
