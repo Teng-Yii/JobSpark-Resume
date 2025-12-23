@@ -1,6 +1,6 @@
 package com.tengYii.jobspark.application.service;
 
-import com.tengYii.jobspark.dto.request.ResumeOptimizedRequest;
+import com.tengYii.jobspark.dto.request.ResumeOptimizedDownloadRequest;
 import com.tengYii.jobspark.dto.request.ResumeOptimizeRequest;
 import com.tengYii.jobspark.dto.response.ResumeOptimizedResponse;
 import com.tengYii.jobspark.dto.response.ResumeUploadAsyncResponse;
@@ -35,7 +35,7 @@ public interface ResumeApplicationService {
      * @param request 包含简历优化请求信息的对象。
      * @return 优化后的简历文件的字节数组。
      */
-    byte[] generateOptimizedFile(ResumeOptimizedRequest request);
+    byte[] generateOptimizedFile(ResumeOptimizedDownloadRequest request);
 
     /**
      * 获取任务状态

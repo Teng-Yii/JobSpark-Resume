@@ -4,11 +4,8 @@ import com.tengYii.jobspark.model.bo.CvBO;
 import com.tengYii.jobspark.model.llm.CvReview;
 import dev.langchain4j.agentic.declarative.ExitCondition;
 import dev.langchain4j.agentic.declarative.LoopAgent;
-import dev.langchain4j.agentic.declarative.Output;
 import dev.langchain4j.agentic.declarative.SubAgent;
 import dev.langchain4j.agentic.scope.AgenticScope;
-import dev.langchain4j.service.Result;
-import dev.langchain4j.service.V;
 
 import java.util.Objects;
 
@@ -17,27 +14,10 @@ import java.util.Objects;
  * <p>
  * 这是一个高级的循环优化代理，通过协调CvReviewer和ScoredCvTailor两个子代理，
  * 实现简历的迭代优化过程。系统会持续审核、定制、再审核，直到简历达到理想的匹配度。
- * </p>
- *
- * <h3>工作流程</h3>
- * <ol>
- *   <li><strong>初始审核</strong>: CvReviewer对原始简历进行评分和反馈</li>
- *   <li><strong>智能定制</strong>: ScoredCvTailor基于反馈优化简历</li>
- *   <li><strong>循环验证</strong>: 重复审核-定制过程直到达到退出条件</li>
- *   <li><strong>结果输出</strong>: 返回最终优化的简历</li>
- * </ol>
- *
- * <h3>优化策略</h3>
- * <ul>
- *   <li><strong>渐进式改进</strong>: 每次迭代都基于前一次的反馈进行改进</li>
- *   <li><strong>质量控制</strong>: 通过评分阈值控制优化质量</li>
- *   <li><strong>防止过度优化</strong>: 限制最大迭代次数避免无限循环</li>
- *   <li><strong>智能退出</strong>: 当评分达到0.8以上时自动停止优化</li>
- * </ul>
  *
  * @author tengYii
  * @version 1.0
- * @since 2024-12-17
+ * @since 2025-12-17
  */
 public interface CvOptimizationAgent {
 
@@ -75,6 +55,12 @@ public interface CvOptimizationAgent {
             if (Objects.isNull(review)) {
                 System.err.println("警告: 无法获取简历审核结果，继续优化...");
                 return false;
+            }
+
+            // 尝试获取CvBO对象并设置建议
+            Object cvObj = agenticScope.readState("cv");
+            if (cvObj instanceof CvBO cv) {
+                cv.setAdvice(review.getFeedback());
             }
 
             // 输出当前评分，便于监控优化进度

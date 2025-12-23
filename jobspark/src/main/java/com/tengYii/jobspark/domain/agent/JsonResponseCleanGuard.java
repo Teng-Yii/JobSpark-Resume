@@ -4,10 +4,12 @@ import com.tengYii.jobspark.common.utils.llm.JsonResponseCleaner;
 import dev.langchain4j.guardrail.OutputGuardrail;
 import dev.langchain4j.guardrail.OutputGuardrailRequest;
 import dev.langchain4j.guardrail.OutputGuardrailResult;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * 大模型输出内容会返回带有```json标记的JSON，清除标记用于解析为结构化数据
  */
+@Slf4j
 public class JsonResponseCleanGuard implements OutputGuardrail {
 
     /**
@@ -23,6 +25,7 @@ public class JsonResponseCleanGuard implements OutputGuardrail {
 
         String aiMessageText = request.responseFromLLM().aiMessage().text();
 
+        log.info("对LLM响应进行JSON格式化，LLM响应原文本: {}", aiMessageText);
         String cleanJsonResponse = JsonResponseCleaner.cleanJsonResponse(aiMessageText);
         return successWith(cleanJsonResponse);
 //        return validate(request.responseFromLLM().aiMessage());

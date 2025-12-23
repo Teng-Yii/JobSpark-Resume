@@ -81,6 +81,11 @@ public class CvBO {
      */
     private List<CertificateBO> certificates;
 
+    /**
+     * 优化建议
+     */
+    private String advice;
+
     // 版式与国际化元数据
     // 对齐、列表、间距、字体、日期格式、链接样式、图标占位、locale 等
     private FormatMetaBO meta;

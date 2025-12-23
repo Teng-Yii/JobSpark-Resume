@@ -19,7 +19,7 @@ import com.tengYii.jobspark.domain.render.markdown.TemplateFieldMapper;
 import com.tengYii.jobspark.domain.render.markdown.TemplateService;
 import com.tengYii.jobspark.domain.render.pdf.PdfService;
 import com.tengYii.jobspark.domain.service.*;
-import com.tengYii.jobspark.dto.request.ResumeOptimizedRequest;
+import com.tengYii.jobspark.dto.request.ResumeOptimizedDownloadRequest;
 import com.tengYii.jobspark.dto.request.ResumeOptimizeRequest;
 import com.tengYii.jobspark.dto.response.ResumeOptimizedResponse;
 import com.tengYii.jobspark.infrastructure.repo.CvRepository;
@@ -32,7 +32,6 @@ import com.tengYii.jobspark.model.po.CvPO;
 import com.tengYii.jobspark.model.po.ResumeTaskPO;
 import dev.langchain4j.agentic.AgenticServices;
 import dev.langchain4j.model.chat.ChatModel;
-import dev.langchain4j.service.Result;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -222,13 +221,27 @@ public class ResumeApplicationServiceImpl implements ResumeApplicationService {
         // 创建简历优化Agent，开始优化简历
         stopWatch.start("开始优化简历");
         CvOptimizationAgent cvOptimizationAgent = AgenticServices.createAgenticSystem(CvOptimizationAgent.class, chatModel);
-//        Result<CvBO> cvBOResult = cvOptimizationAgent.optimizeCv(cvBO, jobDescription);
-        CvBO optimizeCv = cvOptimizationAgent.optimizeCv(cvBO, jobDescription);;
+        CvBO optimizeCv = cvOptimizationAgent.optimizeCv(cvBO, jobDescription);
         stopWatch.stop();
 
+        // 优化后的简历落库
+        stopWatch.start("优化后简历保存");
+        // 设置当前时间用于保存
+        LocalDateTime nowTime = LocalDateTime.now();
+        // 将优化后的简历保存到数据库，并获取新的简历ID
+        Long newResumeId = resumePersistenceService.convertAndSaveCv(optimizeCv, nowTime);
+        log.info("优化后简历已保存，newResumeId: {}", newResumeId);
+        stopWatch.stop();
 
-        ResumeOptimizedResponse response = resumeAnalysisService.getResumeAnalysis(cvBO);
-        return new ResumeOptimizedResponse();
+        // 构建返回结果
+        ResumeOptimizedResponse response = new ResumeOptimizedResponse();
+        // 填充优化建议
+        response.setSuggestionText(optimizeCv.getAdvice());
+        // 填充优化后的简历对象
+        response.setOptimizedResumeId(newResumeId);
+
+        log.info("简历优化完成，耗时信息：{}", stopWatch.prettyPrint());
+        return response;
     }
 
 
@@ -237,33 +250,28 @@ public class ResumeApplicationServiceImpl implements ResumeApplicationService {
      * 根据请求中的文件类型（HTML、PDF、DOCX）生成对应格式的简历文件
      * 转换流程：CvBO -> Markdown -> HTML -> PDF/DOCX
      *
-     * @param request 包含简历优化请求信息的对象，必须包含resumeId、downloadFileType和cvBO
+     * @param request 包含简历优化请求信息的对象
      * @return 优化后的简历文件的字节数组
-     * @throws IllegalArgumentException 当请求参数无效或文件类型不支持时抛出
-     * @throws RuntimeException         当文件生成过程中发生异常时抛出
      */
     @Override
-    public byte[] generateOptimizedFile(ResumeOptimizedRequest request) {
-        log.info("开始生成优化简历文件，resumeId: {}, fileType: {}",
-                request.getResumeId(), request.getDownloadFileType());
-
-        // 参数校验
-        if (!request.isValid()) {
-            log.error("简历优化请求参数无效");
-            throw new IllegalArgumentException("请求参数无效，必须包含resumeId和cvBO");
-        }
-
-        DownloadFileTypeEnum downloadFileType = request.getDownloadFileType();
-        if (Objects.isNull(downloadFileType)) {
-            log.warn("未指定下载文件类型，默认使用PDF格式");
-            downloadFileType = DownloadFileTypeEnum.PDF;
-        }
-
-        CvBO cvBO = request.getCvBO();
+    public byte[] generateOptimizedFile(ResumeOptimizedDownloadRequest request) {
+        Long resumeId = request.getOptimizedResumeId();
+        String fileType = request.getDownloadFileType();
+        log.info("开始生成优化简历文件，resumeId: {}, fileType: {}", resumeId, fileType);
 
         try {
             StopWatch stopWatch = new StopWatch();
-            stopWatch.start("生成简历文件");
+
+            stopWatch.start("获取简历bo对象");
+            // 使用用户Id进行校验
+            CvPO cvPO = cvRepository.getCvByCondition(resumeId, request.getUserId());
+            if (Objects.isNull(cvPO)) {
+                throw new BusinessException(ResultCodeEnum.RESUME_NOT_FOUND, "简历不存在，请重新上传简历");
+            }
+
+            // 获取简历bo对象
+            CvBO cvBO = resumePersistenceService.convertToCvBO(cvPO);
+            stopWatch.stop();
 
             // 第一步：CvBO -> Markdown
             stopWatch.start("CvBO转换为Markdown");
@@ -280,6 +288,7 @@ public class ResumeApplicationServiceImpl implements ResumeApplicationService {
             byte[] result;
 
             // 第三步：根据文件类型生成最终文件
+            DownloadFileTypeEnum downloadFileType = DownloadFileTypeEnum.getByFormat(fileType);
             switch (downloadFileType) {
                 case HTML:
                     stopWatch.start("生成HTML文件");
@@ -307,15 +316,10 @@ public class ResumeApplicationServiceImpl implements ResumeApplicationService {
                     throw new IllegalArgumentException("不支持的文件类型: " + downloadFileType);
             }
 
-            stopWatch.stop();
-            log.info("简历文件生成完成，resumeId: {}, fileType: {}, 总耗时: {} ms",
-                    request.getResumeId(), downloadFileType, stopWatch.getTotalTimeMillis());
-
+            log.info("简历文件生成完成，resumeId: {}, fileType: {}, 总耗时: {} ms", resumeId, downloadFileType, stopWatch.getTotalTimeMillis());
             return result;
-
         } catch (Exception e) {
-            log.error("生成简历文件失败，resumeId: {}, fileType: {}",
-                    request.getResumeId(), downloadFileType, e);
+            log.error("生成简历文件失败，resumeId: {}, fileType: {}", resumeId, fileType, e);
             throw new RuntimeException("生成简历文件失败: " + e.getMessage(), e);
         }
     }

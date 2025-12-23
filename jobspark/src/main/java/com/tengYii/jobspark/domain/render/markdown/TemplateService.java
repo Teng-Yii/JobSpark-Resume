@@ -29,7 +29,6 @@ public class TemplateService {
             cfg = new Configuration(Configuration.VERSION_2_3_32);
             cfg.setDefaultEncoding("UTF-8");
             // 模板目录：resources/templates
-            // Use multiple loaders to be robust across IDE/Maven/JUnit classpath differences
             ClassLoader cl = TemplateService.class.getClassLoader();
             ClassLoader tcl = Thread.currentThread().getContextClassLoader();
             TemplateLoader l1 = new ClassTemplateLoader(TemplateService.class, "/templates"); // reliable in packaged runtime

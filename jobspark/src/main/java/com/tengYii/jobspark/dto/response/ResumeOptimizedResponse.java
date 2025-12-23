@@ -22,7 +22,7 @@ public class ResumeOptimizedResponse {
     private String suggestionText;
 
     /**
-     * 优化后的结构化CvBO对象，用于生成优化后的简历文件
+     * 优化后的简历ID，用于生成优化后的简历文件
      */
-    private CvBO optimizedCv;
+    private Long optimizedResumeId;
 }

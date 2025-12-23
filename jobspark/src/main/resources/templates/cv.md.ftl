@@ -1,174 +1,123 @@
-package com.tengYii.jobspark.cv;
+<#function h n>
+    <#assign level = (n + headingOffset)!n>
+    <#assign hashes = "" />
+    <#list 1..level as i>
+        <#assign hashes = hashes + "#" />
+    </#list>
+    <#return hashes>
+</#function>
 
-import com.tengYii.jobspark.common.exception.RenderException;
-import com.tengYii.jobspark.common.exception.ValidationException;
-import com.tengYii.jobspark.config.cv.DocxConfig;
-import com.tengYii.jobspark.config.cv.HtmlConfig;
-import com.tengYii.jobspark.config.cv.MarkdownConfig;
-import com.tengYii.jobspark.config.cv.PdfConfig;
-import com.tengYii.jobspark.domain.render.markdown.TemplateFieldMapper;
-import com.tengYii.jobspark.domain.render.markdown.MarkdownService;
-import com.tengYii.jobspark.domain.render.pdf.PdfService;
-import com.tengYii.jobspark.domain.render.markdown.TemplateService;
-import com.tengYii.jobspark.domain.render.doc.DocxService;
-import com.tengYii.jobspark.application.validate.CvValidator;
-import com.tengYii.jobspark.model.bo.*;
-import org.apache.commons.lang3.StringUtils;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Entities;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Assumptions;
-import org.junit.jupiter.api.Test;
+<#function fmtDate d="">
+    <#if d?has_content>
+        <#assign pattern = meta.datePattern!'yyyy.MM'>
+        <#if d?is_date_like>
+            <#return d?string(pattern)>
+        <#else>
+            <#return d?string>
+        </#if>
+    <#else>
+        <#return "至今">
+    </#if>
+</#function>
 
-import java.io.File;
-import java.time.LocalDate;
-import java.util.List;
+<#function bulletList items>
+    <#if items?has_content>
+        <#list items as it>
+- <#if it?is_hash> ${it.highlight} <#else> ${it} </#if>
+        </#list>
+    </#if>
+</#function>
 
-/**
- * 管线使用演示与测试：
- * - 字段校验（缺少姓名/联系方式抛异常）
- * - 模板渲染正确性（包含关键段落）
- * - HTML→PDF/Docx 转换（文件存在且非零；若依赖缺失则跳过）
- *
- * 运行：mvn -q -Dtest=com.tengYii.jobspark.cv.CvPipelineTest test
- */
-public class CvPipelineTest {
+<#-- 顶部个人信息块 -->
+<#if includeHeaderBlock!true>
+${h(1)} ${name}<#if title?has_content> · ${title}</#if>
+<#if age?has_content>年龄：${age}</#if>
 
-    @Test
-    void validate_missing_fields_should_throw() {
-        CvBO cv = CvBO.builder()
-                .name(null)
-                .contact(ContactBO.builder().phone("13800000000").build())
-                .educations(List.of(EducationBO.builder().school("X").major("Y").startDate(LocalDate.now()).build()))
-                .build();
+联系方式：<#if contact.phone?has_content>📱 ${contact.phone}</#if><#if contact.email?has_content>  ✉️ ${contact.email}</#if><#if contact.wechat?has_content>  🟩 ${contact.wechat}</#if><#if contact.location?has_content>  📍 ${contact.location}</#if>
 
-        Assertions.assertThrows(ValidationException.class, () -> new CvValidator().validateOrThrow(cv));
+<#if socialLinks?has_content>
+社交链接：
+<#list socialLinks as s>
+- [${s.label}](${s.url})
+</#list>
+</#if>
 
-        CvBO cv2 = CvBO.builder()
-                .name("张三")
-                .contact(ContactBO.builder().build()) // 无联系方式
-                .educations(List.of(EducationBO.builder().school("X").major("Y").startDate(LocalDate.now()).build()))
-                .build();
+</#if>
 
-        Assertions.assertThrows(ValidationException.class, () -> new CvValidator().validateOrThrow(cv2));
+<#-- 个人摘要 -->
+<#if summary?has_content>
+${h(2)} 个人摘要
 
-        CvBO cv3 = CvBO.builder()
-                .name("张三")
-                .contact(ContactBO.builder().phone("13800000000").build())
-                .build();
+${summary}
+</#if>
 
-        Assertions.assertThrows(ValidationException.class, () -> new CvValidator().validateOrThrow(cv3));
-    }
+<#-- 教育经历 -->
+<#if educations?has_content>
+${h(2)} 教育经历
 
-    @Test
-    void template_render_contains_sections() throws Exception {
-        CvBO cv = sampleCvMinimal();
-        new CvValidator().validateOrThrow(cv);
+<#list educations as edu>
+${h(3)} ${edu.school} · ${edu.major}<#if edu.degree?has_content> · ${edu.degree}</#if>（${fmtDate(edu.startDate!)} - ${fmtDate(edu.endDate!)}）
+<#if edu.description?has_content>
+${edu.description}
+</#if>
 
-        TemplateService ts = new TemplateService();
-        MarkdownConfig mdCfg = MarkdownConfig.defaults();
-        TemplateFieldMapper mapper = TemplateFieldMapper.builder().aliases(java.util.Map.of()).build();
+</#list>
+</#if>
 
-        String md = ts.renderMarkdown(cv, mdCfg, mapper);
+<#-- 工作/实习经历 -->
+<#if experiences?has_content>
+${h(2)} 实习/工作经历
 
-        Assertions.assertTrue(md.contains("教育经历"), "Markdown 应包含 教育经历 段落标题");
-        Assertions.assertTrue(md.contains("项目经验"), "Markdown 应包含 项目经验 段落标题");
-        Assertions.assertTrue(md.contains("技能与亮点"), "Markdown 应包含 技能与亮点 段落标题");
-    }
+<#list experiences as exp>
+${h(3)} ${exp.company} · ${exp.role}（${fmtDate(exp.startDate!)} - ${fmtDate(exp.endDate!)}）
+<#if exp.description?has_content>
+${exp.description}
+</#if>
+<#if exp.highlights?has_content>
+<#if compactList!true>
+<#list exp.highlights as hl>
+- <#if hl?is_hash> ${hl.highlight} <#else> ${hl} </#if>
+</#list>
+<#else>
+${bulletList(exp.highlights)}
+</#if>
+</#if>
 
-    @Test
-    void html_to_pdf_and_docx_generate_files_or_skip_when_deps_missing() throws Exception {
-        CvBO cv = sampleCvMinimal();
-        new CvValidator().validateOrThrow(cv);
+</#list>
+</#if>
 
-        // Markdown -> HTML
-        TemplateService ts = new TemplateService();
-        String md = ts.renderMarkdown(cv, MarkdownConfig.defaults(), TemplateFieldMapper.builder().aliases(java.util.Map.of()).build());
-        MarkdownService ms = new MarkdownService();
-        String html = ms.toHtmlFromMarkdown(md, HtmlConfig.defaults());
+<#-- 项目经验 -->
+<#if projects?has_content>
+${h(2)} 项目经验
 
-        File outDir = new File("out/test");
-        if (!outDir.exists() && !outDir.mkdirs()) {
-            throw new RuntimeException("创建测试输出目录失败: " + outDir.getAbsolutePath());
-        }
+<#list projects as p>
+${h(3)} ${p.name} · ${p.role}（${fmtDate(p.startDate!)} - ${fmtDate(p.endDate!)}）
+<#if p.description?has_content>
+${p.description}
+</#if>
+<#if p.highlights?has_content>
+<#list p.highlights as hl>
+- <#if hl?is_hash> ${hl.highlight} <#else> ${hl} </#if>
+</#list>
+</#if>
 
-        // HTML -> PDF
-        try {
-            PdfService ps = new PdfService();
-            File pdf = ps.toPdf(html, PdfConfig.defaults(), outDir, "myPdf");
-            Assertions.assertTrue(pdf.exists() && pdf.length() > 0, "PDF 文件应存在且非零大小");
-        } catch (RenderException e) {
-            // 依赖缺失时跳过
-            Assumptions.assumeTrue(false, "跳过 PDF 测试 - " + e.getMessage());
-        }
+</#list>
+</#if>
 
-        // HTML -> Docx
-        try {
-            DocxService ds = new DocxService();
-            File docx = ds.toDocx(html, DocxConfig.defaults(), outDir, "myDocx");
-            Assertions.assertTrue(docx.exists() && docx.length() > 0, "Docx 文件应存在且非零大小");
-        } catch (RenderException e) {
-            // 依赖缺失时跳过
-            Assumptions.assumeTrue(false, "跳过 Docx 测试： - " + e.getMessage());
-        }
-    }
+<#-- 技能/亮点 -->
+<#if skills?has_content>
+${h(2)} 技能与亮点
 
-    private String preprocessHtml(String htmlContent) {
-        if (StringUtils.isEmpty(htmlContent)) {
-            return htmlContent;
-        }
+<#list skills as s>
+- **${s.name}**<#if s.level?has_content>（${s.level}）</#if><#if s.highlights?has_content>：<#list s.highlights as hl><#if hl?is_hash> ${hl.highlight} <#else> ${hl} </#if><#if hl_has_next>；</#if></#list></#if>
+</#list>
+</#if>
 
-        // 使用 Jsoup 解析并输出为 XHTML
-        Document doc = Jsoup.parse(htmlContent);
-        doc.outputSettings()
-                .syntax(Document.OutputSettings.Syntax.xml)
-                .escapeMode(Entities.EscapeMode.xhtml);
+<#-- 证书/获奖 -->
+<#if certificates?has_content>
+${h(2)} 证书与获奖
 
-        return doc.html();
-    }
-
-    // 构建一个最小可用的 CvBO（中文内容）
-    private CvBO sampleCvMinimal() throws Exception {
-        String summary = "热爱后端开发，关注性能与可靠性。";
-        ContactBO contact = ContactBO.builder().phone("13800000000").email("z***@example.com").location("西安").build();
-        EducationBO edu = EducationBO.builder()
-                .school("西安某大学")
-                .major("计算机科学")
-                .startDate(LocalDate.of(2022, 9, 1))
-                .endDate(LocalDate.of(2026, 7, 1))
-                .description("- 主修数据结构、数据库系统、计算机网络等")
-                .build();
-        ProjectBO proj = ProjectBO.builder()
-                .name("示例项目")
-                .role("后端开发")
-                .description("- SpringBoot + MySQL + Redis")
-                .highlights(List.of(HighlightBO.builder().highlight("实现接口幂等与限流").build()))
-                .build();
-        SkillBO skill = SkillBO.builder().name("Java / SpringBoot").level("熟练").build();
-
-        FormatMetaBO meta = FormatMetaBO.builder()
-                .alignment("left")
-                .lineSpacing(1.4)
-                .fontFamily("\"Noto Sans SC\", \"PingFang SC\", \"Microsoft YaHei\", \"SimSun\", sans-serif")
-                .datePattern("yyyy.MM")
-                .hyperlinkStyle("underline")
-                .showAvatar(false)
-                .showSocial(true)
-                .twoColumnLayout(false)
-                .localeConfig(LocaleConfigBO.builder().locale("zh-CN").datePattern("yyyy.MM").build())
-                .build();
-
-        return CvBO.builder()
-                .name("张三")
-                .birthDate(LocalDate.parse("2004-01-01"))
-                .title("Java后端开发实习生")
-                .summary(summary)
-                .contact(contact)
-                .educations(List.of(edu))
-                .projects(List.of(proj))
-                .skills(List.of(skill))
-                .meta(meta)
-                .build();
-    }
-}
+<#list certificates as c>
+- ${c.name} · ${c.issuer}<#if c.date?has_content>（${fmtDate(c.date!)}）</#if>
+</#list>
+</#if>

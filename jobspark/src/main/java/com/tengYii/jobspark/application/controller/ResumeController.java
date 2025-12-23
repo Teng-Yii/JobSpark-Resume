@@ -1,7 +1,7 @@
 package com.tengYii.jobspark.application.controller;
 
 import com.tengYii.jobspark.common.utils.login.UserContext;
-import com.tengYii.jobspark.dto.request.ResumeOptimizedRequest;
+import com.tengYii.jobspark.dto.request.ResumeOptimizedDownloadRequest;
 import com.tengYii.jobspark.dto.request.ResumeOptimizeRequest;
 import com.tengYii.jobspark.dto.response.ResumeOptimizedResponse;
 import com.tengYii.jobspark.dto.response.ResumeUploadAsyncResponse;
@@ -25,7 +25,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * 简历controller
@@ -44,7 +43,7 @@ public class ResumeController {
     private ResumeApplicationService resumeApplicationService;
 
     /**
-     * 上传简历，并进行简历优化
+     * 上传简历，并进行简历解析
      *
      * @param request 简历上传请求对象
      * @return
@@ -58,8 +57,8 @@ public class ResumeController {
             throw new ValidationException(String.valueOf(HttpStatus.BAD_REQUEST.value()), validationResult);
         }
 
-        Long userId = getLoginUserId();
-        request.setUserId(userId);
+//        Long userId = getLoginUserId();
+//        request.setUserId(userId);
         ResumeUploadAsyncResponse response = resumeApplicationService.uploadAndParseResumeAsync(request);
         return ResponseEntity.ok(response);
     }
@@ -80,7 +79,7 @@ public class ResumeController {
         }
 
         Long userId = getLoginUserId();
-        ResumeOptimizedResponse response = resumeApplicationService.optimizeResume(request, 123L);
+        ResumeOptimizedResponse response = resumeApplicationService.optimizeResume(request, request.getUserId());
         return ResponseEntity.ok(response);
     }
 
@@ -91,12 +90,13 @@ public class ResumeController {
      * @return 响应实体，包含生成的优化后PDF文件字节数组
      */
     @PostMapping("/generateOptimizedFile")
-    public ResponseEntity<byte[]> generateOptimizedFile(@RequestBody ResumeOptimizedRequest request) {
-        // 校验请求参数有效性
-        if (Objects.isNull(request) || !request.isValid()) {
-            throw new ValidationException(String.valueOf(HttpStatus.BAD_REQUEST.value()), "请求参数不能为空且简历内容必须完整");
+    public ResponseEntity<byte[]> generateOptimizedFile(@RequestBody ResumeOptimizedDownloadRequest request) {
+        // 校验请求参数合法性
+        String validationResult = ResumeValidator.validateOptimizedDownloadRequest(request);
+        if (StringUtils.isNotEmpty(validationResult)) {
+            throw new ValidationException(String.valueOf(HttpStatus.BAD_REQUEST.value()), validationResult);
         }
-        // 调用Service层，传递resumeId和优化后的CvBO对象
+
         byte[] pdfBytes = resumeApplicationService.generateOptimizedFile(request);
         return ResponseEntity.ok()
                 .contentType(MediaType.APPLICATION_PDF)
