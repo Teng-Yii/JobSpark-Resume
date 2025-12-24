@@ -2,12 +2,12 @@ package com.tengYii.jobspark.dto.request;
 
 import java.io.Serializable;
 
-import lombok.Getter;
+import lombok.Data;
 
 /**
  * 优化后简历下载请求request
  */
-@Getter
+@Data
 public class ResumeOptimizedDownloadRequest implements Serializable {
 
     /**

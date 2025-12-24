@@ -1,12 +1,12 @@
 package com.tengYii.jobspark.application.controller;
 
 import com.tengYii.jobspark.application.service.AuthApplicationService;
+import com.tengYii.jobspark.application.validate.AuthValidator;
 import com.tengYii.jobspark.common.utils.login.JwtTokenUtil;
 import com.tengYii.jobspark.common.utils.login.UserContext;
 import com.tengYii.jobspark.dto.request.LoginRequest;
 import com.tengYii.jobspark.dto.response.SecureLoginResponse;
 import com.tengYii.jobspark.dto.response.UserInfoResponse;
-import com.tengYii.jobspark.application.validate.ResumeValidator;
 import com.tengYii.jobspark.common.exception.ValidationException;
 import com.tengYii.jobspark.model.po.UserInfoPO;
 import lombok.RequiredArgsConstructor;
@@ -46,6 +46,11 @@ public class AuthController {
     private Long accessTokenExpiration;
 
     /**
+     * Bearer Token 前缀
+     */
+    private static final String BEARER_PREFIX = "Bearer ";
+
+    /**
      * 用户登录接口
      *
      * @param loginRequest 登录请求对象，包含用户名和密码
@@ -55,7 +60,7 @@ public class AuthController {
     public ResponseEntity<SecureLoginResponse> login(@RequestBody LoginRequest loginRequest) {
 
         // 校验请求参数合法性
-        String validationResult = ResumeValidator.validateLogin(loginRequest);
+        String validationResult = AuthValidator.validateLogin(loginRequest);
         if (StringUtils.isNotBlank(validationResult)) {
             throw new ValidationException(String.valueOf(HttpStatus.BAD_REQUEST.value()), validationResult);
         }
@@ -89,13 +94,19 @@ public class AuthController {
 
         // 获取Authorization头中的token
         String authHeader = request.getHeader("Authorization");
-        if (StringUtils.isEmpty(authHeader) || !StringUtils.startsWith(authHeader, "Bearer ")) {
+        if (StringUtils.isEmpty(authHeader) || !StringUtils.startsWith(authHeader, BEARER_PREFIX)) {
             throw new ValidationException(String.valueOf(HttpStatus.BAD_REQUEST.value()), "无效的token格式");
         }
 
         try {
             // 提取实际的token（去掉"Bearer "前缀）
-            String token = authHeader.substring(7);
+            String token = StringUtils.substringAfter(authHeader, BEARER_PREFIX);
+
+            // 判空校验（防止某些极端情况截取为空串）
+            if (StringUtils.isEmpty(token)) {
+                throw new ValidationException(String.valueOf(HttpStatus.BAD_REQUEST.value()), "无效的token格式");
+            }
+
             // 执行登出操作
             authApplicationService.logout(token);
 

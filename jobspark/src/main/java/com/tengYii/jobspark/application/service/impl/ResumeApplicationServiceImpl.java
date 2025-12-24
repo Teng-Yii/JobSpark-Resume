@@ -194,12 +194,12 @@ public class ResumeApplicationServiceImpl implements ResumeApplicationService {
      * 获取优化后的简历信息
      *
      * @param request 简历优化请求对象，包含resumeId和jobDescription
-     * @param userId  用户ID
      * @return 优化后的简历响应对象
      */
-    public ResumeOptimizedResponse optimizeResume(ResumeOptimizeRequest request, Long userId) {
+    public ResumeOptimizedResponse optimizeResume(ResumeOptimizeRequest request) {
 
         // 从request对象中获取参数
+        Long userId = request.getUserId();
         Long resumeId = Long.parseLong(request.getResumeId());
         String jobDescription = request.getJobDescription();
         log.info("简历优化开始：userId:{}, resumeId: {}, jobDescription: {}", userId, resumeId, jobDescription);

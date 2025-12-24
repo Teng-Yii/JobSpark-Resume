@@ -23,11 +23,10 @@ public interface ResumeApplicationService {
     /**
      * 获取优化后的简历信息
      *
-     * @param request 简历优化请求对象，包含resumeId和jobDescription
-     * @param userId  用户ID
+     * @param request 简历优化请求对象
      * @return 优化后的简历响应对象
      */
-    ResumeOptimizedResponse optimizeResume(ResumeOptimizeRequest request, Long userId);
+    ResumeOptimizedResponse optimizeResume(ResumeOptimizeRequest request);
 
     /**
      * 生成优化后的简历文件。

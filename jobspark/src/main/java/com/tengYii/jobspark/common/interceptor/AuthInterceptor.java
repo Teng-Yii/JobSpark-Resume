@@ -17,54 +17,62 @@ import java.util.Objects;
 @Component
 public class AuthInterceptor implements HandlerInterceptor {
 
+    /**
+     * Bearer Token 前缀
+     */
+    private static final String BEARER_PREFIX = "Bearer ";
+
     @Autowired
     private JwtTokenUtil jwtTokenUtil;
 
     /**
-     * 请求预处理，验证JWT token并设置用户上下文
+     * 请求预处理
      *
      * @param request  HTTP请求
      * @param response HTTP响应
      * @param handler  处理器
-     * @return true表示继续处理请求，false表示拦截请求
-     * @throws Exception 处理异常
+     * @return true表示继续处理
+     * @throws Exception 异常
      */
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
-        // 获取Authorization头
-        String token = request.getHeader("Authorization");
+        // 1. 获取token信息
+        String authHeader = request.getHeader("Authorization");
 
-        // 检查token格式
-        if (StringUtils.isEmpty(token) || !StringUtils.startsWith(token, "Bearer ")) {
-            response.setStatus(401);
+        // 2. 校验token合法性
+        if (StringUtils.isEmpty(authHeader) || !StringUtils.startsWith(authHeader, BEARER_PREFIX)) {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             return false;
         }
 
         try {
-            // 提取实际的token（去掉"Bearer "前缀）
-            String actualToken = token.substring(7);
+            // 3. 获取token，去掉前缀
+            String actualToken = StringUtils.substringAfter(authHeader, BEARER_PREFIX);
 
-            // 先验证token是否有效
+            // 4. 判空校验（防止某些极端情况截取为空串）
+            if (StringUtils.isEmpty(actualToken)) {
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                return false;
+            }
+
             Boolean isValid = jwtTokenUtil.validateToken(actualToken);
             if (Objects.isNull(isValid) || !isValid) {
-                response.setStatus(401);
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 return false;
             }
 
-            // token有效后再获取用户ID
+            // 解析token获取用户ID
             Long userId = jwtTokenUtil.getUserIdFromToken(actualToken);
             if (Objects.isNull(userId)) {
-                response.setStatus(401);
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 return false;
             }
 
-            // 将userId存储到ThreadLocal
             UserContext.setCurrentUserId(userId);
             return true;
 
         } catch (Exception e) {
-            // token解析或验证过程中出现任何异常都认为是无效token
-            response.setStatus(401);
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             return false;
         }
     }

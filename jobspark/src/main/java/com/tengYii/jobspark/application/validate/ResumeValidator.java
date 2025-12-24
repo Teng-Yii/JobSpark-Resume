@@ -1,9 +1,8 @@
 package com.tengYii.jobspark.application.validate;
 
-import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.google.common.base.Joiner;
 import com.tengYii.jobspark.common.enums.DownloadFileTypeEnum;
-import com.tengYii.jobspark.dto.request.LoginRequest;
+import org.apache.commons.collections4.CollectionUtils;
 import com.tengYii.jobspark.dto.request.ResumeOptimizeRequest;
 import com.tengYii.jobspark.dto.request.ResumeOptimizedDownloadRequest;
 import com.tengYii.jobspark.dto.request.ResumeUploadRequest;
@@ -26,26 +25,6 @@ public class ResumeValidator {
      */
     public static final long MAX_FILE_SIZE = 5 * 1024 * 1024;
 
-    public static String validateLogin(LoginRequest loginRequest) {
-        List<String> errorMessages = new ArrayList<>();
-
-        // 参数验证
-        if (Objects.isNull(loginRequest)) {
-            errorMessages.add("登录请求不能为空");
-        }
-
-        if (StringUtils.isEmpty(loginRequest.getUsername())) {
-            errorMessages.add("用户名不能为空");
-        }
-
-        if (StringUtils.isEmpty(loginRequest.getPassword())) {
-            errorMessages.add("密码不能为空");
-        }
-
-        // 返回所有错误信息（逗号分隔）
-        return Joiner.on(ParseConstant.COMMA).join(errorMessages);
-    }
-
     /**
      * 统一校验入口（文件类型 + 文件大小 + userId）
      *
@@ -55,6 +34,11 @@ public class ResumeValidator {
     public static String validateUploadRequest(ResumeUploadRequest request) {
         List<String> errorMessages = new ArrayList<>();
         MultipartFile file = request.getFile();
+
+        // 校验是否登录
+        if(Objects.isNull(request.getUserId())){
+            errorMessages.add("请先完成用户登录");
+        }
 
         // 1. 校验文件是否为空
         if (Objects.isNull(file) || file.isEmpty()) {
@@ -149,6 +133,11 @@ public class ResumeValidator {
             return Joiner.on(ParseConstant.COMMA).join(errorMessages);
         }
 
+        //  校验是否登录
+        if(Objects.isNull(request.getUserId())){
+            errorMessages.add("请先完成用户登录");
+        }
+
         // 校验简历ID
         if (Objects.isNull(request.getResumeId())) {
             errorMessages.add("简历ID不能为空");
@@ -187,6 +176,11 @@ public class ResumeValidator {
         }
 
         List<String> errorMessages = new ArrayList<>();
+
+        // 校验是否登录
+        if(Objects.isNull(request.getUserId())){
+            errorMessages.add("请先完成用户登录");
+        }
 
         // 校验简历ID
         if (Objects.isNull(request.getOptimizedResumeId())) {
