@@ -1,8 +1,10 @@
 package com.tengYii.jobspark.domain.agent;
 
+import com.tengYii.jobspark.domain.agent.tool.CalculatorTool;
 import com.tengYii.jobspark.model.bo.CvBO;
 import com.tengYii.jobspark.model.llm.CvReview;
 import dev.langchain4j.agentic.Agent;
+import dev.langchain4j.agentic.declarative.ToolsSupplier;
 import dev.langchain4j.service.SystemMessage;
 import dev.langchain4j.service.UserMessage;
 import dev.langchain4j.service.V;
@@ -193,4 +195,9 @@ public interface CvReviewer {
             """)
     @OutputGuardrails(value = {JsonResponseCleanGuard.class}, maxRetries = 0)
     CvReview reviewCv(@V("cv") CvBO cv, @V("jobDescription") String jobDescription);
+
+    @ToolsSupplier
+    static Object[] cvReviewerTools(){
+        return new Object[]{new CalculatorTool()};
+    }
 }
