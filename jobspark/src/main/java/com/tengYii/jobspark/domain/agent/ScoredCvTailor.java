@@ -8,6 +8,8 @@ import dev.langchain4j.service.UserMessage;
 import dev.langchain4j.service.V;
 import dev.langchain4j.service.guardrail.OutputGuardrails;
 
+import java.util.List;
+
 /**
  * 简历定制代理
  * <p>
@@ -119,6 +121,10 @@ public interface ScoredCvTailor {
             - **通用技能**: 突出跨行业通用的技术和管理技能
             - **转换动机**: 合理阐述行业转换的逻辑和准备
             - **相关经验**: 挖掘与目标行业相关的间接经验
+
+            ### 参考优秀模板
+            以下是一些与目标职位匹配度较高的优秀简历模板片段，请参考其措辞、结构或亮点展示方式来优化当前简历：
+            {{referenceTemplates}}
             
             ### 输出格式要求
             
@@ -161,6 +167,10 @@ public interface ScoredCvTailor {
             
             ### 审核反馈信息
             {{cvReview}}
+            
+            ### 参考优秀模板
+            以下是一些与目标职位匹配度较高的优秀简历模板片段，请参考其措辞、结构或亮点展示方式来优化当前简历：
+            {{referenceTemplates}}
             
             ### 定制任务与要求
             
@@ -253,5 +263,5 @@ public interface ScoredCvTailor {
             请基于以上要求，对候选人简历进行专业、精准的定制优化。
             """)
     @OutputGuardrails(value = {JsonResponseCleanGuard.class}, maxRetries = 0)
-    CvBO tailorCv(@V("cv") CvBO cv, @V("cvReview") CvReview cvReview);
+    CvBO tailorCv(@V("cv") CvBO cv, @V("cvReview") CvReview cvReview, @V("referenceTemplates") List<String> referenceTemplates);
 }

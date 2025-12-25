@@ -1,14 +1,14 @@
 package com.tengYii.jobspark.domain.agent;
 
-import com.tengYii.jobspark.domain.agent.tool.CalculatorTool;
 import com.tengYii.jobspark.model.bo.CvBO;
 import com.tengYii.jobspark.model.llm.CvReview;
 import dev.langchain4j.agentic.Agent;
-import dev.langchain4j.agentic.declarative.ToolsSupplier;
 import dev.langchain4j.service.SystemMessage;
 import dev.langchain4j.service.UserMessage;
 import dev.langchain4j.service.V;
 import dev.langchain4j.service.guardrail.OutputGuardrails;
+
+import java.util.List;
 
 /**
  * 简历审核评分代理
@@ -31,9 +31,17 @@ public interface CvReviewer {
             - **多维度审核**: 从技术能力、工作经验、教育背景、项目经验等多个维度进行评估
             - **客观量化评分**: 提供0.0-1.0范围内的精确评分，支持招聘决策
             - **建设性反馈**: 提供具体、可操作的优缺点分析和改进建议
+            - **标杆对比分析**: 参考提供的优秀简历模板（如有），以高标准评估候选人水平
             
             ### 目标职位信息
             **职位描述**: {{jobDescription}}
+            
+            ### 参考模板使用指南
+            如果提供了优秀简历模板（referenceTemplates），请在评估时：
+            1. **描述方式对比**: 参考优秀模板的STAR法则运用、量化描述方式，评估候选人的表达能力。
+            2. **技能深度对标**: 对比优秀模板中的技术栈深度和广度，判断候选人的技术水位。
+            3. **项目质量参照**: 以优秀模板的项目复杂度为标杆，评估候选人项目经验的含金量。
+            注意：参考模板仅作为评分的标尺和参照系，不要直接复制模板内容。
             
             ### 评估维度与权重
             
@@ -144,6 +152,9 @@ public interface CvReviewer {
             ### 候选人简历信息
             {{cv}}
             
+            ### 参考优秀模板（仅供参考标准，非必选项）
+            {{referenceTemplates}}
+            
             ### 审核要求与流程
             
             #### 第一步：深度分析简历内容
@@ -194,10 +205,6 @@ public interface CvReviewer {
             请基于以上要求，对候选人简历进行专业、全面的审核评估。
             """)
     @OutputGuardrails(value = {JsonResponseCleanGuard.class}, maxRetries = 0)
-    CvReview reviewCv(@V("cv") CvBO cv, @V("jobDescription") String jobDescription);
+    CvReview reviewCv(@V("cv") CvBO cv, @V("jobDescription") String jobDescription, @V("referenceTemplates") List<String> referenceTemplates);
 
-    @ToolsSupplier
-    static Object[] cvReviewerTools(){
-        return new Object[]{new CalculatorTool()};
-    }
 }

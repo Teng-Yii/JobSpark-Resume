@@ -7,6 +7,7 @@ import dev.langchain4j.agentic.declarative.LoopAgent;
 import dev.langchain4j.agentic.declarative.SubAgent;
 import dev.langchain4j.agentic.scope.AgenticScope;
 
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -25,8 +26,9 @@ public interface CvOptimizationAgent {
      * 智能简历优化主方法，它会协调多个子代理来完成简历的迭代优化过程。
      * 整个优化流程是自动化的，系统会持续改进简历直到达到预设的质量标准。
      *
-     * @param cv             待优化的原始简历对象，包含完整的个人信息、工作经历、项目经验等
-     * @param jobDescription 目标职位描述，用于指导简历优化方向和匹配度评估
+     * @param cv                 待优化的原始简历对象，包含完整的个人信息、工作经历、项目经验等
+     * @param jobDescription     目标职位描述，用于指导简历优化方向和匹配度评估
+     * @param referenceTemplates 参考的优秀简历模板列表，用于指导简历优化的风格和结构
      * @return 经过迭代优化后的简历对象，具有更高的职位匹配度和竞争力
      */
     @LoopAgent(
@@ -37,7 +39,7 @@ public interface CvOptimizationAgent {
                     @SubAgent(type = ScoredCvTailor.class, outputName = "cv")
             }
     )
-    CvBO optimizeCv(CvBO cv, String jobDescription);
+    CvBO optimizeCv(CvBO cv, String jobDescription, List<String> referenceTemplates);
 
     /**
      * 判断简历优化是否达到退出条件

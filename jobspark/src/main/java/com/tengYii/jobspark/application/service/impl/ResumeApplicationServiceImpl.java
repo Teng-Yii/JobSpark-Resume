@@ -81,6 +81,9 @@ public class ResumeApplicationServiceImpl implements ResumeApplicationService {
     @Qualifier("resumeTaskExecutor")
     private Executor resumeTaskExecutor;
 
+    @Autowired
+    private ResumeRagService resumeRagService;
+
     private final ChatModel chatModel = ChatModelProvider.createChatModel();
 
     /**
@@ -218,10 +221,15 @@ public class ResumeApplicationServiceImpl implements ResumeApplicationService {
         CvBO cvBO = resumePersistenceService.convertToCvBO(cvPO);
         stopWatch.stop();
 
+        // 检索参考模板 (RAG)
+        stopWatch.start("检索优秀简历模板");
+        List<String> referenceTemplates = resumeRagService.retrieveTemplates(jobDescription, 3);
+        stopWatch.stop();
+
         // 创建简历优化Agent，开始优化简历
         stopWatch.start("开始优化简历");
         CvOptimizationAgent cvOptimizationAgent = AgenticServices.createAgenticSystem(CvOptimizationAgent.class, chatModel);
-        CvBO optimizeCv = cvOptimizationAgent.optimizeCv(cvBO, jobDescription);
+        CvBO optimizeCv = cvOptimizationAgent.optimizeCv(cvBO, jobDescription, referenceTemplates);
         stopWatch.stop();
 
         // 优化后的简历落库
