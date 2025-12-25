@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class RagRetrievalService {
     
-    private final ResumeRagService embeddingService;
+    private final EmbeddingService embeddingService;
     private final VectorDatabaseService vectorDatabaseService;
     
     /**
