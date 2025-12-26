@@ -1,7 +1,6 @@
 package com.tengYii.jobspark.domain.service;
 
 import com.tengYii.jobspark.domain.agent.CvAnalysisAgent;
-import com.tengYii.jobspark.common.utils.llm.ChatModelProvider;
 import com.tengYii.jobspark.dto.response.ResumeOptimizedResponse;
 import com.tengYii.jobspark.model.bo.CvBO;
 import com.tengYii.jobspark.dto.request.ResumeUploadRequest;
@@ -26,7 +25,8 @@ public class ResumeAnalysisService {
     @Autowired
     private FileStorageService fileStorageService;
 
-    private final ChatModel chatModel = ChatModelProvider.createChatModel();
+    @Autowired
+    private ChatModel chatModel;
 
 
     /**

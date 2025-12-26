@@ -1,9 +1,9 @@
 package com.tengYii.jobspark.domain.service;
 
-import com.tengYii.jobspark.common.utils.llm.ChatModelProvider;
 import dev.langchain4j.model.chat.ChatModel;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -11,7 +11,8 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class ResumeOptimizationService {
 
-    private final ChatModel chatModel = ChatModelProvider.createChatModel();
+    @Autowired
+    private ChatModel chatModel;
 
     public String getOptimizationSuggestions(String resumeId) {
         try {

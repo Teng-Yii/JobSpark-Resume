@@ -7,7 +7,6 @@ import com.tengYii.jobspark.common.enums.ResultCodeEnum;
 import com.tengYii.jobspark.common.enums.TaskStatusEnum;
 import com.tengYii.jobspark.common.exception.BusinessException;
 import com.tengYii.jobspark.common.utils.SnowflakeUtil;
-import com.tengYii.jobspark.common.utils.llm.ChatModelProvider;
 import com.tengYii.jobspark.config.cv.DocxConfig;
 import com.tengYii.jobspark.config.cv.HtmlConfig;
 import com.tengYii.jobspark.config.cv.MarkdownConfig;
@@ -84,7 +83,8 @@ public class ResumeApplicationServiceImpl implements ResumeApplicationService {
     @Autowired
     private ResumeRagService resumeRagService;
 
-    private final ChatModel chatModel = ChatModelProvider.createChatModel();
+    @Autowired
+    private ChatModel chatModel;
 
     /**
      * 上传简历
