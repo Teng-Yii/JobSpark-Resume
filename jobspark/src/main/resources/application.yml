@@ -36,3 +36,12 @@ jwt:
   # token密钥生成在线地址：https://www.btool.cn/token-generator?symbols=true
   secret: Z!{Q'I#FU|+PlA#CG0Rd0yDZBU@QU-L\RMqpPF-smXxp}7,o:OHzhTd[![oqf-"f # 至少32位
   access-token-expiration: 7200    # Access Token 有效期：两小时（秒）
+
+langchain4j:
+  qdrant:
+    collection-name: jobspark_resume
+    host: localhost
+    port: 6334
+    use-tls: false
+    payload-text-key: content
+    # api-key: your-api-key # 如果需要鉴权请配置

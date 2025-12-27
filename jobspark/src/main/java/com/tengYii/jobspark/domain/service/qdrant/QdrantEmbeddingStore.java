@@ -1,13 +1,46 @@
 package com.tengYii.jobspark.domain.service.qdrant;
 
+import dev.langchain4j.data.document.Metadata;
+import dev.langchain4j.data.embedding.Embedding;
+import dev.langchain4j.data.segment.TextSegment;
+import dev.langchain4j.store.embedding.CosineSimilarity;
+import dev.langchain4j.store.embedding.EmbeddingMatch;
+import dev.langchain4j.store.embedding.EmbeddingSearchRequest;
+import dev.langchain4j.store.embedding.EmbeddingSearchResult;
+import dev.langchain4j.store.embedding.EmbeddingStore;
+import dev.langchain4j.store.embedding.RelevanceScore;
+import io.qdrant.client.QdrantClient;
+import io.qdrant.client.QdrantGrpcClient;
+import io.qdrant.client.WithVectorsSelectorFactory;
+import io.qdrant.client.grpc.Common.Filter;
 import io.qdrant.client.grpc.JsonWithInt;
+import io.qdrant.client.grpc.Points;
+import io.qdrant.client.grpc.Points.DeletePoints;
+import io.qdrant.client.grpc.Points.PointStruct;
+import io.qdrant.client.grpc.Points.PointsSelector;
+import io.qdrant.client.grpc.Points.ScoredPoint;
+import io.qdrant.client.grpc.Points.SearchPoints;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import static dev.langchain4j.internal.Utils.isNullOrEmpty;
+import javax.annotation.Nullable;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.UUID;
+import java.util.concurrent.ExecutionException;
+
 import static dev.langchain4j.internal.Utils.randomUUID;
-import static dev.langchain4j.internal.ValidationUtils.ensureNotEmpty;
 import static dev.langchain4j.internal.ValidationUtils.ensureNotNull;
 import static io.qdrant.client.PointIdFactory.id;
 import static io.qdrant.client.ValueFactory.value;
@@ -19,54 +52,36 @@ import static java.util.Comparator.comparingDouble;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 
-import dev.langchain4j.data.document.Metadata;
-import dev.langchain4j.data.embedding.Embedding;
-import dev.langchain4j.data.segment.TextSegment;
-import dev.langchain4j.store.embedding.*;
-import io.qdrant.client.QdrantClient;
-import io.qdrant.client.QdrantGrpcClient;
-import io.qdrant.client.WithVectorsSelectorFactory;
-import io.qdrant.client.grpc.Common.Filter;
-import io.qdrant.client.grpc.Points;
-import io.qdrant.client.grpc.Points.DeletePoints;
-import io.qdrant.client.grpc.Points.PointStruct;
-import io.qdrant.client.grpc.Points.PointsSelector;
-import io.qdrant.client.grpc.Points.ScoredPoint;
-import io.qdrant.client.grpc.Points.SearchPoints;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.UUID;
-import java.util.concurrent.ExecutionException;
-import javax.annotation.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 /**
- * Represents a <a href="https://qdrant.tech/">Qdrant</a> collection as an
- * embedding store. With
- * support for storing {@link dev.langchain4j.data.document.Metadata}.
+ * 将 <a href="https://qdrant.tech/">Qdrant</a> 集合表示为嵌入存储库。
+ * 支持存储 {@link dev.langchain4j.data.document.Metadata}。
  */
 @Component
 public class QdrantEmbeddingStore implements EmbeddingStore<TextSegment> {
     private static final Logger log = LoggerFactory.getLogger(QdrantEmbeddingStore.class);
 
+    /**
+     * Qdrant 客户端实例
+     */
     private final QdrantClient client;
+    /**
+     * Qdrant 负载中存储文本片段的字段名称
+     */
     private final String payloadTextKey;
+    /**
+     * Qdrant 集合名称
+     */
     private final String collectionName;
 
     /**
-     * @param collectionName The name of the Qdrant collection.
-     * @param host           The host of the Qdrant instance.
-     * @param port           The GRPC port of the Qdrant instance.
-     * @param useTls         Whether to use TLS(HTTPS).
-     * @param payloadTextKey The field name of the text segment in the Qdrant
-     *                       payload.
-     * @param apiKey         The Qdrant API key to authenticate with.
+     * 构造函数，使用 Spring 注入配置属性。
+     *
+     * @param collectionName Qdrant 集合名称，默认为 "resumes"
+     * @param host           Qdrant 实例的主机地址，默认为 "localhost"
+     * @param port           Qdrant 实例的 GRPC 端口，默认为 6334
+     * @param useTls         是否使用 TLS (HTTPS)，默认为 false
+     * @param payloadTextKey Qdrant 负载中存储文本片段的字段名称，默认为 "content"
+     * @param apiKey         用于身份验证的 Qdrant API 密钥，可选
      */
     @Autowired
     public QdrantEmbeddingStore(
@@ -79,7 +94,7 @@ public class QdrantEmbeddingStore implements EmbeddingStore<TextSegment> {
 
         QdrantGrpcClient.Builder grpcClientBuilder = QdrantGrpcClient.newBuilder(host, port, useTls);
 
-        if (apiKey != null) {
+        if (StringUtils.isNotEmpty(apiKey)) {
             grpcClientBuilder.withApiKey(apiKey);
         }
 
@@ -89,10 +104,11 @@ public class QdrantEmbeddingStore implements EmbeddingStore<TextSegment> {
     }
 
     /**
-     * @param client         A Qdrant client instance.
-     * @param collectionName The name of the Qdrant collection.
-     * @param payloadTextKey The field name of the text segment in the Qdrant
-     *                       payload.
+     * 构造函数。
+     *
+     * @param client         Qdrant 客户端实例
+     * @param collectionName Qdrant 集合名称
+     * @param payloadTextKey Qdrant 负载中存储文本片段的字段名称
      */
     public QdrantEmbeddingStore(QdrantClient client, String collectionName, String payloadTextKey) {
         this.client = client;
@@ -121,30 +137,33 @@ public class QdrantEmbeddingStore implements EmbeddingStore<TextSegment> {
 
     @Override
     public List<String> addAll(List<Embedding> embeddings) {
-
         List<String> ids = embeddings.stream().map(ignored -> randomUUID()).toList();
-
         addAll(ids, embeddings, null);
-
         return ids;
     }
 
+    /**
+     * 内部添加方法，处理单个嵌入向量的添加。
+     *
+     * @param id          唯一标识符
+     * @param embedding   嵌入向量
+     * @param textSegment 文本片段（可选）
+     */
     private void addInternal(String id, Embedding embedding, TextSegment textSegment) {
-        addAll(singletonList(id), singletonList(embedding), textSegment == null ? null : singletonList(textSegment));
+        addAll(singletonList(id), singletonList(embedding), Objects.isNull(textSegment) ? null : singletonList(textSegment));
     }
 
     @Override
-    public void addAll(List<String> ids, List<Embedding> embeddings, List<TextSegment> textSegments)
-            throws RuntimeException {
-        if (isNullOrEmpty(ids) || isNullOrEmpty(embeddings)) {
-            log.info("Empty embeddings - no ops");
+    public void addAll(List<String> ids, List<Embedding> embeddings, List<TextSegment> textSegments) {
+        if (CollectionUtils.isEmpty(ids) || CollectionUtils.isEmpty(embeddings)) {
+            log.info("嵌入向量列表为空 - 不执行任何操作");
             return;
         }
+
         try {
             List<PointStruct> points = new ArrayList<>(embeddings.size());
 
             for (int i = 0; i < embeddings.size(); i++) {
-
                 String id = ids.get(i);
                 UUID uuid = UUID.fromString(id);
                 Embedding embedding = embeddings.get(i);
@@ -152,14 +171,10 @@ public class QdrantEmbeddingStore implements EmbeddingStore<TextSegment> {
                 PointStruct.Builder pointBuilder =
                         PointStruct.newBuilder().setId(id(uuid)).setVectors(vectors(embedding.vector()));
 
-                if (textSegments != null) {
-                    Map<String, Object> metadata =
-                            textSegments.get(i).metadata().toMap();
+                if (CollectionUtils.isNotEmpty(textSegments)) {
+                    Map<String, Object> metadata = textSegments.get(i).metadata().toMap();
 
-                    /*
-                     * 修复：定义 payload 变量，并使用 HashMap 包装以确保 Map 可变，
-                     * 避免后续 put 操作抛出 UnsupportedOperationException
-                     */
+                    // 使用 HashMap 包装以确保 Map 可变，避免后续 put 操作抛出异常
                     Map<String, JsonWithInt.Value> payload = new HashMap<>(ValueMapFactory.valueMap(metadata));
                     payload.put(payloadTextKey, value(textSegments.get(i).text()));
                     pointBuilder.putAllPayload(payload);
@@ -170,23 +185,29 @@ public class QdrantEmbeddingStore implements EmbeddingStore<TextSegment> {
 
             client.upsertAsync(collectionName, points).get();
         } catch (InterruptedException | ExecutionException e) {
+            // 恢复中断状态
+            if (e instanceof InterruptedException) {
+                Thread.currentThread().interrupt();
+            }
             throw new RuntimeException(e);
         }
     }
 
     @Override
     public void remove(String id) {
-        if (id == null || id.isBlank()) {
-            throw new IllegalArgumentException("id cannot be null or blank");
+        if (StringUtils.isBlank(id)) {
+            throw new IllegalArgumentException("id 不能为空或空白字符串");
         }
         removeAll(Collections.singleton(id));
     }
 
     @Override
     public void removeAll(Collection<String> ids) {
-        ensureNotEmpty(ids, "ids");
-        try {
+        if (CollectionUtils.isEmpty(ids)) {
+            throw new IllegalArgumentException("ids 集合不能为空");
+        }
 
+        try {
             Points.PointsIdsList pointsIdsList = Points.PointsIdsList.newBuilder()
                     .addAllIds(ids.stream().map(id -> id(UUID.fromString(id))).toList())
                     .build();
@@ -199,6 +220,9 @@ public class QdrantEmbeddingStore implements EmbeddingStore<TextSegment> {
                             .build())
                     .get();
         } catch (InterruptedException | ExecutionException e) {
+            if (e instanceof InterruptedException) {
+                Thread.currentThread().interrupt();
+            }
             throw new RuntimeException(e);
         }
     }
@@ -217,6 +241,9 @@ public class QdrantEmbeddingStore implements EmbeddingStore<TextSegment> {
                             .build())
                     .get();
         } catch (InterruptedException | ExecutionException e) {
+            if (e instanceof InterruptedException) {
+                Thread.currentThread().interrupt();
+            }
             throw new RuntimeException(e);
         }
     }
@@ -228,7 +255,6 @@ public class QdrantEmbeddingStore implements EmbeddingStore<TextSegment> {
 
     @Override
     public EmbeddingSearchResult<TextSegment> search(EmbeddingSearchRequest request) {
-
         SearchPoints.Builder searchBuilder = SearchPoints.newBuilder()
                 .setCollectionName(collectionName)
                 .addAllVector(request.queryEmbedding().vectorAsList())
@@ -236,20 +262,22 @@ public class QdrantEmbeddingStore implements EmbeddingStore<TextSegment> {
                 .setWithPayload(enable(true))
                 .setLimit(request.maxResults());
 
-        if (request.filter() != null) {
+        if (Objects.nonNull(request.filter())) {
             Filter filter = QdrantFilterConverter.convertExpression(request.filter());
             searchBuilder.setFilter(filter);
         }
 
         List<ScoredPoint> results;
-
         try {
             results = client.searchAsync(searchBuilder.build()).get();
         } catch (InterruptedException | ExecutionException e) {
+            if (e instanceof InterruptedException) {
+                Thread.currentThread().interrupt();
+            }
             throw new RuntimeException(e);
         }
 
-        if (results.isEmpty()) {
+        if (CollectionUtils.isEmpty(results)) {
             return new EmbeddingSearchResult<>(emptyList());
         }
 
@@ -264,10 +292,11 @@ public class QdrantEmbeddingStore implements EmbeddingStore<TextSegment> {
         return new EmbeddingSearchResult<>(matches);
     }
 
-    /** Deletes all points from the Qdrant collection. */
+    /**
+     * 从 Qdrant 集合中删除所有数据点。
+     */
     public void clearStore() {
         try {
-
             Filter emptyFilter = Filter.newBuilder().build();
             PointsSelector allPointsSelector =
                     PointsSelector.newBuilder().setFilter(emptyFilter).build();
@@ -278,22 +307,34 @@ public class QdrantEmbeddingStore implements EmbeddingStore<TextSegment> {
                             .build())
                     .get();
         } catch (InterruptedException | ExecutionException e) {
+            if (e instanceof InterruptedException) {
+                Thread.currentThread().interrupt();
+            }
             throw new RuntimeException(e);
         }
     }
 
-    /** Closes the underlying GRPC client. */
+    /**
+     * 关闭底层的 GRPC 客户端。
+     */
     public void close() {
         client.close();
     }
 
+    /**
+     * 将 ScoredPoint 转换为 EmbeddingMatch。
+     *
+     * @param scoredPoint        Qdrant 返回的评分点
+     * @param referenceEmbedding 参考嵌入向量
+     * @return 嵌入匹配对象
+     */
     private EmbeddingMatch<TextSegment> toEmbeddingMatch(ScoredPoint scoredPoint, Embedding referenceEmbedding) {
         Map<String, JsonWithInt.Value> payload = scoredPoint.getPayloadMap();
 
-        JsonWithInt.Value textSegmentValue = payload.getOrDefault(payloadTextKey, null);
+        JsonWithInt.Value textSegmentValue = MapUtils.getObject(payload, payloadTextKey);
 
         Map<String, Object> metadata = payload.entrySet().stream()
-                .filter(entry -> !entry.getKey().equals(payloadTextKey))
+                .filter(entry -> !StringUtils.equals(entry.getKey(), payloadTextKey))
                 .collect(toMap(Map.Entry::getKey, entry -> ObjectFactory.object(entry.getValue())));
 
         Embedding embedding =
@@ -304,93 +345,9 @@ public class QdrantEmbeddingStore implements EmbeddingStore<TextSegment> {
                 RelevanceScore.fromCosineSimilarity(cosineSimilarity),
                 scoredPoint.getId().getUuid(),
                 embedding,
-                textSegmentValue == null
+                Objects.isNull(textSegmentValue)
                         ? null
                         : TextSegment.from(textSegmentValue.getStringValue(), new Metadata(metadata)));
     }
 
-    public static QdrantEmbeddingStore.Builder builder() {
-        return new QdrantEmbeddingStore.Builder();
-    }
-
-    public static class Builder {
-
-        private String collectionName;
-        private String host = "localhost";
-        private int port = 6334;
-        private boolean useTls = false;
-        private String payloadTextKey = "text_segment";
-        private String apiKey = null;
-        private QdrantClient client = null;
-
-        /**
-         * @param host The host of the Qdrant instance. Defaults to "localhost".
-         */
-        public QdrantEmbeddingStore.Builder host(String host) {
-            this.host = host;
-            return this;
-        }
-
-        /**
-         * @param collectionName REQUIRED. The name of the collection.
-         */
-        public QdrantEmbeddingStore.Builder collectionName(String collectionName) {
-            this.collectionName = collectionName;
-            return this;
-        }
-
-        /**
-         * @param port The GRPC port of the Qdrant instance. Defaults to 6334.
-         * @return
-         */
-        public QdrantEmbeddingStore.Builder port(int port) {
-            this.port = port;
-            return this;
-        }
-
-        /**
-         * @param useTls Whether to use TLS(HTTPS). Defaults to false.
-         * @return
-         */
-        public QdrantEmbeddingStore.Builder useTls(boolean useTls) {
-            this.useTls = useTls;
-            return this;
-        }
-
-        /**
-         * @param payloadTextKey The field name of the text segment in the payload.
-         *                       Defaults to
-         *                       "text_segment".
-         * @return
-         */
-        public QdrantEmbeddingStore.Builder payloadTextKey(String payloadTextKey) {
-            this.payloadTextKey = payloadTextKey;
-            return this;
-        }
-
-        /**
-         * @param apiKey The Qdrant API key to authenticate with. Defaults to null.
-         */
-        public QdrantEmbeddingStore.Builder apiKey(String apiKey) {
-            this.apiKey = apiKey;
-            return this;
-        }
-
-        /**
-         * @param client A Qdrant client instance. Defaults to null.
-         */
-        public QdrantEmbeddingStore.Builder client(QdrantClient client) {
-            this.client = client;
-            return this;
-        }
-
-        public QdrantEmbeddingStore build() {
-            Objects.requireNonNull(collectionName, "collectionName cannot be null");
-
-            if (client != null) {
-                return new QdrantEmbeddingStore(client, collectionName, payloadTextKey);
-            }
-            return new QdrantEmbeddingStore(collectionName, host, port, useTls, payloadTextKey, apiKey);
-        }
-    }
 }
