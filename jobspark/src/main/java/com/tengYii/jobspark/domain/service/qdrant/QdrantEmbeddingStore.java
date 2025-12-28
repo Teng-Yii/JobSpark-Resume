@@ -17,6 +17,9 @@ import io.qdrant.client.grpc.JsonWithInt;
 import io.qdrant.client.grpc.Points;
 import io.qdrant.client.grpc.Points.DeletePoints;
 import io.qdrant.client.grpc.Points.PointStruct;
+import io.qdrant.client.grpc.Collections.CollectionInfo;
+import io.qdrant.client.grpc.Collections.Distance;
+import io.qdrant.client.grpc.Collections.VectorParams;
 import io.qdrant.client.grpc.Points.PointsSelector;
 import io.qdrant.client.grpc.Points.ScoredPoint;
 import io.qdrant.client.grpc.Points.SearchPoints;
@@ -39,6 +42,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 
 import static dev.langchain4j.internal.Utils.randomUUID;
 import static dev.langchain4j.internal.ValidationUtils.ensureNotNull;
@@ -90,7 +94,8 @@ public class QdrantEmbeddingStore implements EmbeddingStore<TextSegment> {
             @Value("${langchain4j.qdrant.port:6334}") int port,
             @Value("${langchain4j.qdrant.use-tls:false}") boolean useTls,
             @Value("${langchain4j.qdrant.payload-text-key:content}") String payloadTextKey,
-            @Value("${langchain4j.qdrant.api-key:#{null}}") @Nullable String apiKey) {
+            @Value("${langchain4j.qdrant.api-key:}") @Nullable String apiKey,
+            @Value("${langchain4j.qdrant.vector-size:1536}") int vectorSize) {
 
         QdrantGrpcClient.Builder grpcClientBuilder = QdrantGrpcClient.newBuilder(host, port, useTls);
 
@@ -101,6 +106,77 @@ public class QdrantEmbeddingStore implements EmbeddingStore<TextSegment> {
         this.client = new QdrantClient(grpcClientBuilder.build());
         this.collectionName = collectionName;
         this.payloadTextKey = payloadTextKey;
+
+        ensureCollectionExists(vectorSize);
+    }
+
+    /**
+     * 确保 Qdrant 集合存在，如果不存在则创建。
+     *
+     * @param vectorSize 向量维度
+     */
+    private void ensureCollectionExists(int vectorSize) {
+        List<String> collections = getUnchecked(client.listCollectionsAsync());
+        boolean exists = collections.stream()
+                .anyMatch(c -> StringUtils.equals(c, collectionName));
+
+        if (exists) {
+            // 检查现有集合的配置是否与当前 vectorSize 匹配
+            CollectionInfo collectionInfo = getUnchecked(client.getCollectionInfoAsync(collectionName));
+            // 假设默认使用名为 "" (空字符串) 的向量配置，或者只有一个未命名向量配置
+            // Qdrant 的 vectors_config 可能包含单个 vector_params 或者 map 形式的 params
+            // 这里简化处理：如果能获取到 vectors_count > 0 且 config 里的 size 不一致，则重建
+            // 注意：Qdrant Java 客户端获取 params 结构可能比较复杂，需根据实际情况判断
+            // 简单策略：如果获取到的 size 不匹配，则删除重建
+            boolean sizeMismatch = false;
+            if (collectionInfo.hasConfig() && collectionInfo.getConfig().hasParams()) {
+                // 检查 vector params
+                if (collectionInfo.getConfig().getParams().hasVectorsConfig()) {
+                    if (collectionInfo.getConfig().getParams().getVectorsConfig().hasParams()) {
+                        long existingSize = collectionInfo.getConfig().getParams().getVectorsConfig().getParams().getSize();
+                        if (existingSize != vectorSize) {
+                            sizeMismatch = true;
+                            log.warn("检测到 Qdrant 集合 {} 维度不匹配: 期望 {}, 实际 {}", collectionName, vectorSize, existingSize);
+                        }
+                    }
+                }
+            }
+
+            if (sizeMismatch) {
+                log.info("正在删除维度不匹配的 Qdrant 集合: {}", collectionName);
+                getUnchecked(client.deleteCollectionAsync(collectionName));
+                // 标记为不存在，以便后续重建
+                exists = false;
+            }
+        }
+
+        if (!exists) {
+            getUnchecked(client.createCollectionAsync(collectionName,
+                    VectorParams.newBuilder()
+                            .setSize(vectorSize)
+                            .setDistance(Distance.Cosine)
+                            .build()
+            ));
+            log.info("已自动创建 Qdrant 集合: {}, 向量维度: {}", collectionName, vectorSize);
+        }
+    }
+
+    /**
+     * 等待 Future 完成并返回结果，将检查型异常转换为运行时异常。
+     *
+     * @param future 要等待的 Future
+     * @param <T>    返回结果的类型
+     * @return Future 的结果
+     */
+    private static <T> T getUnchecked(Future<T> future) {
+        try {
+            return future.get();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException("操作被中断", e);
+        } catch (ExecutionException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**
@@ -160,37 +236,29 @@ public class QdrantEmbeddingStore implements EmbeddingStore<TextSegment> {
             return;
         }
 
-        try {
-            List<PointStruct> points = new ArrayList<>(embeddings.size());
+        List<PointStruct> points = new ArrayList<>(embeddings.size());
 
-            for (int i = 0; i < embeddings.size(); i++) {
-                String id = ids.get(i);
-                UUID uuid = UUID.fromString(id);
-                Embedding embedding = embeddings.get(i);
+        for (int i = 0; i < embeddings.size(); i++) {
+            String id = ids.get(i);
+            UUID uuid = UUID.fromString(id);
+            Embedding embedding = embeddings.get(i);
 
-                PointStruct.Builder pointBuilder =
-                        PointStruct.newBuilder().setId(id(uuid)).setVectors(vectors(embedding.vector()));
+            PointStruct.Builder pointBuilder =
+                    PointStruct.newBuilder().setId(id(uuid)).setVectors(vectors(embedding.vector()));
 
-                if (CollectionUtils.isNotEmpty(textSegments)) {
-                    Map<String, Object> metadata = textSegments.get(i).metadata().toMap();
+            if (CollectionUtils.isNotEmpty(textSegments)) {
+                Map<String, Object> metadata = textSegments.get(i).metadata().toMap();
 
-                    // 使用 HashMap 包装以确保 Map 可变，避免后续 put 操作抛出异常
-                    Map<String, JsonWithInt.Value> payload = new HashMap<>(ValueMapFactory.valueMap(metadata));
-                    payload.put(payloadTextKey, value(textSegments.get(i).text()));
-                    pointBuilder.putAllPayload(payload);
-                }
-
-                points.add(pointBuilder.build());
+                // 使用 HashMap 包装以确保 Map 可变，避免后续 put 操作抛出异常
+                Map<String, JsonWithInt.Value> payload = new HashMap<>(ValueMapFactory.valueMap(metadata));
+                payload.put(payloadTextKey, value(textSegments.get(i).text()));
+                pointBuilder.putAllPayload(payload);
             }
 
-            client.upsertAsync(collectionName, points).get();
-        } catch (InterruptedException | ExecutionException e) {
-            // 恢复中断状态
-            if (e instanceof InterruptedException) {
-                Thread.currentThread().interrupt();
-            }
-            throw new RuntimeException(e);
+            points.add(pointBuilder.build());
         }
+
+        getUnchecked(client.upsertAsync(collectionName, points));
     }
 
     @Override
@@ -207,45 +275,29 @@ public class QdrantEmbeddingStore implements EmbeddingStore<TextSegment> {
             throw new IllegalArgumentException("ids 集合不能为空");
         }
 
-        try {
-            Points.PointsIdsList pointsIdsList = Points.PointsIdsList.newBuilder()
-                    .addAllIds(ids.stream().map(id -> id(UUID.fromString(id))).toList())
-                    .build();
-            PointsSelector pointsSelector =
-                    PointsSelector.newBuilder().setPoints(pointsIdsList).build();
+        Points.PointsIdsList pointsIdsList = Points.PointsIdsList.newBuilder()
+                .addAllIds(ids.stream().map(id -> id(UUID.fromString(id))).toList())
+                .build();
+        PointsSelector pointsSelector =
+                PointsSelector.newBuilder().setPoints(pointsIdsList).build();
 
-            client.deleteAsync(DeletePoints.newBuilder()
-                            .setCollectionName(collectionName)
-                            .setPoints(pointsSelector)
-                            .build())
-                    .get();
-        } catch (InterruptedException | ExecutionException e) {
-            if (e instanceof InterruptedException) {
-                Thread.currentThread().interrupt();
-            }
-            throw new RuntimeException(e);
-        }
+        getUnchecked(client.deleteAsync(DeletePoints.newBuilder()
+                .setCollectionName(collectionName)
+                .setPoints(pointsSelector)
+                .build()));
     }
 
     @Override
     public void removeAll(dev.langchain4j.store.embedding.filter.Filter filter) {
         ensureNotNull(filter, "filter");
-        try {
-            Filter qdrantFilter = QdrantFilterConverter.convertExpression(filter);
-            PointsSelector pointsSelector =
-                    PointsSelector.newBuilder().setFilter(qdrantFilter).build();
+        Filter qdrantFilter = QdrantFilterConverter.convertExpression(filter);
+        PointsSelector pointsSelector =
+                PointsSelector.newBuilder().setFilter(qdrantFilter).build();
 
-            client.deleteAsync(DeletePoints.newBuilder()
-                            .setCollectionName(collectionName)
-                            .setPoints(pointsSelector)
-                            .build())
-                    .get();
-        } catch (InterruptedException | ExecutionException e) {
-            if (e instanceof InterruptedException) {
-                Thread.currentThread().interrupt();
-            }
-            throw new RuntimeException(e);
-        }
+        getUnchecked(client.deleteAsync(DeletePoints.newBuilder()
+                .setCollectionName(collectionName)
+                .setPoints(pointsSelector)
+                .build()));
     }
 
     @Override
@@ -267,15 +319,7 @@ public class QdrantEmbeddingStore implements EmbeddingStore<TextSegment> {
             searchBuilder.setFilter(filter);
         }
 
-        List<ScoredPoint> results;
-        try {
-            results = client.searchAsync(searchBuilder.build()).get();
-        } catch (InterruptedException | ExecutionException e) {
-            if (e instanceof InterruptedException) {
-                Thread.currentThread().interrupt();
-            }
-            throw new RuntimeException(e);
-        }
+        List<ScoredPoint> results = getUnchecked(client.searchAsync(searchBuilder.build()));
 
         if (CollectionUtils.isEmpty(results)) {
             return new EmbeddingSearchResult<>(emptyList());
@@ -296,22 +340,14 @@ public class QdrantEmbeddingStore implements EmbeddingStore<TextSegment> {
      * 从 Qdrant 集合中删除所有数据点。
      */
     public void clearStore() {
-        try {
-            Filter emptyFilter = Filter.newBuilder().build();
-            PointsSelector allPointsSelector =
-                    PointsSelector.newBuilder().setFilter(emptyFilter).build();
+        Filter emptyFilter = Filter.newBuilder().build();
+        PointsSelector allPointsSelector =
+                PointsSelector.newBuilder().setFilter(emptyFilter).build();
 
-            client.deleteAsync(DeletePoints.newBuilder()
-                            .setCollectionName(collectionName)
-                            .setPoints(allPointsSelector)
-                            .build())
-                    .get();
-        } catch (InterruptedException | ExecutionException e) {
-            if (e instanceof InterruptedException) {
-                Thread.currentThread().interrupt();
-            }
-            throw new RuntimeException(e);
-        }
+        getUnchecked(client.deleteAsync(DeletePoints.newBuilder()
+                .setCollectionName(collectionName)
+                .setPoints(allPointsSelector)
+                .build()));
     }
 
     /**

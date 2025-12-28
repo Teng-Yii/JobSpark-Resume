@@ -44,4 +44,5 @@ langchain4j:
     port: 6334
     use-tls: false
     payload-text-key: content
+    vector-size: 1024 # text-embedding-v3/v4 默认维度
     # api-key: your-api-key # 如果需要鉴权请配置
