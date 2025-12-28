@@ -60,4 +60,13 @@ public interface ResumeApplicationService {
      * @return 取消是否成功
      */
     Boolean cancelTask(String taskId);
+
+    /**
+     * 将简历保存到向量数据库
+     *
+     * @param resumeId 简历ID
+     * @param userId   用户ID
+     * @return 保存是否成功
+     */
+    Boolean storeResumeEmbedding(Long resumeId, Long userId);
 }

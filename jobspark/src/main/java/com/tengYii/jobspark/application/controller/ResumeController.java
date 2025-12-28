@@ -1,6 +1,7 @@
 package com.tengYii.jobspark.application.controller;
 
 import com.tengYii.jobspark.common.utils.login.UserContext;
+import com.tengYii.jobspark.domain.service.ResumeRagService;
 import com.tengYii.jobspark.dto.request.ResumeOptimizedDownloadRequest;
 import com.tengYii.jobspark.dto.request.ResumeOptimizeRequest;
 import com.tengYii.jobspark.dto.response.ResumeOptimizedResponse;
@@ -19,6 +20,8 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Objects;
+
 
 /**
  * 简历controller
@@ -35,6 +38,9 @@ public class ResumeController {
 
     @Autowired
     private ResumeApplicationService resumeApplicationService;
+
+    @Autowired
+    private ResumeRagService resumeRagService;
 
     /**
      * 上传简历，并进行简历解析
@@ -138,6 +144,26 @@ public class ResumeController {
         } else {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
+    }
+
+    /**
+     * 保存简历至向量数据库中
+     *
+     * @param resumeId 简历ID
+     * @return 状态结果
+     */
+    @PostMapping("/{resumeId}/embedding")
+    public ResponseEntity<Boolean> storeEmbedding(@PathVariable Long resumeId) {
+        Long userId = getLoginUserId();
+
+        // 校验resumeId是否为空
+        if (Objects.isNull(resumeId)) {
+            throw new ValidationException(String.valueOf(HttpStatus.BAD_REQUEST.value()), "简历ID不能为空");
+        }
+
+        // 调用service层方法
+        Boolean result = resumeApplicationService.storeResumeEmbedding(resumeId, userId);
+        return ResponseEntity.ok(result);
     }
 
     /**

@@ -718,4 +718,37 @@ public class ResumeApplicationServiceImpl implements ResumeApplicationService {
 
         return 60L;
     }
+
+    /**
+     * 将简历保存到向量数据库
+     *
+     * @param resumeId 简历ID
+     * @param userId   用户ID
+     * @return 保存是否成功
+     */
+    @Override
+    public Boolean storeResumeEmbedding(Long resumeId, Long userId) {
+        log.info("开始将简历保存到向量数据库，resumeId: {}, userId: {}", resumeId, userId);
+
+        // 使用cvRepository.getCvByCondition查询CvPO
+        CvPO cvPO = cvRepository.getCvByCondition(resumeId, userId);
+
+        // 校验CvPO是否存在
+        if (Objects.isNull(cvPO)) {
+            log.error("简历不存在，resumeId: {}, userId: {}", resumeId, userId);
+            throw new BusinessException(ResultCodeEnum.RESUME_NOT_FOUND, "简历不存在");
+        }
+
+        try {
+            // 将CvPO转换为CvBO
+            CvBO cvBO = resumePersistenceService.convertToCvBO(cvPO);
+            // 调用resumeRagService.storeCvBO保存到向量数据库
+            resumeRagService.storeCvBO(cvBO);
+            log.info("简历成功保存到向量数据库，resumeId: {}", resumeId);
+            return Boolean.TRUE;
+        } catch (Exception e) {
+            log.error("保存简历到向量数据库失败，resumeId: {}", resumeId, e);
+            throw new BusinessException(ResultCodeEnum.SYSTEM_ERROR, "保存简历到向量数据库失败");
+        }
+    }
 }

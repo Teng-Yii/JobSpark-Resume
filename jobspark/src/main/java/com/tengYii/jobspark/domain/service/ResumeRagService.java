@@ -48,10 +48,9 @@ public class ResumeRagService {
      *
      * @param cv 简历业务对象
      */
-    public void storeTemplate(CvBO cv) {
-        // 使用 Objects 和 StringUtils 进行判空检查
+    public void storeCvBO(CvBO cv) {
         if (Objects.isNull(cv)) {
-            log.warn("简历对象为空，无法存储模板");
+            log.info("简历对象为空，无法存储模板");
             return;
         }
 
@@ -62,109 +61,142 @@ public class ResumeRagService {
             if (StringUtils.isNotEmpty(cv.getSummary())) {
                 contentBuilder.append("Summary:\n").append(cv.getSummary()).append("\n\n");
             }
-
             // 2. 处理专业技能
-            if (CollectionUtils.isNotEmpty(cv.getSkills())) {
-                contentBuilder.append("Skills:\n")
-                        .append(cv.getSkills().stream()
-                                .filter(Objects::nonNull)
-                                .map(skill -> {
-                                    String skillName = skill.getName();
-                                    if (StringUtils.isEmpty(skillName)) {
-                                        return null;
-                                    }
-                                    if (CollectionUtils.isNotEmpty(skill.getHighlights())) {
-                                        String highlights = skill.getHighlights().stream()
-                                                .filter(Objects::nonNull)
-                                                .map(HighlightBO::getHighlight)
-                                                .filter(StringUtils::isNotEmpty)
-                                                .collect(Collectors.joining("; "));
-                                        if (StringUtils.isNotEmpty(highlights)) {
-                                            return skillName + " (" + highlights + ")";
-                                        }
-                                    }
-                                    return skillName;
-                                })
-                                .filter(StringUtils::isNotEmpty)
-                                .collect(Collectors.joining(", ")))
-                        .append("\n\n");
-            }
-
+            processSkills(cv, contentBuilder);
             // 3. 处理工作经历
-            if (CollectionUtils.isNotEmpty(cv.getExperiences())) {
-                contentBuilder.append("Work Experience:\n");
-                cv.getExperiences().forEach(exp -> {
-                    if (Objects.nonNull(exp)) {
-                        contentBuilder.append("- ")
-                                .append(StringUtils.defaultString(exp.getIndustry())).append(" at ")
-                                .append(StringUtils.defaultString(exp.getCompany())).append("\n");
-                        if (StringUtils.isNotEmpty(exp.getDescription())) {
-                            contentBuilder.append("  Description: ").append(exp.getDescription()).append("\n");
-                        }
-                        if (CollectionUtils.isNotEmpty(exp.getHighlights())) {
-                            exp.getHighlights().forEach(highlight -> {
-                                if (Objects.nonNull(highlight) && StringUtils.isNotEmpty(highlight.getHighlight())) {
-                                    contentBuilder.append("  Highlight: ").append(highlight.getHighlight()).append("\n");
-                                }
-                            });
-                        }
-                    }
-                });
-                contentBuilder.append("\n");
-            }
-
+            processExperiences(cv, contentBuilder);
             // 4. 处理项目经验
-            if (CollectionUtils.isNotEmpty(cv.getProjects())) {
-                contentBuilder.append("Projects:\n");
-                cv.getProjects().forEach(proj -> {
-                    if (Objects.nonNull(proj)) {
-                        contentBuilder.append("- ").append(StringUtils.defaultString(proj.getName())).append("\n");
-                        if (StringUtils.isNotEmpty(proj.getDescription())) {
-                            contentBuilder.append("  Description: ").append(proj.getDescription()).append("\n");
-                        }
-                        if (CollectionUtils.isNotEmpty(proj.getHighlights())) {
-                            proj.getHighlights().forEach(highlight -> {
-                                if (Objects.nonNull(highlight) && StringUtils.isNotEmpty(highlight.getHighlight())) {
-                                    contentBuilder.append("  Highlight: ").append(highlight.getHighlight()).append("\n");
-                                }
-                            });
-                        }
-                    }
-                });
-                contentBuilder.append("\n");
-            }
-
+            processProjects(cv, contentBuilder);
             // 5. 处理教育经历
-            if (CollectionUtils.isNotEmpty(cv.getEducations())) {
-                contentBuilder.append("Education:\n");
-                cv.getEducations().forEach(edu -> {
-                    if (Objects.nonNull(edu)) {
-                        contentBuilder.append("- ").append(StringUtils.defaultString(edu.getSchool())).append(", ")
-                                .append(StringUtils.defaultString(edu.getMajor())).append(", ")
-                                .append(StringUtils.defaultString(edu.getDegree())).append("\n");
-                    }
-                });
-                contentBuilder.append("\n");
-            }
+            processEducations(cv, contentBuilder);
 
             String templateContent = contentBuilder.toString();
             if (StringUtils.isEmpty(templateContent)) {
-                log.warn("简历内容为空，跳过存储");
+                log.info("简历内容为空，跳过存储");
                 return;
             }
 
             // 创建文本段
             TextSegment textSegment = TextSegment.from(templateContent);
-
             // 使用 EmbeddingModel 生成向量
             Embedding embedding = embeddingModel.embed(textSegment).content();
-
             // 存储到 EmbeddingStore
             embeddingStore.add(embedding, textSegment);
             log.info("简历模板已存储至向量库");
-
         } catch (Exception e) {
             log.error("存储简历模板失败", e);
+        }
+    }
+
+    /**
+     * 处理教育经历
+     *
+     * @param cv             简历业务对象
+     * @param contentBuilder 内容构建器
+     */
+    private void processEducations(CvBO cv, StringBuilder contentBuilder) {
+        if (CollectionUtils.isNotEmpty(cv.getEducations())) {
+            contentBuilder.append("Education:\n");
+            cv.getEducations().forEach(edu -> {
+                if (Objects.nonNull(edu)) {
+                    contentBuilder.append("- ").append(StringUtils.defaultString(edu.getSchool())).append(", ")
+                            .append(StringUtils.defaultString(edu.getMajor())).append(", ")
+                            .append(StringUtils.defaultString(edu.getDegree())).append("\n");
+                }
+            });
+            contentBuilder.append("\n");
+        }
+    }
+
+    /**
+     * 处理项目经验
+     *
+     * @param cv             简历业务对象
+     * @param contentBuilder 内容构建器
+     */
+    private void processProjects(CvBO cv, StringBuilder contentBuilder) {
+        if (CollectionUtils.isNotEmpty(cv.getProjects())) {
+            contentBuilder.append("Projects:\n");
+            cv.getProjects().forEach(proj -> {
+                if (Objects.nonNull(proj)) {
+                    contentBuilder.append("- ").append(StringUtils.defaultString(proj.getName())).append("\n");
+                    if (StringUtils.isNotEmpty(proj.getDescription())) {
+                        contentBuilder.append("  Description: ").append(proj.getDescription()).append("\n");
+                    }
+                    if (CollectionUtils.isNotEmpty(proj.getHighlights())) {
+                        proj.getHighlights().forEach(highlight -> {
+                            if (Objects.nonNull(highlight) && StringUtils.isNotEmpty(highlight.getHighlight())) {
+                                contentBuilder.append("  Highlight: ").append(highlight.getHighlight()).append("\n");
+                            }
+                        });
+                    }
+                }
+            });
+            contentBuilder.append("\n");
+        }
+    }
+
+    /**
+     * 处理工作经历
+     *
+     * @param cv             简历业务对象
+     * @param contentBuilder 内容构建器
+     */
+    private void processExperiences(CvBO cv, StringBuilder contentBuilder) {
+        if (CollectionUtils.isNotEmpty(cv.getExperiences())) {
+            contentBuilder.append("Work Experience:\n");
+            cv.getExperiences().forEach(exp -> {
+                if (Objects.nonNull(exp)) {
+                    contentBuilder.append("- ")
+                            .append(StringUtils.defaultString(exp.getIndustry())).append(" at ")
+                            .append(StringUtils.defaultString(exp.getCompany())).append("\n");
+                    if (StringUtils.isNotEmpty(exp.getDescription())) {
+                        contentBuilder.append("  Description: ").append(exp.getDescription()).append("\n");
+                    }
+                    if (CollectionUtils.isNotEmpty(exp.getHighlights())) {
+                        exp.getHighlights().forEach(highlight -> {
+                            if (Objects.nonNull(highlight) && StringUtils.isNotEmpty(highlight.getHighlight())) {
+                                contentBuilder.append("  Highlight: ").append(highlight.getHighlight()).append("\n");
+                            }
+                        });
+                    }
+                }
+            });
+            contentBuilder.append("\n");
+        }
+    }
+
+    /**
+     * 处理专业技能
+     *
+     * @param cv             简历业务对象
+     * @param contentBuilder 内容构建器
+     */
+    private void processSkills(CvBO cv, StringBuilder contentBuilder) {
+        if (CollectionUtils.isNotEmpty(cv.getSkills())) {
+            contentBuilder.append("Skills:\n")
+                    .append(cv.getSkills().stream()
+                            .filter(Objects::nonNull)
+                            .map(skill -> {
+                                String skillName = skill.getName();
+                                if (StringUtils.isEmpty(skillName)) {
+                                    return null;
+                                }
+                                if (CollectionUtils.isNotEmpty(skill.getHighlights())) {
+                                    String highlights = skill.getHighlights().stream()
+                                            .filter(Objects::nonNull)
+                                            .map(HighlightBO::getHighlight)
+                                            .filter(StringUtils::isNotEmpty)
+                                            .collect(Collectors.joining("; "));
+                                    if (StringUtils.isNotEmpty(highlights)) {
+                                        return skillName + " (" + highlights + ")";
+                                    }
+                                }
+                                return skillName;
+                            })
+                            .filter(StringUtils::isNotEmpty)
+                            .collect(Collectors.joining(", ")))
+                    .append("\n\n");
         }
     }
 
