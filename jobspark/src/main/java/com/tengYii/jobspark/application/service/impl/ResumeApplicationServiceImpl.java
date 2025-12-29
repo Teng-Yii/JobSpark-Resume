@@ -86,6 +86,21 @@ public class ResumeApplicationServiceImpl implements ResumeApplicationService {
     @Autowired
     private ChatModel chatModel;
 
+    /** 任务处理阶段预估总耗时（秒） */
+    private static final long PROCESSING_ESTIMATED_TOTAL_SECONDS = 70L;
+    /** 任务处理阶段最小剩余时间（秒） */
+    private static final long PROCESSING_MIN_REMAINING_SECONDS = 65L;
+
+    /** 任务解析阶段预估总耗时（秒） */
+    private static final long ANALYZING_ESTIMATED_TOTAL_SECONDS = 70L;
+    /** 任务解析阶段最小剩余时间（秒） */
+    private static final long ANALYZING_MIN_REMAINING_SECONDS = 10L;
+
+    /** 任务保存阶段预估总耗时（秒） */
+    private static final long SAVING_ESTIMATED_TOTAL_SECONDS = 75L;
+    /** 任务保存阶段最小剩余时间（秒） */
+    private static final long SAVING_MIN_REMAINING_SECONDS = 3L;
+
     /**
      * 上传简历
      * 将简历文件上传到OSS，并解析简历文件，保存结构化数据
@@ -126,7 +141,7 @@ public class ResumeApplicationServiceImpl implements ResumeApplicationService {
 
             // 4. 异步执行耗时操作
             CompletableFuture.runAsync(() -> {
-                processResumeAsync(taskId, request);
+                processResumeAsync(userId, taskId, storageResultDTO.getUniqueFileName());
             }, resumeTaskExecutor);
 
             // 5. 立即返回任务ID
@@ -141,55 +156,46 @@ public class ResumeApplicationServiceImpl implements ResumeApplicationService {
     /**
      * 异步处理简历解析
      *
-     * @param taskId  任务ID
-     * @param request 原始请求
+     * @param userId   用户ID
+     * @param taskId   任务ID
+     * @param fileName 存储文件名称
      */
     @Async
-    private void processResumeAsync(String taskId, ResumeUploadRequest request) {
+    private void processResumeAsync(Long userId, String taskId, String fileName) {
 
         Long resumeId = -1L;
         LocalDateTime nowTime = LocalDateTime.now();
         try {
-            StopWatch stopWatch = new StopWatch();
-
-            stopWatch.start("更新异步任务状态为解析中");
             // 更新任务状态为解析中
             Boolean updateTaskStatus = resumeTaskService.updateTaskStatus(taskId, TaskStatusEnum.ANALYZING);
             if (Boolean.FALSE.equals(updateTaskStatus)) {
                 log.error("异步处理简历解析，更新异步任务状态失败，taskId: {}", taskId);
             }
-            stopWatch.stop();
 
             // 解析简历内容（耗时操作）
-            stopWatch.start("agent解析简历内容");
-            CvBO cvBO = resumeAnalysisService.analyzeResume(request);
-            cvBO.setUserId(request.getUserId());
-            stopWatch.stop();
+            long currentTimeMillis = System.currentTimeMillis();
+            CvBO cvBO = resumeAnalysisService.analyzeResumeFile(fileName);
+            cvBO.setUserId(userId);
+            log.info("解析简历内容耗时:{} ms", System.currentTimeMillis() - currentTimeMillis);
 
             // 更新任务状态为存储中
-            stopWatch.start("更新异步任务状态为存储中");
             updateTaskStatus = resumeTaskService.updateTaskStatus(taskId, TaskStatusEnum.SAVING);
             if (Boolean.FALSE.equals(updateTaskStatus)) {
                 log.error("异步处理简历解析，更新异步任务状态失败，taskId: {}", taskId);
             }
-            stopWatch.stop();
 
             // 将结构化简历对象落库（耗时操作）
-            stopWatch.start("将结构化简历对象落库");
-
             resumeId = resumePersistenceService.convertAndSaveCv(cvBO, nowTime);
-            stopWatch.stop();
 
             // 更新任务状态为完成
-            Boolean completed = resumeTaskService.completeTask(taskId, resumeId, nowTime);
+            Boolean completed = resumeTaskService.completeTask(taskId, resumeId);
             if (completed) {
                 log.info("任务完成，taskId: {}, resumeId: {}", taskId, resumeId);
             }
-
         } catch (Exception e) {
             log.error("异步处理简历失败，taskId: {}", taskId, e);
             // 更新任务状态为失败
-            resumeTaskService.failTask(taskId, resumeId, nowTime, e.getMessage());
+            resumeTaskService.failTask(taskId, resumeId, e.getMessage());
         }
     }
 
@@ -594,8 +600,7 @@ public class ResumeApplicationServiceImpl implements ResumeApplicationService {
             }
 
             // 更新任务状态为失败，并设置错误信息
-            LocalDateTime nowTime = LocalDateTime.now();
-            resumeTaskService.failTask(taskId, taskPO.getResumeId(), nowTime, "任务已被用户取消");
+            resumeTaskService.failTask(taskId, taskPO.getResumeId(), "任务已被用户取消");
 
             log.info("任务取消成功，taskId: {}", taskId);
             return Boolean.TRUE;
@@ -628,7 +633,7 @@ public class ResumeApplicationServiceImpl implements ResumeApplicationService {
                 .originalFileName(taskPO.getOriginalFileName());
 
         // 计算进度百分比
-        Integer progress = calculateProgress(taskPO.getStatus());
+        Integer progress = calculateProgress(taskPO);
         builder.progress(progress);
 
         // 计算预估剩余时间
@@ -658,65 +663,119 @@ public class ResumeApplicationServiceImpl implements ResumeApplicationService {
     }
 
     /**
-     * 根据任务状态计算进度百分比
+     * 根据任务状态和耗时计算进度百分比
      *
-     * @param status 任务状态码
+     * @param taskPO 任务对象
      * @return 进度百分比（0-100）
      */
-    private Integer calculateProgress(String status) {
-        if (StringUtils.isEmpty(status)) {
+    private Integer calculateProgress(ResumeTaskPO taskPO) {
+        if (Objects.isNull(taskPO) || StringUtils.isEmpty(taskPO.getStatus())) {
             return 0;
         }
 
-        if (StringUtils.equals(status, TaskStatusEnum.PROCESSING.getCode())) {
-            return 10;
-        } else if (StringUtils.equals(status, TaskStatusEnum.ANALYZING.getCode())) {
-            return 50;
-        } else if (StringUtils.equals(status, TaskStatusEnum.SAVING.getCode())) {
-            return 80;
-        } else if (StringUtils.equals(status, TaskStatusEnum.COMPLETED.getCode())) {
+        String status = taskPO.getStatus();
+        // 1. 已完成或失败状态直接返回
+        if (StringUtils.equals(status, TaskStatusEnum.COMPLETED.getCode())) {
             return 100;
         } else if (StringUtils.equals(status, TaskStatusEnum.FAILED.getCode())) {
             return 0;
         }
+
+        // 2. 如果开始时间为空，返回初始进度
+        if (Objects.isNull(taskPO.getStartTime())) {
+            return 5;
+        }
+
+        // 3. 计算已耗时（秒）
+        long elapsedSeconds = ChronoUnit.SECONDS.between(taskPO.getStartTime(), LocalDateTime.now());
+        // 避免负数（系统时间回调等极端情况）
+        elapsedSeconds = Math.max(0, elapsedSeconds);
+
+        if (StringUtils.equals(status, TaskStatusEnum.PROCESSING.getCode())) {
+            // 初始处理阶段，固定返回5%
+            return 5;
+        } else if (StringUtils.equals(status, TaskStatusEnum.ANALYZING.getCode())) {
+            // 解析阶段（核心耗时阶段，假设约50-60秒）
+            // 逻辑：基础值 10 + (已耗时 / 55.0 * 70)
+            // 解释：从10%开始，随时间增长，最大增长到85%
+            double progress = 10.0 + (elapsedSeconds / 55.0 * 70.0);
+            return (int) Math.min(85, Math.round(progress));
+        } else if (StringUtils.equals(status, TaskStatusEnum.SAVING.getCode())) {
+            // 保存阶段（收尾阶段）
+            // 逻辑：基础值 85 + ((已耗时 - 55) / 15.0 * 14)
+            // 解释：假设进入此阶段已经过去约55秒，后续增长到99%
+            // 使用 Math.max(elapsedSeconds, 55) 确保进度不回退，始终 >= 85
+            double progress = 85.0 + ((Math.max(elapsedSeconds, 55) - 55.0) / 15.0 * 14.0);
+            return (int) Math.min(99, Math.round(progress));
+        }
+
         return 0;
     }
 
     /**
      * 计算预估剩余时间
+     * <p>
+     * 根据当前任务状态和已耗时时长，计算任务预计还需要多少秒完成。
+     * 不同阶段有不同的预估基准时间和最小剩余时间保底。
+     * </p>
      *
      * @param taskPO 任务持久化对象
      * @return 预估剩余时间（秒），如果任务已完成或失败则返回null
      */
     private Long calculateEstimatedRemainingTime(ResumeTaskPO taskPO) {
+        // 1. 基础校验：对象为空或开始时间为空，无法计算
         if (Objects.isNull(taskPO) || Objects.isNull(taskPO.getStartTime())) {
             return null;
         }
 
         String status = taskPO.getStatus();
+        // 校验状态字符串非空
+        if (StringUtils.isEmpty(status)) {
+            return null;
+        }
 
-        // 已完成或失败的任务不需要预估时间
+        // 2. 终态检查：已完成或失败的任务不需要预估时间
         if (StringUtils.equals(status, TaskStatusEnum.COMPLETED.getCode()) ||
                 StringUtils.equals(status, TaskStatusEnum.FAILED.getCode())) {
             return null;
         }
 
+        // 3. 计算已耗时（秒）
         LocalDateTime now = LocalDateTime.now();
         long elapsedSeconds = ChronoUnit.SECONDS.between(taskPO.getStartTime(), now);
+        // 避免时间回拨导致负数
+        elapsedSeconds = Math.max(0L, elapsedSeconds);
 
-        // 根据当前状态和已用时间预估剩余时间
+        // 4. 根据状态计算剩余时间
+        // 使用策略模式思想，匹配对应状态的配置参数
         if (StringUtils.equals(status, TaskStatusEnum.PROCESSING.getCode())) {
-            // 处理中阶段预估还需要90秒
-            return Math.max(90L, 120L - elapsedSeconds);
+            // PROCESSING 阶段
+            return calculateRemainingSeconds(elapsedSeconds, PROCESSING_ESTIMATED_TOTAL_SECONDS, PROCESSING_MIN_REMAINING_SECONDS);
         } else if (StringUtils.equals(status, TaskStatusEnum.ANALYZING.getCode())) {
-            // 解析中阶段预估还需要60秒
-            return Math.max(60L, 90L - elapsedSeconds);
+            // ANALYZING 阶段
+            return calculateRemainingSeconds(elapsedSeconds, ANALYZING_ESTIMATED_TOTAL_SECONDS, ANALYZING_MIN_REMAINING_SECONDS);
         } else if (StringUtils.equals(status, TaskStatusEnum.SAVING.getCode())) {
-            // 存储中阶段预估还需要30秒
-            return Math.max(30L, 45L - elapsedSeconds);
+            // SAVING 阶段
+            return calculateRemainingSeconds(elapsedSeconds, SAVING_ESTIMATED_TOTAL_SECONDS, SAVING_MIN_REMAINING_SECONDS);
         }
 
-        return 60L;
+        // 其他未定义状态
+        return null;
+    }
+
+    /**
+     * 计算剩余时间的通用逻辑
+     *
+     * @param elapsedSeconds 已耗时（秒）
+     * @param totalSeconds   预估总耗时（秒）
+     * @param minSeconds     最小剩余时间保底（秒）
+     * @return 剩余时间（秒）
+     */
+    private Long calculateRemainingSeconds(long elapsedSeconds, long totalSeconds, long minSeconds) {
+        // 剩余时间 = 总预估时间 - 已耗时
+        long remaining = totalSeconds - elapsedSeconds;
+        // 必须保证至少返回 minSeconds，避免出现负数或 0（给用户即时的心理缓冲）
+        return Math.max(minSeconds, remaining);
     }
 
     /**

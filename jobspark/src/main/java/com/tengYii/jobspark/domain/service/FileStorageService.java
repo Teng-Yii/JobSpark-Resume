@@ -13,6 +13,7 @@ import com.tengYii.jobspark.common.constants.FileStoreConstants;
 import com.tengYii.jobspark.dto.response.FileStorageResultDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -20,7 +21,6 @@ import java.io.*;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Objects;
-import java.util.Random;
 import java.util.UUID;
 
 /**
@@ -29,7 +29,7 @@ import java.util.UUID;
  */
 @Slf4j
 @Service
-public class FileStorageService {
+public class FileStorageService implements DisposableBean {
 
     /**
      * OSS客户端实例（懒汉式单例）
@@ -129,9 +129,6 @@ public class FileStorageService {
         } catch (IOException e) {
             log.error("文件读取异常: {}", e.getMessage(), e);
             throw new ClientException("文件读取异常: " + e.getMessage());
-        } finally {
-            // 确保关闭OSS客户端
-            closeOssClient(ossClient);
         }
     }
 
@@ -177,27 +174,6 @@ public class FileStorageService {
         }
         // 注意：这里不关闭ossClient，因为返回的InputStream还需要使用连接
         // 调用方需要负责关闭InputStream
-    }
-
-    /**
-     * 辅助方法：生成唯一的Bucket名称
-     *
-     * @param prefix 前缀
-     * @return 唯一的Bucket名称
-     */
-    public String generateUniqueBucketName(String prefix) {
-        if (StringUtils.isEmpty(prefix)) {
-            prefix = "default";
-        }
-
-        // 获取当前时间戳
-        String timestamp = String.valueOf(System.currentTimeMillis());
-        // 生成随机数
-        Random random = new Random();
-        int randomNum = random.nextInt(10000);
-
-        // 组合生成唯一名称（转换为小写，符合OSS命名规范）
-        return (prefix + "-" + timestamp + "-" + randomNum).toLowerCase();
     }
 
     /**
@@ -248,15 +224,14 @@ public class FileStorageService {
     }
 
     /**
-     * 辅助方法：安全关闭OSS客户端
-     *
-     * @param ossClient OSS客户端实例
+     * 销毁方法：在Bean销毁时关闭OSS客户端连接
      */
-    private void closeOssClient(OSS ossClient) {
-        if (Objects.nonNull(ossClient)) {
+    @Override
+    public void destroy() {
+        if (Objects.nonNull(this.ossClient)) {
             try {
-                ossClient.shutdown();
-                log.debug("OSS客户端已关闭");
+                this.ossClient.shutdown();
+                log.info("OSS客户端已关闭");
             } catch (Exception e) {
                 log.warn("关闭OSS客户端时发生异常: {}", e.getMessage());
             }
@@ -292,8 +267,6 @@ public class FileStorageService {
         } catch (Exception e) {
             log.error("删除文件失败 - Bucket: {}, Object: {}, Error: {}", bucketName, objectName, e.getMessage());
             return false;
-        } finally {
-            closeOssClient(ossClient);
         }
     }
 }

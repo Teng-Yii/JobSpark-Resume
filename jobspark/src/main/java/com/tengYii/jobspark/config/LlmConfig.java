@@ -4,6 +4,8 @@ import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.openai.OpenAiChatModel;
 import dev.langchain4j.model.openai.OpenAiEmbeddingModel;
 import org.springframework.context.annotation.Bean;
+
+import java.time.Duration;
 import org.springframework.context.annotation.Configuration;
 
 /**
@@ -23,9 +25,11 @@ public class LlmConfig {
         return OpenAiChatModel.builder()
                 .apiKey(System.getenv("DASHSCOPE_API_KEY"))
 //                .modelName("qwen-flash")
-                .modelName("qwen-vl-plus")
+                .modelName("qwen3-vl-plus")
 //                .modelName("qwen-plus")
                 .baseUrl("https://dashscope.aliyuncs.com/compatible-mode/v1")
+                // 超时时间设置为80秒（默认60秒），防止大简历解析超时
+                .timeout(Duration.ofSeconds(80))
 //                .logRequests(true)
 //                .logResponses(true)
                 // 结构化输出

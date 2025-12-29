@@ -92,16 +92,16 @@ public class ResumeTaskService {
      *
      * @param taskId   任务ID
      * @param resumeId 简历ID
-     * @param nowTime  完成任务的当前时间
      * @return 更新是否成功
      */
-    public Boolean completeTask(String taskId, Long resumeId, LocalDateTime nowTime) {
+    public Boolean completeTask(String taskId, Long resumeId) {
         if (StringUtils.isEmpty(taskId) || Objects.isNull(resumeId)) {
             log.warn("完成任务失败，参数为空");
             return Boolean.FALSE;
         }
 
         try {
+            LocalDateTime nowTime = LocalDateTime.now();
             ResumeTaskPO resumeTaskPO = resumeTaskRepository.getByTaskId(taskId);
             resumeTaskPO.setResumeId(resumeId);
             resumeTaskPO.setStatus(TaskStatusEnum.COMPLETED.getCode());
@@ -120,15 +120,15 @@ public class ResumeTaskService {
      *
      * @param taskId       任务ID。
      * @param resumeId     简历ID。
-     * @param nowTime      当前时间。
      * @param errorMessage 失败错误信息。
      */
-    public void failTask(String taskId, Long resumeId, LocalDateTime nowTime, String errorMessage) {
+    public void failTask(String taskId, Long resumeId, String errorMessage) {
         if (StringUtils.isEmpty(taskId)) {
             log.error("任务失败处理失败，任务ID为空");
         }
 
         try {
+            LocalDateTime nowTime = LocalDateTime.now();
             ResumeTaskPO resumeTaskPO = resumeTaskRepository.getByTaskId(taskId);
             resumeTaskPO.setResumeId(resumeId);
             resumeTaskPO.setStatus(TaskStatusEnum.FAILED.getCode());
