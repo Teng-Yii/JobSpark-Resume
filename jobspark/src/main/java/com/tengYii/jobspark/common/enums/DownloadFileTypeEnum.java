@@ -80,6 +80,6 @@ public enum DownloadFileTypeEnum {
                 return type;
             }
         }
-        return PDF;
+        return null;
     }
 }
