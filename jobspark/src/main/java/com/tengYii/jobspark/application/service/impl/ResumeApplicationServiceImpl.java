@@ -31,12 +31,12 @@ import com.tengYii.jobspark.model.po.CvPO;
 import com.tengYii.jobspark.model.po.ResumeTaskPO;
 import dev.langchain4j.agentic.AgenticServices;
 import dev.langchain4j.model.chat.ChatModel;
+import jakarta.annotation.Resource;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StopWatch;
@@ -76,14 +76,13 @@ public class ResumeApplicationServiceImpl implements ResumeApplicationService {
     @Autowired
     private CvRepository cvRepository;
 
-    @Autowired
-    @Qualifier("resumeTaskExecutor")
+    @Resource(name = "resumeTaskExecutor")
     private Executor resumeTaskExecutor;
 
     @Autowired
     private ResumeRagService resumeRagService;
 
-    @Autowired
+    @Resource(name = "chatModel")
     private ChatModel chatModel;
 
     /** 任务处理阶段预估总耗时（秒） */
@@ -251,6 +250,7 @@ public class ResumeApplicationServiceImpl implements ResumeApplicationService {
         ResumeOptimizedResponse response = new ResumeOptimizedResponse();
         // 填充优化建议
         response.setSuggestionText(optimizeCv.getAdvice());
+        response.setOptimizationHistory(optimizeCv.getOptimizationHistory());
         // 填充优化后的简历对象
         response.setOptimizedResumeId(newResumeId);
 

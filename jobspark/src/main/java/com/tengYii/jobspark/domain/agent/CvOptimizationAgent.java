@@ -8,7 +8,6 @@ import dev.langchain4j.agentic.declarative.SubAgent;
 import dev.langchain4j.agentic.scope.AgenticScope;
 
 import java.util.List;
-import java.util.Objects;
 
 /**
  * 简历优化代理 - 智能循环优化系统
@@ -53,32 +52,29 @@ public interface CvOptimizationAgent {
             // 从代理作用域中获取最新的审核结果
             CvReview review = (CvReview) agenticScope.readState("cvReview");
 
-            // 防御性检查，确保审核结果不为空
-            if (Objects.isNull(review)) {
-                System.err.println("警告: 无法获取简历审核结果，继续优化...");
-                return false;
-            }
-
             // 尝试获取CvBO对象并设置建议
             Object cvObj = agenticScope.readState("cv");
             if (cvObj instanceof CvBO cv) {
+                // 记录本次优化历史
+                cv.addOptimizationRecord(review.getFeedback(), review.getScore());
+                // 更新最新的建议
                 cv.setAdvice(review.getFeedback());
             }
 
             // 输出当前评分，便于监控优化进度
             System.out.println("=== 简历优化进度检查 ===");
-            System.out.println("当前评分: " + review.score);
+            System.out.println("当前评分: " + review.getScore());
             System.out.println("目标评分: 0.8 (推荐面试级别)");
 
             // 判断是否达到退出条件
-            boolean shouldExit = review.score > 0.8;
+            boolean shouldExit = review.getScore() > 0.8;
 
             if (shouldExit) {
                 System.out.println("✅ 简历质量达标，优化完成！");
-                System.out.println("最终评分: " + review.score);
+                System.out.println("最终评分: " + review.getScore());
             } else {
                 System.out.println("🔄 继续优化，目标评分: 0.8+");
-                System.out.println("当前差距: " + String.format("%.2f", 0.8 - review.score));
+                System.out.println("当前差距: " + String.format("%.2f", 0.8 - review.getScore()));
             }
 
             return shouldExit;

@@ -6,7 +6,9 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * 简历BO对象，简历解析后的结构化结果
@@ -85,6 +87,46 @@ public class CvBO {
      * 优化建议
      */
     private String advice;
+
+    /**
+     * 优化历史记录
+     */
+    private List<OptimizationRecord> optimizationHistory;
+
+    /**
+     * 增加优化记录
+     *
+     * @param feedback 优化反馈
+     * @param score    优化评分
+     */
+    public void addOptimizationRecord(String feedback, Double score) {
+        if (Objects.isNull(this.optimizationHistory)) {
+            this.optimizationHistory = new ArrayList<>();
+        }
+        this.optimizationHistory.add(OptimizationRecord.builder()
+                .feedback(feedback)
+                .score(score)
+                .build());
+    }
+
+    /**
+     * 优化记录内部类
+     */
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class OptimizationRecord {
+        /**
+         * 反馈建议
+         */
+        private String feedback;
+
+        /**
+         * 评分
+         */
+        private Double score;
+    }
 
     // 版式与国际化元数据
     // 对齐、列表、间距、字体、日期格式、链接样式、图标占位、locale 等

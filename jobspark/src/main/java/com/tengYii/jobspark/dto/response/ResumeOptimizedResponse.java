@@ -1,8 +1,11 @@
 package com.tengYii.jobspark.dto.response;
 
+import com.tengYii.jobspark.model.bo.CvBO;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.util.List;
 
 /**
  * 简历优化响应DTO
@@ -24,4 +27,9 @@ public class ResumeOptimizedResponse {
      * 优化后的简历ID，用于生成优化后的简历文件
      */
     private Long optimizedResumeId;
+
+    /**
+     * 优化历史记录
+     */
+    private List<CvBO.OptimizationRecord> optimizationHistory;
 }

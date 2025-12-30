@@ -6,6 +6,7 @@ import dev.langchain4j.model.openai.OpenAiEmbeddingModel;
 import org.springframework.context.annotation.Bean;
 
 import java.time.Duration;
+
 import org.springframework.context.annotation.Configuration;
 
 /**
@@ -28,8 +29,8 @@ public class LlmConfig {
                 .modelName("qwen3-vl-plus")
 //                .modelName("qwen-plus")
                 .baseUrl("https://dashscope.aliyuncs.com/compatible-mode/v1")
-                // 超时时间设置为80秒（默认60秒），防止大简历解析超时
-                .timeout(Duration.ofSeconds(80))
+                // 超时时间设置为150秒（默认60秒），防止大简历解析/优化超时
+                .timeout(Duration.ofSeconds(150))
 //                .logRequests(true)
 //                .logResponses(true)
                 // 结构化输出
@@ -48,6 +49,17 @@ public class LlmConfig {
                 .apiKey(System.getenv("DASHSCOPE_API_KEY"))
                 .modelName("text-embedding-v4")
                 .baseUrl("https://dashscope.aliyuncs.com/compatible-mode/v1")
+                .build();
+    }
+
+    @Bean
+    public ChatModel hyDEModel() {
+        return OpenAiChatModel.builder()
+                .apiKey(System.getenv("DASHSCOPE_API_KEY"))
+                .modelName("qwen-flash")
+                .baseUrl("https://dashscope.aliyuncs.com/compatible-mode/v1")
+                // 结构化输出
+                .strictJsonSchema(true)
                 .build();
     }
 }
