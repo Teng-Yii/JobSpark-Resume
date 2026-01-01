@@ -46,3 +46,16 @@ langchain4j:
     payload-text-key: content
     vector-size: 1024 # text-embedding-v3/v4 默认维度
     # api-key: your-api-key # 如果需要鉴权请配置
+
+# 生成接口文档
+springdoc:
+  api-docs:
+    path: /swagger/api-docs
+  swagger-ui:
+    path: /swagger/swagger-ui
+    operations-sorter: method
+    tags-sorter: alpha
+  info:
+    title: My Spring Boot API
+    version: 1.0.0
+    description: 这是一个示例 API 文档
