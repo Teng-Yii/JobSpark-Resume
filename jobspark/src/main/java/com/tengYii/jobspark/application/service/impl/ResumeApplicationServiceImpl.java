@@ -627,7 +627,7 @@ public class ResumeApplicationServiceImpl implements ResumeApplicationService {
                 .statusMessage(getStatusMessage(taskPO.getStatus()))
                 .startTime(taskPO.getStartTime())
                 .completeTime(taskPO.getCompleteTime())
-                .resumeId(taskPO.getResumeId())
+                .resumeId(String.valueOf(taskPO.getResumeId()))
                 .errorMessage(taskPO.getErrorMessage())
                 .fileName(taskPO.getFileName())
                 .originalFileName(taskPO.getOriginalFileName());

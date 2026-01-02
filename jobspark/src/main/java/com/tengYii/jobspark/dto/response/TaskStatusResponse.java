@@ -51,7 +51,7 @@ public class TaskStatusResponse {
     /**
      * 简历ID（完成后才有）
      */
-    private Long resumeId;
+    private String resumeId;
 
     /**
      * 错误信息（失败时才有）
@@ -122,7 +122,7 @@ public class TaskStatusResponse {
                 .progress(100)
                 .startTime(startTime)
                 .completeTime(completeTime)
-                .resumeId(resumeId)
+                .resumeId(String.valueOf(resumeId))
                 .fileName(fileName)
                 .originalFileName(originalFileName)
                 .build();
