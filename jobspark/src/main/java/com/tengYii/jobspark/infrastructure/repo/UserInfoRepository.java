@@ -20,7 +20,9 @@ public interface UserInfoRepository extends IService<UserInfoPO> {
      * @param username 用户名
      * @param password 密码
      * @return 用户信息PO对象
+     * @deprecated 由于密码加密存储，请勿使用此方法验证密码。请使用 {@link com.baomidou.mybatisplus.extension.service.IService#getOne} 查询用户后手动校验密码。
      */
+    @Deprecated
     UserInfoPO getUserInfoByCredentials(String username, String password);
 
     /**

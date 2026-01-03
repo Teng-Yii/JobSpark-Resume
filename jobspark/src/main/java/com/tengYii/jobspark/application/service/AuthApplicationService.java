@@ -1,5 +1,7 @@
 package com.tengYii.jobspark.application.service;
 
+import com.tengYii.jobspark.dto.request.ForgetPasswordRequest;
+import com.tengYii.jobspark.dto.request.RegisterRequest;
 import com.tengYii.jobspark.dto.response.LoginResponse;
 import com.tengYii.jobspark.model.po.UserInfoPO;
 
@@ -43,4 +45,18 @@ public interface AuthApplicationService {
      * @return 新的token信息
      */
     LoginResponse refreshToken(String token);
+
+    /**
+     * 用户注册
+     *
+     * @param registerRequest 注册请求参数
+     */
+    void register(RegisterRequest registerRequest);
+
+    /**
+     * 忘记密码
+     *
+     * @param forgetPasswordRequest 忘记密码请求参数
+     */
+    void forgetPassword(ForgetPasswordRequest forgetPasswordRequest);
 }

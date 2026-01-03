@@ -4,7 +4,9 @@ import com.tengYii.jobspark.application.service.AuthApplicationService;
 import com.tengYii.jobspark.application.validate.AuthValidator;
 import com.tengYii.jobspark.common.utils.login.JwtTokenUtil;
 import com.tengYii.jobspark.common.utils.login.UserContext;
+import com.tengYii.jobspark.dto.request.ForgetPasswordRequest;
 import com.tengYii.jobspark.dto.request.LoginRequest;
+import com.tengYii.jobspark.dto.request.RegisterRequest;
 import com.tengYii.jobspark.dto.response.SecureLoginResponse;
 import com.tengYii.jobspark.dto.response.UserInfoResponse;
 import com.tengYii.jobspark.common.exception.ValidationException;
@@ -81,6 +83,48 @@ public class AuthController {
         // 基于安全考虑，仅返回token和过期时间，不返回敏感的用户信息
         SecureLoginResponse secureLoginResponse = new SecureLoginResponse(accessToken, accessTokenExpiration);
         return ResponseEntity.ok(secureLoginResponse);
+    }
+
+    /**
+     * 用户注册接口
+     *
+     * @param registerRequest 注册请求对象
+     * @return 注册结果
+     */
+    @PostMapping("/register")
+    public ResponseEntity<Void> register(@RequestBody RegisterRequest registerRequest) {
+
+        // 校验请求参数合法性
+        String validationResult = AuthValidator.validateRegister(registerRequest);
+        if (StringUtils.isNotEmpty(validationResult)) {
+            throw new ValidationException(String.valueOf(HttpStatus.BAD_REQUEST.value()), validationResult);
+        }
+
+        // 执行注册逻辑
+        authApplicationService.register(registerRequest);
+
+        return ResponseEntity.ok().build();
+    }
+
+    /**
+     * 忘记密码接口
+     *
+     * @param forgetPasswordRequest 忘记密码请求对象
+     * @return 处理结果
+     */
+    @PostMapping("/forgetPassword")
+    public ResponseEntity<Void> forgetPassword(@RequestBody ForgetPasswordRequest forgetPasswordRequest) {
+
+        // 校验请求参数合法性
+        String validationResult = AuthValidator.validateForgetPassword(forgetPasswordRequest);
+        if (StringUtils.isNotEmpty(validationResult)) {
+            throw new ValidationException(String.valueOf(HttpStatus.BAD_REQUEST.value()), validationResult);
+        }
+
+        // 执行忘记密码逻辑
+        authApplicationService.forgetPassword(forgetPasswordRequest);
+
+        return ResponseEntity.ok().build();
     }
 
     /**
