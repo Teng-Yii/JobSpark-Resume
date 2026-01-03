@@ -48,6 +48,7 @@ public class FileStorageService implements DisposableBean {
                 if (Objects.isNull(this.ossClient)) {
                     try {
                         // 从环境变量中获取访问凭证
+                        // OSS_ACCESS_KEY_ID、OSS_ACCESS_KEY_SECRET
                         EnvironmentVariableCredentialsProvider credentialsProvider =
                                 CredentialsProviderFactory.newEnvironmentVariableCredentialsProvider();
 
