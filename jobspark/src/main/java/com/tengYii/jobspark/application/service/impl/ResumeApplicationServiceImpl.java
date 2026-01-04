@@ -269,7 +269,7 @@ public class ResumeApplicationServiceImpl implements ResumeApplicationService {
      */
     @Override
     public byte[] generateOptimizedFile(ResumeOptimizedDownloadRequest request) {
-        Long resumeId = request.getOptimizedResumeId();
+        Long resumeId = Long.parseLong(request.getOptimizedResumeId());
         String fileType = request.getDownloadFileType();
         log.info("开始生成优化简历文件，resumeId: {}, fileType: {}", resumeId, fileType);
 

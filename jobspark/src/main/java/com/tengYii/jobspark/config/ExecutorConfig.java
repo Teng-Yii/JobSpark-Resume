@@ -56,9 +56,9 @@ public class ExecutorConfig {
         // 优雅停机：等待所有任务结束后再关闭线程池
         executor.setWaitForTasksToCompleteOnShutdown(true);
 
-        // 等待时间：60秒
+        // 等待时间：150秒
         // 理由：简历解析耗时较长，给足时间让已提交的任务执行完毕
-        executor.setAwaitTerminationSeconds(60);
+        executor.setAwaitTerminationSeconds(150);
 
         executor.initialize();
 

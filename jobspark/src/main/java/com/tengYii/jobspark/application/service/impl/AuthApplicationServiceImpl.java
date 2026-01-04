@@ -111,8 +111,6 @@ public class AuthApplicationServiceImpl implements AuthApplicationService {
         try {
             // 将token加入黑名单
             // 设置黑名单保留时间为token的剩余有效期
-            // 注意：这里假设 jwtTokenUtil 已经有了 addTokenToBlacklist 方法
-            // 如果项目中没有，可能需要确认。根据之前的读取，看起来是有的。
             jwtTokenUtil.addTokenToBlacklist(token, accessTokenExpiration);
             log.info("用户登出成功，token已加入黑名单");
         } catch (Exception e) {
@@ -225,7 +223,7 @@ public class AuthApplicationServiceImpl implements AuthApplicationService {
 
         if (Objects.isNull(userInfoPO)) {
             // 为了安全，通常不提示具体是用户名错还是邮箱错，或者直接提示"用户信息不匹配"
-            log.warn("忘记密码验证失败：用户名与邮箱不匹配，username={}, email={}", username, email);
+            log.error("忘记密码验证失败：用户名与邮箱不匹配，username={}, email={}", username, email);
             throw BusinessException.paramError("用户名或注册邮箱错误");
         }
 

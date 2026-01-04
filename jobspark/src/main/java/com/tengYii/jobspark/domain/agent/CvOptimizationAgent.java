@@ -1,13 +1,19 @@
 package com.tengYii.jobspark.domain.agent;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.tengYii.jobspark.infrastructure.context.OptimizationProgressContext;
 import com.tengYii.jobspark.model.bo.CvBO;
 import com.tengYii.jobspark.model.llm.CvReview;
 import dev.langchain4j.agentic.declarative.ExitCondition;
 import dev.langchain4j.agentic.declarative.LoopAgent;
 import dev.langchain4j.agentic.declarative.SubAgent;
 import dev.langchain4j.agentic.scope.AgenticScope;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 简历优化代理 - 智能循环优化系统
@@ -20,6 +26,8 @@ import java.util.List;
  * @since 2025-12-17
  */
 public interface CvOptimizationAgent {
+
+    Logger log = LoggerFactory.getLogger(CvOptimizationAgent.class);
 
     /**
      * 智能简历优化主方法，它会协调多个子代理来完成简历的迭代优化过程。
@@ -62,27 +70,45 @@ public interface CvOptimizationAgent {
             }
 
             // 输出当前评分，便于监控优化进度
-            System.out.println("=== 简历优化进度检查 ===");
-            System.out.println("当前评分: " + review.getScore());
-            System.out.println("目标评分: 0.8 (推荐面试级别)");
+            log.info("=== 简历优化进度检查 ===");
+            log.info("当前评分: {}", review.getScore());
+            log.info("目标评分: 0.8 (推荐面试级别)");
 
             // 判断是否达到退出条件
             boolean shouldExit = review.getScore() > 0.8;
 
+            // 构建进度消息文本
+            String progressMsg;
+            String status;
             if (shouldExit) {
-                System.out.println("✅ 简历质量达标，优化完成！");
-                System.out.println("最终评分: " + review.getScore());
+                progressMsg = String.format("✅ 简历质量达标，优化完成！最终评分: %.2f", review.getScore());
+                status = "COMPLETED";
+                log.info(progressMsg);
             } else {
-                System.out.println("🔄 继续优化，目标评分: 0.8+");
-                System.out.println("当前差距: " + String.format("%.2f", 0.8 - review.getScore()));
+                progressMsg = String.format("🔄 继续优化，当前评分: %.2f，目标评分: 0.8+，差距: %.2f",
+                        review.getScore(), 0.8 - review.getScore());
+                status = "PROCESSING";
+                log.info(progressMsg);
             }
+
+            // 构建 JSON 格式的进度消息
+            Map<String, Object> messageMap = new HashMap<>();
+            messageMap.put("message", progressMsg);
+            messageMap.put("score", review.getScore());
+            messageMap.put("feedback", review.getFeedback());
+            messageMap.put("status", status);
+
+            // 序列化为 JSON 字符串并发送
+            ObjectMapper objectMapper = new ObjectMapper();
+            String jsonMessage = objectMapper.writeValueAsString(messageMap);
+            OptimizationProgressContext.emit(jsonMessage);
 
             return shouldExit;
 
         } catch (Exception e) {
             // 异常处理：记录错误但不中断优化流程
-            System.err.println("退出条件检查异常: " + e.getMessage());
-            System.err.println("默认继续优化流程...");
+            log.error("退出条件检查异常: {}", e.getMessage());
+            log.error("默认继续优化流程...");
             return false;
         }
     }

@@ -18,7 +18,7 @@ public class ResumeOptimizedDownloadRequest implements Serializable {
     /**
      * 简历ID，唯一标识简历
      */
-    private Long optimizedResumeId;
+    private String optimizedResumeId;
 
     /**
      * 下载文件类型

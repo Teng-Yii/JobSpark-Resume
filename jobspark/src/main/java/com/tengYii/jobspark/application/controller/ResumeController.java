@@ -1,17 +1,20 @@
 package com.tengYii.jobspark.application.controller;
 
-import com.tengYii.jobspark.common.utils.login.UserContext;
-import com.tengYii.jobspark.domain.service.ResumeRagService;
-import com.tengYii.jobspark.dto.request.ResumeOptimizedDownloadRequest;
-import com.tengYii.jobspark.dto.request.ResumeOptimizeRequest;
-import com.tengYii.jobspark.dto.response.ResumeOptimizedResponse;
-import com.tengYii.jobspark.dto.response.ResumeUploadAsyncResponse;
-import com.tengYii.jobspark.dto.request.ResumeUploadRequest;
-import com.tengYii.jobspark.dto.response.TaskStatusResponse;
 import com.tengYii.jobspark.application.service.ResumeApplicationService;
 import com.tengYii.jobspark.application.validate.ResumeValidator;
 import com.tengYii.jobspark.common.exception.ValidationException;
+import com.tengYii.jobspark.common.utils.login.UserContext;
+import com.tengYii.jobspark.domain.service.ResumeRagService;
+import com.tengYii.jobspark.dto.request.ResumeOptimizeRequest;
+import com.tengYii.jobspark.dto.request.ResumeOptimizedDownloadRequest;
+import com.tengYii.jobspark.dto.request.ResumeUploadRequest;
+import com.tengYii.jobspark.dto.response.ResumeOptimizedResponse;
+import com.tengYii.jobspark.dto.response.ResumeUploadAsyncResponse;
+import com.tengYii.jobspark.dto.response.TaskStatusResponse;
+import com.tengYii.jobspark.infrastructure.context.OptimizationProgressContext;
+import jakarta.annotation.Resource;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -19,8 +22,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import java.io.IOException;
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 
 
 /**
@@ -34,6 +41,7 @@ import java.util.Objects;
 @RestController
 @RequestMapping("/api/v1/resumes")
 @RequiredArgsConstructor
+@Slf4j
 public class ResumeController {
 
     @Autowired
@@ -41,6 +49,9 @@ public class ResumeController {
 
     @Autowired
     private ResumeRagService resumeRagService;
+
+    @Resource(name = "resumeTaskExecutor")
+    private Executor resumeTaskExecutor;
 
     /**
      * 上传简历，并进行简历解析
@@ -83,6 +94,56 @@ public class ResumeController {
 
         ResumeOptimizedResponse response = resumeApplicationService.optimizeResume(request);
         return ResponseEntity.ok(response);
+    }
+
+    /**
+     * 流式获取优化进度及最终结果
+     *
+     * @param request 简历优化请求对象
+     * @return SseEmitter 对象，用于推送进度
+     */
+    @PostMapping("/optimize/stream")
+    public SseEmitter streamOptimizeResume(@RequestBody ResumeOptimizeRequest request) {
+        Long userId = getLoginUserId();
+        request.setUserId(userId);
+
+        // 校验请求参数合法性
+        String validationResult = ResumeValidator.validateOptimizeRequest(request);
+        if (StringUtils.isNotEmpty(validationResult)) {
+            throw new ValidationException(String.valueOf(HttpStatus.BAD_REQUEST.value()), validationResult);
+        }
+
+        // 设置超时时间为 5 分钟
+        SseEmitter emitter = new SseEmitter(300000L);
+
+        CompletableFuture.runAsync(() -> {
+            try {
+                // 设置进度回调
+                OptimizationProgressContext.setEmitter(message -> {
+                    try {
+                        emitter.send(SseEmitter.event().name("progress").data(message));
+                    } catch (IOException e) {
+                        log.error("发送进度消息失败", e);
+                    }
+                });
+
+                // 执行优化逻辑
+                ResumeOptimizedResponse response = resumeApplicationService.optimizeResume(request);
+                // 发送最终结果
+                emitter.send(SseEmitter.event().name("result").data(response));
+                // 完成
+                emitter.complete();
+
+            } catch (Exception e) {
+                log.error("简历优化流式处理异常", e);
+                emitter.completeWithError(e);
+            } finally {
+                // 清理上下文
+                OptimizationProgressContext.clear();
+            }
+        }, resumeTaskExecutor);
+
+        return emitter;
     }
 
     /**
