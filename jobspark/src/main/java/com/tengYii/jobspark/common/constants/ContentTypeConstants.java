@@ -38,29 +38,15 @@ public class ContentTypeConstants {
     /**
      * 支持的文件扩展名集合
      */
-    public static final Set<String> SUPPORTED_EXTENSIONS = Set.of(
-            "pdf", "doc", "docx", "txt", "md"
-    );
+    public static final Set<String> SUPPORTED_EXTENSIONS = Set.of("pdf");
 
     /**
      * 支持的Content-Type集合
      */
-    public static final Set<String> SUPPORTED_CONTENT_TYPES = Set.of(
-            "application/pdf",
-            "application/msword",
-            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-            "text/plain",
-            "text/markdown"
-    );
+    public static final Set<String> SUPPORTED_CONTENT_TYPES = Set.of("application/pdf");
 
     /**
      * 文件扩展名与Content-Type的映射关系
      */
-    public static final Map<String, String> EXTENSION_TO_CONTENT_TYPE = Map.of(
-            "pdf", "application/pdf",
-            "doc", "application/msword",
-            "docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-            "txt", "text/plain",
-            "md", "text/plain"
-    );
+    public static final Map<String, String> EXTENSION_TO_CONTENT_TYPE = Map.of("pdf", "application/pdf");
 }

@@ -113,8 +113,20 @@ public class ResumeController {
             throw new ValidationException(String.valueOf(HttpStatus.BAD_REQUEST.value()), validationResult);
         }
 
-        // 设置超时时间为 5 分钟
-        SseEmitter emitter = new SseEmitter(300000L);
+        // 设置超时时间为 10 分钟
+        SseEmitter emitter = new SseEmitter(600000L);
+
+        emitter.onCompletion(() -> log.info("SSE连接已完成：userId={}", userId));
+
+        emitter.onTimeout(() -> {
+            log.error("SSE连接超时：userId={}", userId);
+            emitter.complete();
+        });
+
+        emitter.onError((e) -> {
+            log.error("SSE连接错误：userId={}", userId, e);
+            emitter.complete();
+        });
 
         CompletableFuture.runAsync(() -> {
             try {
