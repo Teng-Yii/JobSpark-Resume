@@ -36,6 +36,9 @@ public class WebConfig implements WebMvcConfigurer {
                         "/api/v1/auth/login",
                         // 注册接口
                         "/api/v1/auth/register",
+                        // 忘记密码接口
+                        "/api/v1/auth/sendForgetPasswordCode",
+                        "/api/v1/auth/forgetPassword",
                         // swagger接口文档接口及静态资源
                         "/swagger/**",
                         "/swagger-ui/**",

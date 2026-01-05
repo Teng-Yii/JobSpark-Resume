@@ -59,4 +59,11 @@ public interface AuthApplicationService {
      * @param forgetPasswordRequest 忘记密码请求参数
      */
     void forgetPassword(ForgetPasswordRequest forgetPasswordRequest);
+
+    /**
+     * 发送忘记密码验证码
+     *
+     * @param forgetPasswordRequest 包含用户名和邮箱的请求参数
+     */
+    void sendForgetPasswordCode(ForgetPasswordRequest forgetPasswordRequest);
 }

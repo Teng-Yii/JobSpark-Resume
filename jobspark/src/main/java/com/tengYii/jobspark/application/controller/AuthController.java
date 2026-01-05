@@ -107,7 +107,28 @@ public class AuthController {
     }
 
     /**
-     * 忘记密码接口
+     * 发送忘记密码验证码接口
+     *
+     * @param forgetPasswordRequest 忘记密码请求对象
+     * @return 处理结果
+     */
+    @PostMapping("/sendForgetPasswordCode")
+    public ResponseEntity<Void> sendForgetPasswordCode(@RequestBody ForgetPasswordRequest forgetPasswordRequest) {
+
+        // 校验请求参数合法性
+        String errorMsg = AuthValidator.validateSendForgetPasswordCode(forgetPasswordRequest);
+        if (StringUtils.isNotEmpty(errorMsg)) {
+            throw new ValidationException(String.valueOf(HttpStatus.BAD_REQUEST.value()), errorMsg);
+        }
+
+        // 执行发送验证码逻辑
+        authApplicationService.sendForgetPasswordCode(forgetPasswordRequest);
+
+        return ResponseEntity.ok().build();
+    }
+
+    /**
+     * 忘记密码接口（重置密码）
      *
      * @param forgetPasswordRequest 忘记密码请求对象
      * @return 处理结果
@@ -123,7 +144,6 @@ public class AuthController {
 
         // 执行忘记密码逻辑
         authApplicationService.forgetPassword(forgetPasswordRequest);
-
         return ResponseEntity.ok().build();
     }
 

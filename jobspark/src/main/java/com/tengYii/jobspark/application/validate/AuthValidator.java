@@ -86,6 +86,29 @@ public class AuthValidator {
     }
 
     /**
+     * 校验发送忘记密码验证码请求
+     *
+     * @param forgetPasswordRequest 忘记密码请求参数
+     * @return 错误信息字符串，无错误返回空
+     */
+    public static String validateSendForgetPasswordCode(ForgetPasswordRequest forgetPasswordRequest) {
+        List<String> errorMessages = new ArrayList<>();
+
+        // 参数验证
+        if (Objects.isNull(forgetPasswordRequest)) {
+            errorMessages.add("请求参数不能为空");
+            return Joiner.on(ParseConstant.COMMA).join(errorMessages);
+        }
+
+        if (StringUtils.isEmpty(forgetPasswordRequest.getUsername()) || StringUtils.isEmpty(forgetPasswordRequest.getEmail())) {
+            errorMessages.add("用户名和邮箱不能为空");
+        }
+
+        // 返回所有错误信息（逗号分隔）
+        return Joiner.on(ParseConstant.COMMA).join(errorMessages);
+    }
+
+    /**
      * 校验忘记密码请求
      *
      * @param forgetPasswordRequest 忘记密码请求参数
@@ -100,8 +123,16 @@ public class AuthValidator {
             return Joiner.on(ParseConstant.COMMA).join(errorMessages);
         }
 
-        if (StringUtils.isEmpty(forgetPasswordRequest.getUsername()) && StringUtils.isEmpty(forgetPasswordRequest.getEmail())) {
-            errorMessages.add("用户名或邮箱不能为空");
+        if (StringUtils.isEmpty(forgetPasswordRequest.getUsername()) || StringUtils.isEmpty(forgetPasswordRequest.getEmail())) {
+            errorMessages.add("用户名和邮箱不能为空");
+        }
+
+        if (StringUtils.isEmpty(forgetPasswordRequest.getCode())) {
+            errorMessages.add("验证码不能为空");
+        }
+
+        if (StringUtils.isEmpty(forgetPasswordRequest.getNewPassword())) {
+            errorMessages.add("新密码不能为空");
         }
 
         // 返回所有错误信息（逗号分隔）

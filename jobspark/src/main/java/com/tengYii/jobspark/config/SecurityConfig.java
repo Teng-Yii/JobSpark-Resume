@@ -38,7 +38,8 @@ public class SecurityConfig {
                         // Swagger 相关路径放行
                         .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**", "/webjars/**", "/doc.html").permitAll()
                         // Auth 接口放行
-                        .requestMatchers("/api/v1/auth/login", "/api/v1/auth/register").permitAll()
+                        .requestMatchers("/api/v1/auth/login", "/api/v1/auth/register",
+                                "/api/v1/auth/sendForgetPasswordCode", "/api/v1/auth/forgetPassword").permitAll()
                         // 其他所有请求也放行，交由业务层的 AuthInterceptor 处理
                         .anyRequest().permitAll()
                 );

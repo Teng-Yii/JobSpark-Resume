@@ -3,6 +3,8 @@ package com.tengYii.jobspark.application.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.tengYii.jobspark.application.service.AuthApplicationService;
 import com.tengYii.jobspark.common.exception.BusinessException;
+import com.tengYii.jobspark.common.utils.RedisUtil;
+import com.tengYii.jobspark.common.utils.email.EmailHelper;
 import com.tengYii.jobspark.common.utils.login.JwtTokenUtil;
 import com.tengYii.jobspark.dto.request.ForgetPasswordRequest;
 import com.tengYii.jobspark.dto.request.RegisterRequest;
@@ -10,6 +12,7 @@ import com.tengYii.jobspark.dto.response.LoginResponse;
 import com.tengYii.jobspark.infrastructure.repo.UserInfoRepository;
 import com.tengYii.jobspark.model.po.UserInfoPO;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -19,6 +22,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 认证应用服务实现类
@@ -35,6 +39,12 @@ public class AuthApplicationServiceImpl implements AuthApplicationService {
 
     @Autowired
     private UserInfoRepository userInfoRepository;
+
+    @Autowired
+    private RedisUtil redisUtil;
+
+    @Autowired
+    private EmailHelper emailHelper;
 
     /**
      * 密码加密器
@@ -202,18 +212,12 @@ public class AuthApplicationServiceImpl implements AuthApplicationService {
      */
     @Override
     public void forgetPassword(ForgetPasswordRequest forgetPasswordRequest) {
-        // 1. 参数校验
-        if (Objects.isNull(forgetPasswordRequest)) {
-            throw BusinessException.paramError("请求参数不能为空");
-        }
         String username = forgetPasswordRequest.getUsername();
         String email = forgetPasswordRequest.getEmail();
+        String code = forgetPasswordRequest.getCode();
+        String newPassword = forgetPasswordRequest.getNewPassword();
 
-        if (StringUtils.isEmpty(username) || StringUtils.isEmpty(email)) {
-            throw BusinessException.paramError("用户名和邮箱不能为空");
-        }
-
-        // 2. 验证用户是否存在且邮箱匹配
+        // 1. 验证用户是否存在且邮箱匹配
         LambdaQueryWrapper<UserInfoPO> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(UserInfoPO::getUsername, username);
         queryWrapper.eq(UserInfoPO::getEmail, email);
@@ -227,14 +231,68 @@ public class AuthApplicationServiceImpl implements AuthApplicationService {
             throw BusinessException.paramError("用户名或注册邮箱错误");
         }
 
-        // 3. 模拟发送重置密码邮件逻辑
-        // 实际场景：生成随机Token -> 存入Redis(key=reset_pwd_token:userId) -> 发送邮件包含链接
-        // 这里仅模拟日志记录
-        String resetToken = java.util.UUID.randomUUID().toString();
-        log.info("【模拟邮件发送】用户 {} 申请重置密码，重置链接：https://jobspark.com/reset-password?token={}", username, resetToken);
+        // 3. 校验验证码
+        String redisKey = "forget_password_code:" + username;
+        String cachedCode = (String) redisUtil.get(redisKey);
+        if (StringUtils.isEmpty(cachedCode) || !StringUtils.equals(cachedCode, code)) {
+            throw BusinessException.paramError("验证码错误或已失效");
+        }
 
-        // 如果需要更新数据库状态（例如记录最后一次申请重置时间），可以在这里操作
-        // 目前 UserInfoPO 没有相关字段，故略过
+        // 4. 重置密码
+        userInfoPO.setPassword(passwordEncoder.encode(newPassword));
+        userInfoPO.setUpdatedTime(LocalDateTime.now());
+        boolean updated = userInfoRepository.updateById(userInfoPO);
+
+        if (!updated) {
+            throw BusinessException.systemError("重置密码失败，请稍后重试");
+        }
+
+        // 5. 删除验证码
+        redisUtil.del(redisKey);
+
+        log.info("用户重置密码成功：username={}", username);
+    }
+
+    /**
+     * 发送忘记密码验证码
+     *
+     * @param forgetPasswordRequest 包含用户名和邮箱的请求参数
+     */
+    @Override
+    public void sendForgetPasswordCode(ForgetPasswordRequest forgetPasswordRequest) {
+
+        // 1. 验证用户是否存在且邮箱匹配
+        String username = forgetPasswordRequest.getUsername();
+        String email = forgetPasswordRequest.getEmail();
+        LambdaQueryWrapper<UserInfoPO> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(UserInfoPO::getUsername, username);
+        queryWrapper.eq(UserInfoPO::getEmail, email);
+        queryWrapper.eq(UserInfoPO::getDeleteFlag, false);
+
+        if (userInfoRepository.count(queryWrapper) == 0) {
+            log.error("发送验证码失败：用户名与邮箱不匹配，username={}, email={}", username, email);
+            throw BusinessException.paramError("用户名或注册邮箱错误");
+        }
+
+        // 2. 生成验证码
+        String code = RandomStringUtils.randomNumeric(6);
+
+        // 3. 存入Redis，有效期5分钟
+        String redisKey = "forget_password_code:" + username;
+        redisUtil.set(redisKey, code, 5, TimeUnit.MINUTES);
+
+        // 4. 发送邮件
+        String subject = "【JobSpark】找回密码验证码";
+        String content = String.format("尊敬的用户 %s：<br/><br/>您正在申请找回密码，您的验证码为：<b>%s</b><br/><br/>该验证码5分钟内有效，请勿泄露给他人。", username, code);
+        boolean sendSuccess = emailHelper.sendHtmlMail(email, subject, content);
+
+        if (!sendSuccess) {
+            // 发送失败，删除Redis中的验证码，避免用户无法再次获取
+            redisUtil.del(redisKey);
+            throw BusinessException.systemError("验证码发送失败，请检查邮箱地址或稍后重试");
+        }
+
+        log.info("用户申请找回密码，验证码已发送至邮箱：username={}, email={}", username, email);
     }
 
     /**
