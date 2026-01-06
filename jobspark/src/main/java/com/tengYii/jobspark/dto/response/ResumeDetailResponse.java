@@ -33,7 +33,7 @@ public class ResumeDetailResponse implements Serializable {
     /**
      * 简历ID
      */
-    private Long id;
+    private String resumeId;
 
     /**
      * 用户ID

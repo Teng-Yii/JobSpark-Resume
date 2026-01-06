@@ -657,7 +657,7 @@ public class ResumeApplicationServiceImpl implements ResumeApplicationService {
                 // 复制BO属性到响应对象
                 BeanUtils.copyProperties(cvBO, response);
                 // 设置简历主键ID
-                response.setId(cvPO.getId());
+                response.setResumeId(String.valueOf(cvPO.getId()));
 
                 responseList.add(response);
             }
