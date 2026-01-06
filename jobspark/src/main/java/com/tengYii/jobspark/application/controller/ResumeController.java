@@ -68,6 +68,19 @@ public class ResumeController {
     }
 
     /**
+     * 获取简历详情
+     *
+     * @param resumeId 简历ID
+     * @return 简历详情
+     */
+    @GetMapping("/{resumeId}")
+    public ResponseEntity<ResumeDetailResponse> getResume(@PathVariable String resumeId) {
+        Long userId = getLoginUserId();
+        ResumeDetailResponse resumeDetail = resumeApplicationService.getResumeDetail(Long.valueOf(resumeId), userId);
+        return ResponseEntity.ok(resumeDetail);
+    }
+
+    /**
      * 上传简历，并进行简历解析
      *
      * @param request 简历上传请求对象

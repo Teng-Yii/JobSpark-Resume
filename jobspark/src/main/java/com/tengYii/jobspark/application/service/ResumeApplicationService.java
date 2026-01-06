@@ -63,6 +63,15 @@ public interface ResumeApplicationService {
     List<ResumeDetailResponse> getResumeList(Long userId);
 
     /**
+     * 获取简历详情
+     *
+     * @param resumeId 简历ID
+     * @param userId   用户ID
+     * @return 简历详情
+     */
+    ResumeDetailResponse getResumeDetail(Long resumeId, Long userId);
+
+    /**
      * 取消任务
      *
      * @param taskId 任务ID

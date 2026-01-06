@@ -669,6 +669,36 @@ public class ResumeApplicationServiceImpl implements ResumeApplicationService {
     }
 
     /**
+     * 获取简历详情
+     *
+     * @param resumeId 简历ID
+     * @param userId   用户ID
+     * @return 简历详情
+     */
+    @Override
+    public ResumeDetailResponse getResumeDetail(Long resumeId, Long userId) {
+        CvPO cvPO = cvRepository.getCvByCondition(resumeId, userId);
+        if (Objects.isNull(cvPO)) {
+            throw new BusinessException(ResultCodeEnum.RESUME_NOT_FOUND, "简历不存在");
+        }
+
+        // 将PO转换为BO，获取结构化数据
+        CvBO cvBO = resumePersistenceService.convertToCvBO(cvPO);
+        if (Objects.isNull(cvBO)) {
+            return new ResumeDetailResponse();
+        }
+
+        ResumeDetailResponse resumeDetailResponse = new ResumeDetailResponse();
+        // 构建响应对象
+        ResumeDetailResponse response = new ResumeDetailResponse();
+        // 复制BO属性到响应对象
+        BeanUtils.copyProperties(cvBO, response);
+        // 设置简历主键ID
+        response.setResumeId(String.valueOf(cvPO.getId()));
+        return resumeDetailResponse;
+    }
+
+    /**
      * 将ResumeTaskPO转换为TaskStatusResponse
      *
      * @param taskPO 任务持久化对象
