@@ -1,12 +1,14 @@
 package com.tengYii.jobspark.infrastructure.repo.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.tengYii.jobspark.common.enums.DeleteFlagEnum;
 import com.tengYii.jobspark.model.po.CvPO;
 import com.tengYii.jobspark.infrastructure.mapper.CvMapper;
 import com.tengYii.jobspark.infrastructure.repo.CvRepository;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -30,7 +32,7 @@ public class CvRepositoryImpl extends ServiceImpl<CvMapper, CvPO> implements CvR
     @Override
     public CvPO getCvByCondition(Long resumeId, Long userId) {
 
-        if(Objects.isNull(resumeId) || Objects.isNull(userId)) {
+        if (Objects.isNull(resumeId) || Objects.isNull(userId)) {
             return null;
         }
 
@@ -38,5 +40,16 @@ public class CvRepositoryImpl extends ServiceImpl<CvMapper, CvPO> implements CvR
         queryWrapper.eq(CvPO::getId, resumeId);
         queryWrapper.eq(CvPO::getUserId, userId);
         return this.getOne(queryWrapper);
+    }
+
+    @Override
+    public List<CvPO> getCvByCondition(Long userId) {
+        // 查询用户未删除的简历列表
+        LambdaQueryWrapper<CvPO> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(CvPO::getUserId, userId)
+                .eq(CvPO::getDeleteFlag, DeleteFlagEnum.NOT_DELETED.getCode())
+                .orderByDesc(CvPO::getUpdatedTime);
+
+        return this.list(queryWrapper);
     }
 }

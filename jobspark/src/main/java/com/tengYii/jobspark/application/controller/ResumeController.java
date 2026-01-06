@@ -8,6 +8,7 @@ import com.tengYii.jobspark.domain.service.ResumeRagService;
 import com.tengYii.jobspark.dto.request.ResumeOptimizeRequest;
 import com.tengYii.jobspark.dto.request.ResumeOptimizedDownloadRequest;
 import com.tengYii.jobspark.dto.request.ResumeUploadRequest;
+import com.tengYii.jobspark.dto.response.ResumeDetailResponse;
 import com.tengYii.jobspark.dto.response.ResumeOptimizedResponse;
 import com.tengYii.jobspark.dto.response.ResumeUploadAsyncResponse;
 import com.tengYii.jobspark.dto.response.TaskStatusResponse;
@@ -25,6 +26,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
@@ -52,6 +54,18 @@ public class ResumeController {
 
     @Resource(name = "resumeTaskExecutor")
     private Executor resumeTaskExecutor;
+
+    /**
+     * 获取当前用户的简历列表
+     *
+     * @return 简历列表
+     */
+    @GetMapping("/list")
+    public ResponseEntity<List<ResumeDetailResponse>> getResumeList() {
+        Long userId = getLoginUserId();
+        List<ResumeDetailResponse> resumeList = resumeApplicationService.getResumeList(userId);
+        return ResponseEntity.ok(resumeList);
+    }
 
     /**
      * 上传简历，并进行简历解析

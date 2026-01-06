@@ -2,6 +2,7 @@ package com.tengYii.jobspark.application.service;
 
 import com.tengYii.jobspark.dto.request.ResumeOptimizedDownloadRequest;
 import com.tengYii.jobspark.dto.request.ResumeOptimizeRequest;
+import com.tengYii.jobspark.dto.response.ResumeDetailResponse;
 import com.tengYii.jobspark.dto.response.ResumeOptimizedResponse;
 import com.tengYii.jobspark.dto.response.ResumeUploadAsyncResponse;
 import com.tengYii.jobspark.dto.request.ResumeUploadRequest;
@@ -52,6 +53,14 @@ public interface ResumeApplicationService {
      * @return 任务列表
      */
     List<TaskStatusResponse> getUserTasks(Long userId, String status);
+
+    /**
+     * 获取用户简历列表
+     *
+     * @param userId 用户ID
+     * @return 简历列表
+     */
+    List<ResumeDetailResponse> getResumeList(Long userId);
 
     /**
      * 取消任务

@@ -20,6 +20,7 @@ import com.tengYii.jobspark.domain.render.pdf.PdfService;
 import com.tengYii.jobspark.domain.service.*;
 import com.tengYii.jobspark.dto.request.ResumeOptimizedDownloadRequest;
 import com.tengYii.jobspark.dto.request.ResumeOptimizeRequest;
+import com.tengYii.jobspark.dto.response.ResumeDetailResponse;
 import com.tengYii.jobspark.dto.response.ResumeOptimizedResponse;
 import com.tengYii.jobspark.infrastructure.repo.CvRepository;
 import com.tengYii.jobspark.model.bo.CvBO;
@@ -36,6 +37,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -85,19 +87,31 @@ public class ResumeApplicationServiceImpl implements ResumeApplicationService {
     @Resource(name = "chatModel")
     private ChatModel chatModel;
 
-    /** 任务处理阶段预估总耗时（秒） */
+    /**
+     * 任务处理阶段预估总耗时（秒）
+     */
     private static final long PROCESSING_ESTIMATED_TOTAL_SECONDS = 70L;
-    /** 任务处理阶段最小剩余时间（秒） */
+    /**
+     * 任务处理阶段最小剩余时间（秒）
+     */
     private static final long PROCESSING_MIN_REMAINING_SECONDS = 65L;
 
-    /** 任务解析阶段预估总耗时（秒） */
+    /**
+     * 任务解析阶段预估总耗时（秒）
+     */
     private static final long ANALYZING_ESTIMATED_TOTAL_SECONDS = 70L;
-    /** 任务解析阶段最小剩余时间（秒） */
+    /**
+     * 任务解析阶段最小剩余时间（秒）
+     */
     private static final long ANALYZING_MIN_REMAINING_SECONDS = 10L;
 
-    /** 任务保存阶段预估总耗时（秒） */
+    /**
+     * 任务保存阶段预估总耗时（秒）
+     */
     private static final long SAVING_ESTIMATED_TOTAL_SECONDS = 75L;
-    /** 任务保存阶段最小剩余时间（秒） */
+    /**
+     * 任务保存阶段最小剩余时间（秒）
+     */
     private static final long SAVING_MIN_REMAINING_SECONDS = 3L;
 
     /**
@@ -234,7 +248,7 @@ public class ResumeApplicationServiceImpl implements ResumeApplicationService {
         // 创建简历优化Agent，开始优化简历
         stopWatch.start("开始优化简历");
         CvOptimizationAgent cvOptimizationAgent = AgenticServices.createAgenticSystem(CvOptimizationAgent.class, chatModel);
-        CvBO optimizeCv = cvOptimizationAgent.optimizeCv(cvBO, jobDescription, referenceTemplates);
+        CvBO optimizeCv = cvOptimizationAgent.optimizeCv(buildMemoryId(userId, resumeId), cvBO, jobDescription, referenceTemplates);
         stopWatch.stop();
 
         // 优化后的简历落库
@@ -611,6 +625,50 @@ public class ResumeApplicationServiceImpl implements ResumeApplicationService {
     }
 
     /**
+     * 获取指定用户的简历列表
+     *
+     * @param userId 用户ID
+     * @return 简历详情列表
+     */
+    @Override
+    public List<ResumeDetailResponse> getResumeList(Long userId) {
+        log.info("获取用户简历列表，userId: {}", userId);
+        if (Objects.isNull(userId)) {
+            return new ArrayList<>();
+        }
+
+        try {
+
+            List<CvPO> cvPOList = cvRepository.getCvByCondition(userId);
+            if (CollectionUtils.isEmpty(cvPOList)) {
+                return new ArrayList<>();
+            }
+
+            List<ResumeDetailResponse> responseList = new ArrayList<>();
+            for (CvPO cvPO : cvPOList) {
+                // 将PO转换为BO，获取结构化数据
+                CvBO cvBO = resumePersistenceService.convertToCvBO(cvPO);
+                if (Objects.isNull(cvBO)) {
+                    continue;
+                }
+
+                // 构建响应对象
+                ResumeDetailResponse response = new ResumeDetailResponse();
+                // 复制BO属性到响应对象
+                BeanUtils.copyProperties(cvBO, response);
+                // 设置简历主键ID
+                response.setId(cvPO.getId());
+
+                responseList.add(response);
+            }
+            return responseList;
+        } catch (Exception e) {
+            log.error("获取用户简历列表失败，userId: {}", userId, e);
+            throw new BusinessException(ResultCodeEnum.SYSTEM_ERROR, "获取简历列表失败");
+        }
+    }
+
+    /**
      * 将ResumeTaskPO转换为TaskStatusResponse
      *
      * @param taskPO 任务持久化对象
@@ -809,5 +867,9 @@ public class ResumeApplicationServiceImpl implements ResumeApplicationService {
             log.error("保存简历到向量数据库失败，resumeId: {}", resumeId, e);
             throw new BusinessException(ResultCodeEnum.SYSTEM_ERROR, "保存简历到向量数据库失败");
         }
+    }
+
+    private String buildMemoryId(Long userId, Long resumeId) {
+        return userId + "_" + resumeId;
     }
 }

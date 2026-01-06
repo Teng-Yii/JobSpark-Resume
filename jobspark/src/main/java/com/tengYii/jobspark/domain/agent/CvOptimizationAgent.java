@@ -4,10 +4,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tengYii.jobspark.infrastructure.context.OptimizationProgressContext;
 import com.tengYii.jobspark.model.bo.CvBO;
 import com.tengYii.jobspark.model.llm.CvReview;
+import dev.langchain4j.agentic.declarative.ChatMemoryProviderSupplier;
 import dev.langchain4j.agentic.declarative.ExitCondition;
 import dev.langchain4j.agentic.declarative.LoopAgent;
 import dev.langchain4j.agentic.declarative.SubAgent;
 import dev.langchain4j.agentic.scope.AgenticScope;
+import dev.langchain4j.agentic.scope.AgenticScopeAccess;
+import dev.langchain4j.memory.ChatMemory;
+import dev.langchain4j.memory.chat.MessageWindowChatMemory;
+import dev.langchain4j.service.MemoryId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,7 +30,7 @@ import java.util.Map;
  * @version 1.0
  * @since 2025-12-17
  */
-public interface CvOptimizationAgent {
+public interface CvOptimizationAgent extends AgenticScopeAccess {
 
     Logger log = LoggerFactory.getLogger(CvOptimizationAgent.class);
 
@@ -46,7 +51,7 @@ public interface CvOptimizationAgent {
                     @SubAgent(type = ScoredCvTailor.class, outputName = "cv")
             }
     )
-    CvBO optimizeCv(CvBO cv, String jobDescription, List<String> referenceTemplates);
+    CvBO optimizeCv(@MemoryId String memoryId, CvBO cv, String jobDescription, List<String> referenceTemplates);
 
     /**
      * 判断简历优化是否达到退出条件
@@ -111,6 +116,11 @@ public interface CvOptimizationAgent {
             log.error("默认继续优化流程...");
             return false;
         }
+    }
+
+    @ChatMemoryProviderSupplier
+    static ChatMemory chatMemory(Object memoryId) {
+        return MessageWindowChatMemory.withMaxMessages(10);
     }
 
 //    /**
