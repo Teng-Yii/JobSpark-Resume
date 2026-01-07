@@ -183,6 +183,6 @@ public class MyAgenticScopeStore implements AgenticScopeStore, InitializingBean 
      */
     @Override
     public void afterPropertiesSet() throws Exception {
-        AgenticScopePersister.setStore(this);
+//        AgenticScopePersister.setStore(this);
     }
 }
