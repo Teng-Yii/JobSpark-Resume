@@ -1,0 +1,139 @@
+/* 简历通用样式（HTML 作为中间格式；PDF 与 Docx 共用） */
+/* 字体栈：优先 Noto Sans SC -> PingFang SC -> Microsoft YaHei -> SimSun -> sans-serif */
+:root {
+  --text-color: #222;
+  --muted-color: #666;
+  --accent-color: #0b5fff;
+  --border-color: #e5e7eb;
+}
+
+/* A4 页设置与页边距（供 PDF 渲染使用） */
+@page {
+  size: A4;
+  margin: 20mm 15mm 20mm 15mm;
+}
+
+/* 基础排版 */
+html, body {
+  padding: 0;
+  margin: 0;
+}
+body.resume-body {
+  font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", "SimSun", sans-serif;
+  color: var(--text-color);
+  line-height: 1.5;
+  font-size: 12.5pt;
+}
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+}
+.container.two-column {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 16px;
+}
+
+/* 头像与社交显示控制（HTML <body> 上的类控制可见性） */
+.show-avatar .avatar { display: block; }
+.hide-avatar .avatar { display: none; }
+.show-social .social { display: block; }
+.hide-social .social { display: none; }
+
+/* 标题层级与间距 */
+h1, h2, h3 {
+  color: #111;
+  margin: 0.25em 0 0.4em 0;
+  line-height: 1.25;
+}
+h1 {
+  font-size: 22pt;
+  font-weight: 700;
+  border-bottom: 2px solid var(--border-color);
+  padding-bottom: 8px;
+}
+h2 {
+  font-size: 16pt;
+  font-weight: 600;
+  margin-top: 14px;
+  border-left: 3px solid var(--accent-color);
+  padding-left: 8px;
+}
+h3 {
+  font-size: 13.5pt;
+  font-weight: 600;
+  margin-top: 10px;
+}
+
+/* 列表样式与间距 */
+ul {
+  margin: 0.4em 0 0.6em 1.2em;
+  padding: 0;
+}
+ul li {
+  margin: 0.2em 0;
+}
+
+/* 链接样式（统一为简历风格） */
+a {
+  color: var(--accent-color);
+  text-decoration: none;
+  border-bottom: 1px dashed var(--accent-color);
+}
+a:hover {
+  text-decoration: underline;
+}
+
+/* 分隔与微布局 */
+.section {
+  margin-bottom: 12px;
+}
+.header {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+.meta {
+  color: var(--muted-color);
+  font-size: 11pt;
+}
+
+/* 分页控制（尽量避免长列表内部分页） */
+h2, h3 {
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+ul, p {
+  break-inside: auto;
+}
+
+/* 当使用两栏布局时右栏细化排版 */
+.container.two-column .sidebar {
+  border-left: 1px solid var(--border-color);
+  padding-left: 12px;
+}
+
+/* 表格（如需使用） */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 8px 0;
+  font-size: 12pt;
+}
+table th, table td {
+  border: 1px solid var(--border-color);
+  padding: 6px 8px;
+  text-align: left;
+}
+
+/* 打印适配（PDF 输出） */
+@media print {
+  a {
+    color: black;
+    text-decoration: none;
+    border-bottom: none;
+  }
+  .container {
+    max-width: unset;
+  }
+}

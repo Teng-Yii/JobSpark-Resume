@@ -1,0 +1,674 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="3d0498fa-fbb4-474d-aa3e-29639b7092b0" name="Changes" comment="fix: 修复代码结构问题" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Interface" />
+        <option value="Enum" />
+        <option value="Exception" />
+        <option value="package-info" />
+        <option value="Class" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;Teng-Yii&quot;
+  }
+}</component>
+  <component name="GithubProjectSettings">
+    <option name="branchProtectionPatterns">
+      <list>
+        <option value="main" />
+      </list>
+    </option>
+  </component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/Teng-Yii/JobSpark-Resume.git&quot;,
+    &quot;accountId&quot;: &quot;3bd9656b-4a20-49d1-98c0-813c38126a26&quot;
+  }
+}</component>
+  <component name="HighlightingSettingsPerFile">
+    <setting file="jar://$PROJECT_DIR$/../../maven/repository/com/baomidou/mybatis-plus-generator/3.4.1/mybatis-plus-generator-3.4.1.jar!/com/baomidou/mybatisplus/generator/InjectionConfig.class" root0="SKIP_INSPECTION" />
+  </component>
+  <component name="MavenImportPreferences">
+    <option name="generalSettings">
+      <MavenGeneralSettings>
+        <option name="customMavenHome" value="D:\maven\apache-maven-3.9.11" />
+        <option name="localRepository" value="D:\maven\repository" />
+        <option name="mavenHomeTypeForPersistence" value="CUSTOM" />
+        <option name="userSettingsFile" value="D:\maven\apache-maven-3.9.11\conf\settings.xml" />
+      </MavenGeneralSettings>
+    </option>
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 4
+}</component>
+  <component name="ProjectId" id="34uqdifJNIPzsmSdVkjxb0bbAg9" />
+  <component name="ProjectLevelVcsManager">
+    <ConfirmationsSetting value="2" id="Add" />
+  </component>
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Application.Application.executor": "Run",
+    "Application.CvDemoMain.executor": "Run",
+    "Application.CvStructureOptimizeTest.executor": "Debug",
+    "Application.MybatisPlusGenerator.executor": "Run",
+    "Application.ResumeAnalysisService.executor": "Debug",
+    "Application.SimpleCvTest.executor": "Run",
+    "Application._3a_Loop_Agent_Example.executor": "Run",
+    "JUnit.CvPipelineTest.executor": "Run",
+    "JUnit.CvPipelineTest.validate_missing_fields_should_throw.executor": "Run",
+    "Maven. [org.apache.maven.plugins:maven-archetype-plugin:RELEASE:generate].executor": "Run",
+    "Maven.jobspark-resume [clean].executor": "Run",
+    "Maven.jobspark-resume [install].executor": "Run",
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "Shell Script.Start Qdrant.executor": "Run",
+    "git-widget-placeholder": "main",
+    "last_opened_file_path": "D:/workspace/JobSpark-Resume",
+    "project.structure.last.edited": "Modules",
+    "project.structure.proportion": "0.15",
+    "project.structure.side.proportion": "0.2",
+    "settings.editor.selected.configurable": "preferences.pluginManager"
+  }
+}]]></component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="D:\workspace\JobSpark-Resume\jobspark" />
+      <recent name="D:\workspace\JobSpark-Resume\jobspark\src\main\java\com\tengYii\jobspark\model\cv" />
+      <recent name="D:\workspace\JobSpark-Resume\jobspark\src\main\resources\templates\fonts" />
+      <recent name="D:\workspace\JobSpark-Resume\jobspark\src\main\java\com\tengYii\jobspark\utils\log" />
+      <recent name="D:\workspace\JobSpark-Resume\jobspark\src\main\java\com\tengYii\jobspark\model" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="D:\workspace\JobSpark-Resume\jobspark\src\test\java\com\tengYii\jobspark\cv" />
+      <recent name="D:\workspace\JobSpark-Resume\jobspark\src\main\resources\templates\style" />
+      <recent name="D:\workspace\JobSpark-Resume\jobspark\src\main\resources\templates\fonts" />
+      <recent name="D:\workspace\JobSpark-Resume\jobspark\src\main\resources" />
+    </key>
+    <key name="MoveClassesOrPackagesDialog.RECENTS_KEY">
+      <recent name="com.tengYii.jobspark.cv" />
+    </key>
+    <key name="CopyClassDialog.RECENTS_KEY">
+      <recent name="com.tengYii.jobspark.utils" />
+    </key>
+  </component>
+  <component name="RunManager" selected="Application.Application">
+    <configuration name="Application" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="com.tengYii.jobspark.Application" />
+      <module name="jobspark-resume" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="com.tengYii.jobspark.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="CvStructureOptimizeTest" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="com.tengYii.jobspark.cv.CvStructureOptimizeTest" />
+      <module name="jobspark-resume" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="com.tengYii.jobspark.cv.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="MybatisPlusGenerator" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="MybatisPlusGenerator" />
+      <module name="jobspark-resume" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="ResumeAnalysisService" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="com.tengYii.jobspark.domain.service.ResumeAnalysisService" />
+      <module name="jobspark-resume" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="com.tengYii.jobspark.domain.service.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="SimpleCvTest" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="com.tengYii.jobspark.cv.SimpleCvTest" />
+      <module name="jobspark-resume" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="com.tengYii.jobspark.cv.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Start Qdrant" type="ShConfigurationType">
+      <option name="SCRIPT_TEXT" value="" />
+      <option name="INDEPENDENT_SCRIPT_PATH" value="false" />
+      <option name="SCRIPT_PATH" value="$PROJECT_DIR$/../../qdrant/start-qdrant.bat" />
+      <option name="SCRIPT_OPTIONS" value="" />
+      <option name="INDEPENDENT_SCRIPT_WORKING_DIRECTORY" value="true" />
+      <option name="SCRIPT_WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="INDEPENDENT_INTERPRETER_PATH" value="true" />
+      <option name="INTERPRETER_PATH" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="EXECUTE_IN_TERMINAL" value="true" />
+      <option name="EXECUTE_SCRIPT_FILE" value="true" />
+      <envs />
+      <method v="2" />
+    </configuration>
+    <list>
+      <item itemvalue="Application.Application" />
+      <item itemvalue="Application.CvStructureOptimizeTest" />
+      <item itemvalue="Application.MybatisPlusGenerator" />
+      <item itemvalue="Application.ResumeAnalysisService" />
+      <item itemvalue="Application.SimpleCvTest" />
+      <item itemvalue="Shell Script.Start Qdrant" />
+    </list>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Application.Application" />
+        <item itemvalue="Application.MybatisPlusGenerator" />
+        <item itemvalue="Application.CvStructureOptimizeTest" />
+        <item itemvalue="Application.SimpleCvTest" />
+        <item itemvalue="Application.ResumeAnalysisService" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="3d0498fa-fbb4-474d-aa3e-29639b7092b0" name="Changes" comment="" />
+      <created>1762073893682</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1762073893682</updated>
+    </task>
+    <task id="LOCAL-00029" summary="feat: 优化简历上传操作，改为异步执行">
+      <option name="closed" value="true" />
+      <created>1765294751916</created>
+      <option name="number" value="00029" />
+      <option name="presentableId" value="LOCAL-00029" />
+      <option name="project" value="LOCAL" />
+      <updated>1765294751916</updated>
+    </task>
+    <task id="LOCAL-00030" summary="feat: 简历上传异步执行，使用任务处理对象监控">
+      <option name="closed" value="true" />
+      <created>1765372818402</created>
+      <option name="number" value="00030" />
+      <option name="presentableId" value="LOCAL-00030" />
+      <option name="project" value="LOCAL" />
+      <updated>1765372818402</updated>
+    </task>
+    <task id="LOCAL-00031" summary="feat: 清除无用代码">
+      <option name="closed" value="true" />
+      <created>1765375843283</created>
+      <option name="number" value="00031" />
+      <option name="presentableId" value="LOCAL-00031" />
+      <option name="project" value="LOCAL" />
+      <updated>1765375843283</updated>
+    </task>
+    <task id="LOCAL-00032" summary="feat: 增加异步上传简历任务进度查询接口">
+      <option name="closed" value="true" />
+      <created>1765463719163</created>
+      <option name="number" value="00032" />
+      <option name="presentableId" value="LOCAL-00032" />
+      <option name="project" value="LOCAL" />
+      <updated>1765463719164</updated>
+    </task>
+    <task id="LOCAL-00033" summary="feat: 上传简历接口增加用户体系">
+      <option name="closed" value="true" />
+      <created>1765464415801</created>
+      <option name="number" value="00033" />
+      <option name="presentableId" value="LOCAL-00033" />
+      <option name="project" value="LOCAL" />
+      <updated>1765464415801</updated>
+    </task>
+    <task id="LOCAL-00034" summary="feat: token工具类实现">
+      <option name="closed" value="true" />
+      <created>1765545354879</created>
+      <option name="number" value="00034" />
+      <option name="presentableId" value="LOCAL-00034" />
+      <option name="project" value="LOCAL" />
+      <updated>1765545354879</updated>
+    </task>
+    <task id="LOCAL-00035" summary="feat: 结构化对象生成pdf、docx文件测试">
+      <option name="closed" value="true" />
+      <created>1765545748849</created>
+      <option name="number" value="00035" />
+      <option name="presentableId" value="LOCAL-00035" />
+      <option name="project" value="LOCAL" />
+      <updated>1765545748849</updated>
+    </task>
+    <task id="LOCAL-00036" summary="feat: 用户权限控制">
+      <option name="closed" value="true" />
+      <created>1765546798693</created>
+      <option name="number" value="00036" />
+      <option name="presentableId" value="LOCAL-00036" />
+      <option name="project" value="LOCAL" />
+      <updated>1765546798693</updated>
+    </task>
+    <task id="LOCAL-00037" summary="feat: 用户权限校验逻辑实现">
+      <option name="closed" value="true" />
+      <created>1765808171989</created>
+      <option name="number" value="00037" />
+      <option name="presentableId" value="LOCAL-00037" />
+      <option name="project" value="LOCAL" />
+      <updated>1765808171989</updated>
+    </task>
+    <task id="LOCAL-00038" summary="feat: 简历面试逻辑实现">
+      <option name="closed" value="true" />
+      <created>1765808534485</created>
+      <option name="number" value="00038" />
+      <option name="presentableId" value="LOCAL-00038" />
+      <option name="project" value="LOCAL" />
+      <updated>1765808534485</updated>
+    </task>
+    <task id="LOCAL-00039" summary="feat: 项目结构优化">
+      <option name="closed" value="true" />
+      <created>1765808561946</created>
+      <option name="number" value="00039" />
+      <option name="presentableId" value="LOCAL-00039" />
+      <option name="project" value="LOCAL" />
+      <updated>1765808561946</updated>
+    </task>
+    <task id="LOCAL-00040" summary="feat: 项目结构优化">
+      <option name="closed" value="true" />
+      <created>1765808599257</created>
+      <option name="number" value="00040" />
+      <option name="presentableId" value="LOCAL-00040" />
+      <option name="project" value="LOCAL" />
+      <updated>1765808599257</updated>
+    </task>
+    <task id="LOCAL-00041" summary="feat: 简历对象查询接口实现">
+      <option name="closed" value="true" />
+      <created>1765808614707</created>
+      <option name="number" value="00041" />
+      <option name="presentableId" value="LOCAL-00041" />
+      <option name="project" value="LOCAL" />
+      <updated>1765808614707</updated>
+    </task>
+    <task id="LOCAL-00042" summary="feat: 简历优化及下载文件接口逻辑init">
+      <option name="closed" value="true" />
+      <created>1765895869888</created>
+      <option name="number" value="00042" />
+      <option name="presentableId" value="LOCAL-00042" />
+      <option name="project" value="LOCAL" />
+      <updated>1765895869888</updated>
+    </task>
+    <task id="LOCAL-00043" summary="feat: 简历优化生成文件逻辑实现">
+      <option name="closed" value="true" />
+      <created>1765898617291</created>
+      <option name="number" value="00043" />
+      <option name="presentableId" value="LOCAL-00043" />
+      <option name="project" value="LOCAL" />
+      <updated>1765898617291</updated>
+    </task>
+    <task id="LOCAL-00044" summary="feat: 简历优化agent优化">
+      <option name="closed" value="true" />
+      <created>1765983171429</created>
+      <option name="number" value="00044" />
+      <option name="presentableId" value="LOCAL-00044" />
+      <option name="project" value="LOCAL" />
+      <updated>1765983171429</updated>
+    </task>
+    <task id="LOCAL-00045" summary="feat: 异常统一使用业务异常收口">
+      <option name="closed" value="true" />
+      <created>1765983668712</created>
+      <option name="number" value="00045" />
+      <option name="presentableId" value="LOCAL-00045" />
+      <option name="project" value="LOCAL" />
+      <updated>1765983668712</updated>
+    </task>
+    <task id="LOCAL-00046" summary="feat: 简历优化接口逻辑实现">
+      <option name="closed" value="true" />
+      <created>1765985317560</created>
+      <option name="number" value="00046" />
+      <option name="presentableId" value="LOCAL-00046" />
+      <option name="project" value="LOCAL" />
+      <updated>1765985317560</updated>
+    </task>
+    <task id="LOCAL-00047" summary="feat: 简历优化agent修复无法转换成CvBO的问题">
+      <option name="closed" value="true" />
+      <created>1766070355523</created>
+      <option name="number" value="00047" />
+      <option name="presentableId" value="LOCAL-00047" />
+      <option name="project" value="LOCAL" />
+      <updated>1766070355523</updated>
+    </task>
+    <task id="LOCAL-00048" summary="feat: 简历优化agent解析cvbo逻辑优化">
+      <option name="closed" value="true" />
+      <created>1766147154110</created>
+      <option name="number" value="00048" />
+      <option name="presentableId" value="LOCAL-00048" />
+      <option name="project" value="LOCAL" />
+      <updated>1766147154110</updated>
+    </task>
+    <task id="LOCAL-00049" summary="feat: 简历优化下载逻辑实现">
+      <option name="closed" value="true" />
+      <created>1766503490574</created>
+      <option name="number" value="00049" />
+      <option name="presentableId" value="LOCAL-00049" />
+      <option name="project" value="LOCAL" />
+      <updated>1766503490574</updated>
+    </task>
+    <task id="LOCAL-00050" summary="feat: code clean">
+      <option name="closed" value="true" />
+      <created>1766503934481</created>
+      <option name="number" value="00050" />
+      <option name="presentableId" value="LOCAL-00050" />
+      <option name="project" value="LOCAL" />
+      <updated>1766503934482</updated>
+    </task>
+    <task id="LOCAL-00051" summary="feat: 接口增加token权限认证">
+      <option name="closed" value="true" />
+      <created>1766586747576</created>
+      <option name="number" value="00051" />
+      <option name="presentableId" value="LOCAL-00051" />
+      <option name="project" value="LOCAL" />
+      <updated>1766586747577</updated>
+    </task>
+    <task id="LOCAL-00052" summary="feat: 简历优化agent使用tool">
+      <option name="closed" value="true" />
+      <created>1766586774403</created>
+      <option name="number" value="00052" />
+      <option name="presentableId" value="LOCAL-00052" />
+      <option name="project" value="LOCAL" />
+      <updated>1766586774403</updated>
+    </task>
+    <task id="LOCAL-00053" summary="feat: 简历优化agent增加rag功能">
+      <option name="closed" value="true" />
+      <created>1766672488814</created>
+      <option name="number" value="00053" />
+      <option name="presentableId" value="LOCAL-00053" />
+      <option name="project" value="LOCAL" />
+      <updated>1766672488814</updated>
+    </task>
+    <task id="LOCAL-00054" summary="feat: 简历模板存储">
+      <option name="closed" value="true" />
+      <created>1766682472912</created>
+      <option name="number" value="00054" />
+      <option name="presentableId" value="LOCAL-00054" />
+      <option name="project" value="LOCAL" />
+      <updated>1766682472912</updated>
+    </task>
+    <task id="LOCAL-00055" summary="feat: 模型改为bean注入，增加向量模型">
+      <option name="closed" value="true" />
+      <created>1766765630556</created>
+      <option name="number" value="00055" />
+      <option name="presentableId" value="LOCAL-00055" />
+      <option name="project" value="LOCAL" />
+      <updated>1766765630556</updated>
+    </task>
+    <task id="LOCAL-00056" summary="feat: qdrant向量模型init">
+      <option name="closed" value="true" />
+      <created>1766852186262</created>
+      <option name="number" value="00056" />
+      <option name="presentableId" value="LOCAL-00056" />
+      <option name="project" value="LOCAL" />
+      <updated>1766852186263</updated>
+    </task>
+    <task id="LOCAL-00057" summary="feat: 优秀简历存储至向量数据库逻辑实现">
+      <option name="closed" value="true" />
+      <created>1766904127086</created>
+      <option name="number" value="00057" />
+      <option name="presentableId" value="LOCAL-00057" />
+      <option name="project" value="LOCAL" />
+      <updated>1766904127086</updated>
+    </task>
+    <task id="LOCAL-00058" summary="fix: 修复向量存储逻辑问题">
+      <option name="closed" value="true" />
+      <created>1766933821627</created>
+      <option name="number" value="00058" />
+      <option name="presentableId" value="LOCAL-00058" />
+      <option name="project" value="LOCAL" />
+      <updated>1766933821627</updated>
+    </task>
+    <task id="LOCAL-00059" summary="feat: 向量数据库插入查询测试">
+      <option name="closed" value="true" />
+      <created>1766934428189</created>
+      <option name="number" value="00059" />
+      <option name="presentableId" value="LOCAL-00059" />
+      <option name="project" value="LOCAL" />
+      <updated>1766934428189</updated>
+    </task>
+    <task id="LOCAL-00060" summary="feat: 优化向量查询">
+      <option name="closed" value="true" />
+      <created>1767013172671</created>
+      <option name="number" value="00060" />
+      <option name="presentableId" value="LOCAL-00060" />
+      <option name="project" value="LOCAL" />
+      <updated>1767013172671</updated>
+    </task>
+    <task id="LOCAL-00061" summary="feat: 优化简历上传功能&amp;任务状态进度查询接口">
+      <option name="closed" value="true" />
+      <created>1767018481345</created>
+      <option name="number" value="00061" />
+      <option name="presentableId" value="LOCAL-00061" />
+      <option name="project" value="LOCAL" />
+      <updated>1767018481345</updated>
+    </task>
+    <task id="LOCAL-00062" summary="feat: 线程池参数配置">
+      <option name="closed" value="true" />
+      <created>1767018492646</created>
+      <option name="number" value="00062" />
+      <option name="presentableId" value="LOCAL-00062" />
+      <option name="project" value="LOCAL" />
+      <updated>1767018492646</updated>
+    </task>
+    <task id="LOCAL-00063" summary="feat: 简历优化增加HyDE和重排序检索">
+      <option name="closed" value="true" />
+      <created>1767096254733</created>
+      <option name="number" value="00063" />
+      <option name="presentableId" value="LOCAL-00063" />
+      <option name="project" value="LOCAL" />
+      <updated>1767096254733</updated>
+    </task>
+    <task id="LOCAL-00064" summary="feat: 全局异常处理器捕获自定义异常">
+      <option name="closed" value="true" />
+      <created>1767097157286</created>
+      <option name="number" value="00064" />
+      <option name="presentableId" value="LOCAL-00064" />
+      <option name="project" value="LOCAL" />
+      <updated>1767097157287</updated>
+    </task>
+    <task id="LOCAL-00065" summary="feat: 添加oss访问凭证注释">
+      <option name="closed" value="true" />
+      <created>1767444393852</created>
+      <option name="number" value="00065" />
+      <option name="presentableId" value="LOCAL-00065" />
+      <option name="project" value="LOCAL" />
+      <updated>1767444393852</updated>
+    </task>
+    <task id="LOCAL-00066" summary="feat: 增加用户注册、忘记密码功能">
+      <option name="closed" value="true" />
+      <created>1767446582846</created>
+      <option name="number" value="00066" />
+      <option name="presentableId" value="LOCAL-00066" />
+      <option name="project" value="LOCAL" />
+      <updated>1767446582846</updated>
+    </task>
+    <task id="LOCAL-00067" summary="feat: 简历优化改为流式响应">
+      <option name="closed" value="true" />
+      <created>1767535586709</created>
+      <option name="number" value="00067" />
+      <option name="presentableId" value="LOCAL-00067" />
+      <option name="project" value="LOCAL" />
+      <updated>1767535586710</updated>
+    </task>
+    <task id="LOCAL-00068" summary="feat: 忘记密码功能实现，支持邮件找回方式">
+      <option name="closed" value="true" />
+      <created>1767627818667</created>
+      <option name="number" value="00068" />
+      <option name="presentableId" value="LOCAL-00068" />
+      <option name="project" value="LOCAL" />
+      <updated>1767627818667</updated>
+    </task>
+    <task id="LOCAL-00069" summary="feat: 简历优化流式输出优化">
+      <option name="closed" value="true" />
+      <created>1767628599905</created>
+      <option name="number" value="00069" />
+      <option name="presentableId" value="LOCAL-00069" />
+      <option name="project" value="LOCAL" />
+      <updated>1767628599905</updated>
+    </task>
+    <task id="LOCAL-00070" summary="feat: 查询简历列表功能实现">
+      <option name="closed" value="true" />
+      <created>1767712191481</created>
+      <option name="number" value="00070" />
+      <option name="presentableId" value="LOCAL-00070" />
+      <option name="project" value="LOCAL" />
+      <updated>1767712191481</updated>
+    </task>
+    <task id="LOCAL-00071" summary="feat: 查询简历列表功能返回结果优化">
+      <option name="closed" value="true" />
+      <created>1767713495629</created>
+      <option name="number" value="00071" />
+      <option name="presentableId" value="LOCAL-00071" />
+      <option name="project" value="LOCAL" />
+      <updated>1767713495629</updated>
+    </task>
+    <task id="LOCAL-00072" summary="feat: 增加查询简历详情功能">
+      <option name="closed" value="true" />
+      <created>1767714752911</created>
+      <option name="number" value="00072" />
+      <option name="presentableId" value="LOCAL-00072" />
+      <option name="project" value="LOCAL" />
+      <updated>1767714752911</updated>
+    </task>
+    <task id="LOCAL-00073" summary="feat: agenticScope上下文持久化存储">
+      <option name="closed" value="true" />
+      <created>1767715309219</created>
+      <option name="number" value="00073" />
+      <option name="presentableId" value="LOCAL-00073" />
+      <option name="project" value="LOCAL" />
+      <updated>1767715309220</updated>
+    </task>
+    <task id="LOCAL-00074" summary="feat: init许可证">
+      <option name="closed" value="true" />
+      <created>1767716905188</created>
+      <option name="number" value="00074" />
+      <option name="presentableId" value="LOCAL-00074" />
+      <option name="project" value="LOCAL" />
+      <updated>1767716905188</updated>
+    </task>
+    <task id="LOCAL-00075" summary="feat: init许可证">
+      <option name="closed" value="true" />
+      <created>1767717147984</created>
+      <option name="number" value="00075" />
+      <option name="presentableId" value="LOCAL-00075" />
+      <option name="project" value="LOCAL" />
+      <updated>1767717147984</updated>
+    </task>
+    <task id="LOCAL-00076" summary="feat: init许可证">
+      <option name="closed" value="true" />
+      <created>1767717172860</created>
+      <option name="number" value="00076" />
+      <option name="presentableId" value="LOCAL-00076" />
+      <option name="project" value="LOCAL" />
+      <updated>1767717172860</updated>
+    </task>
+    <task id="LOCAL-00077" summary="fix: 修复代码结构问题">
+      <option name="closed" value="true" />
+      <created>1767793801021</created>
+      <option name="number" value="00077" />
+      <option name="presentableId" value="LOCAL-00077" />
+      <option name="project" value="LOCAL" />
+      <updated>1767793801021</updated>
+    </task>
+    <option name="localTasksCounter" value="78" />
+    <servers />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="feat: 接口增加token权限认证" />
+    <MESSAGE value="feat: 简历优化agent使用tool" />
+    <MESSAGE value="feat: 简历优化agent增加rag功能" />
+    <MESSAGE value="feat: 简历模板存储" />
+    <MESSAGE value="feat: 模型改为bean注入，增加向量模型" />
+    <MESSAGE value="feat: qdrant向量模型init" />
+    <MESSAGE value="feat: 优秀简历存储至向量数据库逻辑实现" />
+    <MESSAGE value="fix: 修复向量存储逻辑问题" />
+    <MESSAGE value="feat: 向量数据库插入查询测试" />
+    <MESSAGE value="feat: 优化向量查询" />
+    <MESSAGE value="feat: 优化简历上传功能&amp;任务状态进度查询接口" />
+    <MESSAGE value="feat: 线程池参数配置" />
+    <MESSAGE value="feat: 简历优化增加HyDE和重排序检索" />
+    <MESSAGE value="feat: 全局异常处理器捕获自定义异常" />
+    <MESSAGE value="feat: 添加oss访问凭证注释" />
+    <MESSAGE value="feat: 增加用户注册、忘记密码功能" />
+    <MESSAGE value="feat: 简历优化改为流式响应" />
+    <MESSAGE value="feat: 忘记密码功能实现，支持邮件找回方式" />
+    <MESSAGE value="feat: 简历优化流式输出优化" />
+    <MESSAGE value="feat: 查询简历列表功能实现" />
+    <MESSAGE value="feat: 查询简历列表功能返回结果优化" />
+    <MESSAGE value="feat: 增加查询简历详情功能" />
+    <MESSAGE value="feat: agenticScope上下文持久化存储" />
+    <MESSAGE value="feat: init许可证" />
+    <MESSAGE value="fix: 修复代码结构问题" />
+    <option name="LAST_COMMIT_MESSAGE" value="fix: 修复代码结构问题" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/jobspark/src/main/java/com/tengYii/jobspark/workflow/_3a_Loop_Agent_Example.java</url>
+          <line>41</line>
+          <option name="timeStamp" value="1" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/jobspark/src/main/java/com/tengYii/jobspark/dto/response/InterviewSessionResponse.java</url>
+          <line>6</line>
+          <option name="timeStamp" value="2" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/jobspark/src/test/java/com/tengYii/jobspark/cv/CvStructureOptimizeTest.java</url>
+          <line>45</line>
+          <option name="timeStamp" value="8" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
+  </component>
+</project>
