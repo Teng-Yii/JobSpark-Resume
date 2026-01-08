@@ -18,7 +18,7 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://localhost:3306/jobspark?useSSL=false&serverTimezone=UTC&useUnicode=true&characterEncoding=utf-8
     username: root
-    password: 031008
+    password: your-password
   redis:
     host: localhost
     port: 6379
