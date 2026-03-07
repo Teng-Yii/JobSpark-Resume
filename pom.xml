@@ -82,6 +82,12 @@
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-mcp</artifactId>
             <version>1.11.0-beta19</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>langchain4j-http-client-jdk</artifactId>
+                    <groupId>dev.langchain4j</groupId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>
