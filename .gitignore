@@ -1,0 +1,20 @@
+##eclipse
+.settings/
+.project
+.classpath
+target/
+.metadata
+bin/
+tmp/
+.externalToolBuilders/
+
+
+## java
+*.class
+
+##idea
+*.iml
+.ipr
+.iws
+.idea/
+.vscode/
