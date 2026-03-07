@@ -4,7 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="3d0498fa-fbb4-474d-aa3e-29639b7092b0" name="Changes" comment="fix: 修复代码结构问题" />
+    <list default="true" id="3d0498fa-fbb4-474d-aa3e-29639b7092b0" name="Changes" comment="fix: 优化持久化存储AgenticScope">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -67,33 +69,33 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "Application.Application.executor": "Run",
-    "Application.CvDemoMain.executor": "Run",
-    "Application.CvStructureOptimizeTest.executor": "Debug",
-    "Application.MybatisPlusGenerator.executor": "Run",
-    "Application.ResumeAnalysisService.executor": "Debug",
-    "Application.SimpleCvTest.executor": "Run",
-    "Application._3a_Loop_Agent_Example.executor": "Run",
-    "JUnit.CvPipelineTest.executor": "Run",
-    "JUnit.CvPipelineTest.validate_missing_fields_should_throw.executor": "Run",
-    "Maven. [org.apache.maven.plugins:maven-archetype-plugin:RELEASE:generate].executor": "Run",
-    "Maven.jobspark-resume [clean].executor": "Run",
-    "Maven.jobspark-resume [install].executor": "Run",
-    "ModuleVcsDetector.initialDetectionPerformed": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "Shell Script.Start Qdrant.executor": "Run",
-    "git-widget-placeholder": "main",
-    "last_opened_file_path": "D:/workspace/JobSpark-Resume",
-    "project.structure.last.edited": "Modules",
-    "project.structure.proportion": "0.15",
-    "project.structure.side.proportion": "0.2",
-    "settings.editor.selected.configurable": "preferences.pluginManager"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Application.Application.executor&quot;: &quot;Debug&quot;,
+    &quot;Application.CvDemoMain.executor&quot;: &quot;Run&quot;,
+    &quot;Application.CvStructureOptimizeTest.executor&quot;: &quot;Debug&quot;,
+    &quot;Application.MybatisPlusGenerator.executor&quot;: &quot;Run&quot;,
+    &quot;Application.ResumeAnalysisService.executor&quot;: &quot;Debug&quot;,
+    &quot;Application.SimpleCvTest.executor&quot;: &quot;Run&quot;,
+    &quot;Application._3a_Loop_Agent_Example.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.CvPipelineTest.executor&quot;: &quot;Run&quot;,
+    &quot;JUnit.CvPipelineTest.validate_missing_fields_should_throw.executor&quot;: &quot;Run&quot;,
+    &quot;Maven. [org.apache.maven.plugins:maven-archetype-plugin:RELEASE:generate].executor&quot;: &quot;Run&quot;,
+    &quot;Maven.jobspark-resume [clean].executor&quot;: &quot;Run&quot;,
+    &quot;Maven.jobspark-resume [install].executor&quot;: &quot;Run&quot;,
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;Shell Script.Start Qdrant.executor&quot;: &quot;Run&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;last_opened_file_path&quot;: &quot;D:/workspace/JobSpark-Resume&quot;,
+    &quot;project.structure.last.edited&quot;: &quot;Modules&quot;,
+    &quot;project.structure.proportion&quot;: &quot;0.15&quot;,
+    &quot;project.structure.side.proportion&quot;: &quot;0.2&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="D:\workspace\JobSpark-Resume\jobspark" />
@@ -215,30 +217,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1762073893682</updated>
-    </task>
-    <task id="LOCAL-00029" summary="feat: 优化简历上传操作，改为异步执行">
-      <option name="closed" value="true" />
-      <created>1765294751916</created>
-      <option name="number" value="00029" />
-      <option name="presentableId" value="LOCAL-00029" />
-      <option name="project" value="LOCAL" />
-      <updated>1765294751916</updated>
-    </task>
-    <task id="LOCAL-00030" summary="feat: 简历上传异步执行，使用任务处理对象监控">
-      <option name="closed" value="true" />
-      <created>1765372818402</created>
-      <option name="number" value="00030" />
-      <option name="presentableId" value="LOCAL-00030" />
-      <option name="project" value="LOCAL" />
-      <updated>1765372818402</updated>
-    </task>
-    <task id="LOCAL-00031" summary="feat: 清除无用代码">
-      <option name="closed" value="true" />
-      <created>1765375843283</created>
-      <option name="number" value="00031" />
-      <option name="presentableId" value="LOCAL-00031" />
-      <option name="project" value="LOCAL" />
-      <updated>1765375843283</updated>
     </task>
     <task id="LOCAL-00032" summary="feat: 增加异步上传简历任务进度查询接口">
       <option name="closed" value="true" />
@@ -608,7 +586,31 @@
       <option name="project" value="LOCAL" />
       <updated>1767793801021</updated>
     </task>
-    <option name="localTasksCounter" value="78" />
+    <task id="LOCAL-00078" summary="fix: 修复代码结构问题">
+      <option name="closed" value="true" />
+      <created>1767794148314</created>
+      <option name="number" value="00078" />
+      <option name="presentableId" value="LOCAL-00078" />
+      <option name="project" value="LOCAL" />
+      <updated>1767794148314</updated>
+    </task>
+    <task id="LOCAL-00079" summary="feat: AgenticScopeStore存储持久化注释掉">
+      <option name="closed" value="true" />
+      <created>1767795727225</created>
+      <option name="number" value="00079" />
+      <option name="presentableId" value="LOCAL-00079" />
+      <option name="project" value="LOCAL" />
+      <updated>1767795727225</updated>
+    </task>
+    <task id="LOCAL-00080" summary="fix: 优化持久化存储AgenticScope">
+      <option name="closed" value="true" />
+      <created>1767877696246</created>
+      <option name="number" value="00080" />
+      <option name="presentableId" value="LOCAL-00080" />
+      <option name="project" value="LOCAL" />
+      <updated>1767877696246</updated>
+    </task>
+    <option name="localTasksCounter" value="81" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -623,8 +625,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="feat: 接口增加token权限认证" />
-    <MESSAGE value="feat: 简历优化agent使用tool" />
     <MESSAGE value="feat: 简历优化agent增加rag功能" />
     <MESSAGE value="feat: 简历模板存储" />
     <MESSAGE value="feat: 模型改为bean注入，增加向量模型" />
@@ -648,7 +648,9 @@
     <MESSAGE value="feat: agenticScope上下文持久化存储" />
     <MESSAGE value="feat: init许可证" />
     <MESSAGE value="fix: 修复代码结构问题" />
-    <option name="LAST_COMMIT_MESSAGE" value="fix: 修复代码结构问题" />
+    <MESSAGE value="feat: AgenticScopeStore存储持久化注释掉" />
+    <MESSAGE value="fix: 优化持久化存储AgenticScope" />
+    <option name="LAST_COMMIT_MESSAGE" value="fix: 优化持久化存储AgenticScope" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -667,6 +669,11 @@
           <url>file://$PROJECT_DIR$/jobspark/src/test/java/com/tengYii/jobspark/cv/CvStructureOptimizeTest.java</url>
           <line>45</line>
           <option name="timeStamp" value="8" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/com/tengYii/jobspark/infrastructure/store/MyAgenticScopeStore.java</url>
+          <line>49</line>
+          <option name="timeStamp" value="9" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
