@@ -1,8 +1,8 @@
 package com.tengYii.jobspark.domain.service;
 
 import com.tengYii.jobspark.model.*;
-import com.tengYii.jobspark.model.bo.CvBO;
-import lombok.RequiredArgsConstructor;
+import com.tengYii.jobspark.model.bo.cv.CvBO;
+import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -15,11 +15,13 @@ import java.util.UUID;
  */
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class InterviewService {
-    
-    private final RagRetrievalService ragRetrievalService;
-    private final ChatService chatService;
+
+    @Resource
+    private  RagRetrievalService ragRetrievalService;
+
+    @Resource
+    private  ChatService chatService;
     
     /**
      * 创建新的面试会话
