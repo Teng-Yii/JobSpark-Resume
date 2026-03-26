@@ -8,7 +8,7 @@ import com.tengYii.jobspark.config.cv.PdfConfig;
 import com.tengYii.jobspark.domain.render.markdown.TemplateFieldMapper;
 import com.tengYii.jobspark.domain.render.CvRendererFacade;
 import com.tengYii.jobspark.application.validate.CvValidator;
-import com.tengYii.jobspark.model.bo.*;
+import com.tengYii.jobspark.model.bo.cv.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

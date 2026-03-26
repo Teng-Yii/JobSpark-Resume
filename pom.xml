@@ -7,7 +7,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.3.8</version>
+        <version>3.4.2</version>
         <relativePath/>
     </parent>
 
@@ -18,7 +18,8 @@
     <properties>
         <java.version>17</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <langchain4j.version>1.7.1</langchain4j.version>
+        <langchain4j.version>1.12.2</langchain4j.version>
+        <langchain4j-agentic.version>1.12.2-beta22</langchain4j-agentic.version>
         <mybatis-plus.version>3.5.6</mybatis-plus.version>
         <mybatis-generator.vesion>3.4.1</mybatis-generator.vesion>
     </properties>
@@ -81,7 +82,7 @@
         <dependency>
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-mcp</artifactId>
-            <version>1.11.0-beta19</version>
+            <version>${langchain4j-agentic.version}</version>
             <exclusions>
                 <exclusion>
                     <artifactId>langchain4j-http-client-jdk</artifactId>
@@ -92,19 +93,25 @@
 
         <dependency>
             <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j-skills</artifactId>
+            <version>${langchain4j-agentic.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-agentic</artifactId>
-            <version>1.7.1-beta14</version>
+            <version>${langchain4j-agentic.version}</version>
         </dependency>
         <!-- 继承SpringBoot -->
         <dependency>
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-open-ai-spring-boot-starter</artifactId>
-            <version>1.7.1-beta14</version>
+            <version>${langchain4j-agentic.version}</version>
         </dependency>
         <dependency>
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-spring-boot-starter</artifactId>
-            <version>1.7.1-beta14</version>
+            <version>${langchain4j-agentic.version}</version>
         </dependency>
 
         <dependency>
@@ -116,7 +123,7 @@
         <dependency>
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-qdrant</artifactId>
-            <version>1.7.1-beta14</version>
+            <version>${langchain4j-agentic.version}</version>
         </dependency>
 
 
@@ -154,10 +161,10 @@
 
         <!-- Resume rendering pipeline dependencies -->
         <dependency>
-            <groupId>org.freemarker</groupId>
-            <artifactId>freemarker</artifactId>
-            <version>2.3.32</version>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-freemarker</artifactId>
         </dependency>
+
         <dependency>
             <groupId>org.commonmark</groupId>
             <artifactId>commonmark</artifactId>

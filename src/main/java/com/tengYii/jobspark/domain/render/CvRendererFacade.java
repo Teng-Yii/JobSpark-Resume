@@ -9,7 +9,7 @@ import com.tengYii.jobspark.domain.render.markdown.MarkdownService;
 import com.tengYii.jobspark.domain.render.markdown.TemplateFieldMapper;
 import com.tengYii.jobspark.domain.render.markdown.TemplateService;
 import com.tengYii.jobspark.domain.render.pdf.PdfService;
-import com.tengYii.jobspark.model.bo.CvBO;
+import com.tengYii.jobspark.model.bo.cv.CvBO;
 import org.commonmark.parser.Parser;
 import org.commonmark.node.Node;
 import org.commonmark.renderer.html.HtmlRenderer;

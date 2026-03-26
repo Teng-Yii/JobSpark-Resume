@@ -4,7 +4,7 @@ import com.tengYii.jobspark.application.service.ResumeApplicationService;
 import com.tengYii.jobspark.application.validate.ResumeValidator;
 import com.tengYii.jobspark.common.exception.ValidationException;
 import com.tengYii.jobspark.common.utils.login.UserContext;
-import com.tengYii.jobspark.domain.service.ResumeRagService;
+import com.tengYii.jobspark.domain.service.cv.ResumeRagService;
 import com.tengYii.jobspark.dto.request.ResumeOptimizeRequest;
 import com.tengYii.jobspark.dto.request.ResumeOptimizedDownloadRequest;
 import com.tengYii.jobspark.dto.request.ResumeUploadRequest;

@@ -1,6 +1,6 @@
 package com.tengYii.jobspark.domain.agent;
 
-import com.tengYii.jobspark.domain.agent.listener.ExcelMcpClientListener;
+import com.tengYii.jobspark.config.listener.ExcelMcpClientListener;
 import dev.langchain4j.agentic.Agent;
 import dev.langchain4j.agentic.declarative.ChatMemoryProviderSupplier;
 import dev.langchain4j.agentic.declarative.ToolProviderSupplier;

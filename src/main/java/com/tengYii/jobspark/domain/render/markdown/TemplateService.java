@@ -2,7 +2,7 @@ package com.tengYii.jobspark.domain.render.markdown;
 
 import com.tengYii.jobspark.common.exception.RenderException;
 import com.tengYii.jobspark.config.cv.MarkdownConfig;
-import com.tengYii.jobspark.model.bo.CvBO;
+import com.tengYii.jobspark.model.bo.cv.CvBO;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
 import freemarker.template.TemplateExceptionHandler;

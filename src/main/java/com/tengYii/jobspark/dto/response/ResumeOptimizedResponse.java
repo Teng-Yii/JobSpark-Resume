@@ -1,6 +1,6 @@
 package com.tengYii.jobspark.dto.response;
 
-import com.tengYii.jobspark.model.bo.CvBO;
+import com.tengYii.jobspark.model.bo.cv.CvBO;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

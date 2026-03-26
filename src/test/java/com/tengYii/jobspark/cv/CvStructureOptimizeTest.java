@@ -2,13 +2,7 @@ package com.tengYii.jobspark.cv;
 
 import com.tengYii.jobspark.common.utils.StringLoader;
 //import com.tengYii.jobspark.common.utils.llm.ChatModelProvider;
-import com.tengYii.jobspark.domain.agent.CvOptimizationAgent;
-import com.tengYii.jobspark.domain.agent.CvReviewer;
-import com.tengYii.jobspark.domain.agent.ScoredCvTailor;
-import com.tengYii.jobspark.model.bo.CvBO;
-import dev.langchain4j.agentic.AgenticServices;
-import dev.langchain4j.model.chat.ChatModel;
-import dev.langchain4j.service.Result;
+import com.tengYii.jobspark.model.bo.cv.CvBO;
 
 import java.io.IOException;
 
@@ -17,8 +11,8 @@ public class CvStructureOptimizeTest {
     public static void main(String[] args)  throws IOException {
         // 显式加载ScoredCvTailor类，确保类加载器能够找到它
         try {
-            Class.forName("com.tengYii.jobspark.domain.agent.ScoredCvTailor");
-            Class.forName("com.tengYii.jobspark.domain.agent.CvReviewer");
+            Class.forName("com.tengYii.jobspark.domain.agent.cv.ScoredCvTailor");
+            Class.forName("com.tengYii.jobspark.domain.agent.cv.CvReviewer");
             System.out.println("代理类加载成功");
         } catch (ClassNotFoundException e) {
             System.err.println("代理类加载失败: " + e.getMessage());

@@ -1,14 +1,12 @@
 package com.tengYii.jobspark.dto.response;
 
-import com.tengYii.jobspark.model.bo.CertificateBO;
-import com.tengYii.jobspark.model.bo.ContactBO;
-import com.tengYii.jobspark.model.bo.CvBO;
-import com.tengYii.jobspark.model.bo.EducationBO;
-import com.tengYii.jobspark.model.bo.ExperienceBO;
-import com.tengYii.jobspark.model.bo.FormatMetaBO;
-import com.tengYii.jobspark.model.bo.ProjectBO;
-import com.tengYii.jobspark.model.bo.SkillBO;
-import com.tengYii.jobspark.model.bo.SocialLinkBO;
+import com.tengYii.jobspark.model.bo.cv.CertificateBO;
+import com.tengYii.jobspark.model.bo.cv.ContactBO;
+import com.tengYii.jobspark.model.bo.cv.EducationBO;
+import com.tengYii.jobspark.model.bo.cv.ExperienceBO;
+import com.tengYii.jobspark.model.bo.cv.ProjectBO;
+import com.tengYii.jobspark.model.bo.cv.SkillBO;
+import com.tengYii.jobspark.model.bo.cv.SocialLinkBO;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -16,7 +14,6 @@ import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 
 /**

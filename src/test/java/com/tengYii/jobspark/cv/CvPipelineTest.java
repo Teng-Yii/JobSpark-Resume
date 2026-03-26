@@ -12,7 +12,7 @@ import com.tengYii.jobspark.domain.render.pdf.PdfService;
 import com.tengYii.jobspark.domain.render.markdown.TemplateService;
 import com.tengYii.jobspark.domain.render.doc.DocxService;
 import com.tengYii.jobspark.application.validate.CvValidator;
-import com.tengYii.jobspark.model.bo.*;
+import com.tengYii.jobspark.model.bo.cv.*;
 import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;

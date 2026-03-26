@@ -1,6 +1,6 @@
 package com.tengYii.jobspark.cv;
 
-import com.tengYii.jobspark.model.bo.*;
+import com.tengYii.jobspark.model.bo.cv.*;
 
 import java.time.LocalDate;
 import java.util.Arrays;

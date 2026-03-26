@@ -2,7 +2,7 @@ package com.tengYii.jobspark.domain.render.markdown;
 
 
 import com.tengYii.jobspark.common.exception.ValidationException;
-import com.tengYii.jobspark.model.bo.*;
+import com.tengYii.jobspark.model.bo.cv.*;
 import lombok.Builder;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.util.CollectionUtils;

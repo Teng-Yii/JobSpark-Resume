@@ -1,8 +1,8 @@
 package com.tengYii.jobspark.application.validate;
 
 import com.tengYii.jobspark.common.exception.ValidationException;
-import com.tengYii.jobspark.model.bo.ContactBO;
-import com.tengYii.jobspark.model.bo.CvBO;
+import com.tengYii.jobspark.model.bo.cv.ContactBO;
+import com.tengYii.jobspark.model.bo.cv.CvBO;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
