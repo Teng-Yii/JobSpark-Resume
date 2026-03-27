@@ -12,6 +12,7 @@ import dev.langchain4j.agentic.scope.AgenticScopeAccess;
 import dev.langchain4j.memory.ChatMemory;
 import dev.langchain4j.memory.chat.MessageWindowChatMemory;
 import dev.langchain4j.service.MemoryId;
+import dev.langchain4j.service.V;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,7 +48,7 @@ public interface CvOptimizationAgent extends AgenticScopeAccess {
             maxIterations = 3,
             subAgents = {CvReviewer.class, ScoredCvTailor.class}
     )
-    CvBO optimizeCv(@MemoryId String memoryId, CvBO cv, String jobDescription, List<String> referenceTemplates);
+    CvBO optimizeCv(@MemoryId String memoryId, @V("cv")CvBO cv,  @V("jobDescription")String jobDescription,  @V("referenceTemplates")List<String> referenceTemplates);
 
     /**
      * 判断简历优化是否达到退出条件

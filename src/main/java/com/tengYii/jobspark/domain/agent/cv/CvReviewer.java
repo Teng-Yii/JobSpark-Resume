@@ -21,7 +21,8 @@ import java.util.List;
  */
 public interface CvReviewer {
 
-    @Agent("专业简历审核评分AI助手，具备资深HR和技术面试官的双重视角，能够精准评估简历与职位匹配度，提供客观、专业的审核意见和量化评分。")
+    @Agent(description = "专业简历审核评分AI助手，具备资深HR和技术面试官的双重视角，能够精准评估简历与职位匹配度，提供客观、专业的审核意见和量化评分。",
+            outputKey = "cvReview")
     @SystemMessage("""
             你是一位资深的招聘专家和技术面试官，具备以下核心能力：
             

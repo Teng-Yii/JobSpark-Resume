@@ -154,5 +154,5 @@ public interface CvAnalysisAgent {
             
             请返回完整的CvBO对象JSON结构，确保数据准确性和结构完整性。
             """)
-    Result<CvBO> reviewCv(@V("resumeText") String cv);
+    Result<CvBO> reviewCv(@V("resumeText") String resumeText);
 }
