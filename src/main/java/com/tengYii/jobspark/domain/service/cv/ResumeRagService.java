@@ -1,8 +1,14 @@
 package com.tengYii.jobspark.domain.service.cv;
 
+import com.alibaba.dashscope.exception.ApiException;
+import com.alibaba.dashscope.exception.InputRequiredException;
+import com.alibaba.dashscope.exception.NoApiKeyException;
+import com.alibaba.dashscope.rerank.TextReRank;
+import com.alibaba.dashscope.rerank.TextReRankOutput;
+import com.alibaba.dashscope.rerank.TextReRankParam;
+import com.alibaba.dashscope.rerank.TextReRankResult;
 import com.tengYii.jobspark.model.bo.cv.CvBO;
 import com.tengYii.jobspark.model.bo.cv.HighlightBO;
-import com.tengYii.jobspark.model.llm.ScoredCandidate;
 import dev.langchain4j.data.embedding.Embedding;
 import dev.langchain4j.data.segment.TextSegment;
 import dev.langchain4j.model.chat.ChatModel;
@@ -19,9 +25,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.regex.Matcher;
@@ -272,7 +276,10 @@ public class ResumeRagService {
     }
 
     /**
-     * 使用 LLM 对候选简历片段进行重排序
+     * 使用 DashScope Rerank 模型对候选简历片段进行重排序
+     * <p>
+     * rerank模型会根据查询与文档的相关性进行打分排序
+     * </p>
      *
      * @param query      职位描述
      * @param candidates 候选简历片段列表
@@ -280,42 +287,50 @@ public class ResumeRagService {
      * @return 排序后的简历片段列表
      */
     private List<String> rerank(String query, List<String> candidates, int limit) {
-        log.info("开始对 {} 个候选结果进行 LLM 重排序", candidates.size());
+        log.info("开始使用 DashScope Rerank 模型对 {} 个候选结果进行重排序", candidates.size());
         long startTime = System.currentTimeMillis();
 
-        List<ScoredCandidate> scoredCandidates = new ArrayList<>();
-
-        for (String candidate : candidates) {
-            try {
-                // 截断过长的简历片段，避免超出 Token 限制 (简单按字符截断，约2000字)
-                String truncatedCandidate = StringUtils.substring(candidate, 0, 2000);
-
-                String prompt = String.format(
-                        "请评估以下简历片段对该职位描述的匹配程度。请仅输出一个 0-100 的整数分数，不需要解释，严禁输出任何其他字符。\n\n职位描述：\n%s\n\n简历片段：\n%s",
-                        query, truncatedCandidate
-                );
-
-                String response = chatModel.chat(prompt);
-                int score = parseScore(response);
-                scoredCandidates.add(new ScoredCandidate(candidate, score));
-
-            } catch (Exception e) {
-                log.warn("Rerank 单个条目失败，默认分数为0", e);
-                scoredCandidates.add(new ScoredCandidate(candidate, 0));
-            }
+        if (CollectionUtils.isEmpty(candidates)) {
+            log.warn("候选列表为空，直接返回空列表");
+            return Collections.emptyList();
         }
 
-        // 按分数降序排列
-        scoredCandidates.sort(Comparator.comparingInt(ScoredCandidate::getScore).reversed());
+        try {
+            // 创建 TextReRank 对象并构建参数
+            TextReRank textReRank = new TextReRank();
+            TextReRankParam param = TextReRankParam.builder()
+                    .apiKey(System.getenv("DASHSCOPE_API_KEY"))
+                    .model("qwen3-vl-rerank")
+                    .query(query)
+                    .documents(candidates)
+                    .topN(limit)
+                    // 返回原始文档
+                    .returnDocuments(true)
+                    .build();
 
-        long costTime = System.currentTimeMillis() - startTime;
-        log.info("LLM 重排序完成，耗时: {} ms", costTime);
+            // 调用 rerank 模型
+            TextReRankResult rerankResult = textReRank.call(param);
+            TextReRankOutput resultOutput = rerankResult.getOutput();
 
-        // 取 Top N
-        return scoredCandidates.stream()
-                .limit(limit)
-                .map(ScoredCandidate::getContent)
-                .collect(Collectors.toList());
+            // 提取排序后的结果
+            List<String> rankedResults = resultOutput.getResults().stream()
+                    .map(TextReRankOutput.Result::getDocument)
+                    .map(TextReRankOutput.Document::getText)
+                    .collect(Collectors.toList());
+
+
+            long costTime = System.currentTimeMillis() - startTime;
+            log.info("DashScope Rerank 重排序完成，返回 {} 个结果，耗时: {} ms", rankedResults.size(), costTime);
+            return rankedResults;
+
+        } catch (ApiException | NoApiKeyException | InputRequiredException e) {
+            log.error("调用 DashScope Rerank 模型失败: {}", e.getMessage(), e);
+            // 降级处理：返回原始列表的前 limit 个元素
+            log.warn("Rerank 失败，降级返回原始候选列表的前 {} 个结果", limit);
+            return candidates.stream()
+                    .limit(limit)
+                    .collect(Collectors.toList());
+        }
     }
 
     /**
