@@ -115,6 +115,12 @@
         </dependency>
 
         <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>dashscope-sdk-java</artifactId>
+            <version>2.22.13</version>
+        </dependency>
+
+        <dependency>
             <groupId>io.qdrant</groupId>
             <artifactId>client</artifactId>
             <version>1.16.0</version>
