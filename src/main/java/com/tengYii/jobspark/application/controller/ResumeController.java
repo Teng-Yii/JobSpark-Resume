@@ -4,7 +4,6 @@ import com.tengYii.jobspark.application.service.ResumeApplicationService;
 import com.tengYii.jobspark.application.validate.ResumeValidator;
 import com.tengYii.jobspark.common.exception.ValidationException;
 import com.tengYii.jobspark.common.utils.login.UserContext;
-import com.tengYii.jobspark.domain.service.cv.ResumeRagService;
 import com.tengYii.jobspark.dto.request.ResumeOptimizeRequest;
 import com.tengYii.jobspark.dto.request.ResumeOptimizedDownloadRequest;
 import com.tengYii.jobspark.dto.request.ResumeUploadRequest;
@@ -49,9 +48,6 @@ public class ResumeController {
     @Autowired
     private ResumeApplicationService resumeApplicationService;
 
-    @Autowired
-    private ResumeRagService resumeRagService;
-
     @Resource(name = "resumeTaskExecutor")
     private Executor resumeTaskExecutor;
 
@@ -61,9 +57,9 @@ public class ResumeController {
      * @return 简历列表
      */
     @GetMapping("/list")
-    public ResponseEntity<List<ResumeDetailResponse>> getResumeList() {
+    public ResponseEntity<List<ResumeDetailResponse>> getResumeList(@RequestParam String cvType) {
         Long userId = getLoginUserId();
-        List<ResumeDetailResponse> resumeList = resumeApplicationService.getResumeList(userId);
+        List<ResumeDetailResponse> resumeList = resumeApplicationService.getResumeList(userId, cvType);
         return ResponseEntity.ok(resumeList);
     }
 

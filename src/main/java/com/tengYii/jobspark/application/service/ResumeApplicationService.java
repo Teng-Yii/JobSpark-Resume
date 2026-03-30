@@ -57,10 +57,11 @@ public interface ResumeApplicationService {
     /**
      * 获取用户简历列表
      *
-     * @param userId 用户ID
+     * @param userId  用户ID
+     * @param cvType  简历类型（可选，null表示查询所有类型）
      * @return 简历列表
      */
-    List<ResumeDetailResponse> getResumeList(Long userId);
+    List<ResumeDetailResponse> getResumeList(Long userId, String cvType);
 
     /**
      * 获取简历详情

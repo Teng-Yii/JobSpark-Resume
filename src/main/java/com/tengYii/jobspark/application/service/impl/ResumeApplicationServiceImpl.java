@@ -1,6 +1,7 @@
 package com.tengYii.jobspark.application.service.impl;
 
 import com.tengYii.jobspark.application.service.ResumeApplicationService;
+import com.tengYii.jobspark.common.enums.CvTypeEnum;
 import com.tengYii.jobspark.common.enums.DeleteFlagEnum;
 import com.tengYii.jobspark.common.enums.DownloadFileTypeEnum;
 import com.tengYii.jobspark.common.enums.ResultCodeEnum;
@@ -155,7 +156,7 @@ public class ResumeApplicationServiceImpl implements ResumeApplicationService {
 
             // 4. 异步执行耗时操作
             CompletableFuture.runAsync(() -> {
-                processResumeAsync(userId, taskId, storageResultDTO.getUniqueFileName());
+                processResumeAsync(userId, taskId, storageResultDTO.getUniqueFileName(), request.getCvType());
             }, resumeTaskExecutor);
 
             // 5. 立即返回任务ID
@@ -173,9 +174,10 @@ public class ResumeApplicationServiceImpl implements ResumeApplicationService {
      * @param userId   用户ID
      * @param taskId   任务ID
      * @param fileName 存储文件名称
+     * @param cvType   简历类型
      */
     @Async
-    private void processResumeAsync(Long userId, String taskId, String fileName) {
+    private void processResumeAsync(Long userId, String taskId, String fileName, String cvType) {
 
         Long resumeId = -1L;
         LocalDateTime nowTime = LocalDateTime.now();
@@ -190,6 +192,8 @@ public class ResumeApplicationServiceImpl implements ResumeApplicationService {
             long currentTimeMillis = System.currentTimeMillis();
             CvBO cvBO = resumeAnalysisService.analyzeResumeFile(fileName);
             cvBO.setUserId(userId);
+            // 设置简历类型
+            cvBO.setCvType(cvType);
             log.info("解析简历内容耗时:{} ms", System.currentTimeMillis() - currentTimeMillis);
 
             // 更新任务状态为存储中
@@ -230,15 +234,15 @@ public class ResumeApplicationServiceImpl implements ResumeApplicationService {
         StopWatch stopWatch = new StopWatch("简历优化");
         stopWatch.start("根据条件查询简历对象");
         // 使用用户Id进行校验
-        CvPO cvPO = cvRepository.getCvByCondition(resumeId, userId);
-        if (Objects.isNull(cvPO)) {
+        List<CvPO> cvPOList = cvRepository.getCvByCondition(userId, resumeId, CvTypeEnum.UPLOAD.getType());
+        if (CollectionUtils.isEmpty(cvPOList)) {
             throw new BusinessException(ResultCodeEnum.RESUME_NOT_FOUND, "简历不存在，请重新上传简历");
         }
         stopWatch.stop();
 
         // 获取简历bo对象
         stopWatch.start("转换简历bo对象");
-        CvBO cvBO = resumePersistenceService.convertToCvBO(cvPO);
+        CvBO cvBO = resumePersistenceService.convertToCvBO(cvPOList.get(0));
         stopWatch.stop();
 
         // 检索参考模板 (RAG)
@@ -293,13 +297,13 @@ public class ResumeApplicationServiceImpl implements ResumeApplicationService {
 
             stopWatch.start("获取简历bo对象");
             // 使用用户Id进行校验
-            CvPO cvPO = cvRepository.getCvByCondition(resumeId, request.getUserId());
-            if (Objects.isNull(cvPO)) {
+            List<CvPO> cvPOList = cvRepository.getCvByCondition(request.getUserId(), resumeId, CvTypeEnum.UPLOAD.getType());
+            if (CollectionUtils.isEmpty(cvPOList)) {
                 throw new BusinessException(ResultCodeEnum.RESUME_NOT_FOUND, "简历不存在，请重新上传简历");
             }
 
             // 获取简历bo对象
-            CvBO cvBO = resumePersistenceService.convertToCvBO(cvPO);
+            CvBO cvBO = resumePersistenceService.convertToCvBO(cvPOList.get(0));
             stopWatch.stop();
 
             // 第一步：CvBO -> Markdown
@@ -629,18 +633,24 @@ public class ResumeApplicationServiceImpl implements ResumeApplicationService {
      * 获取指定用户的简历列表
      *
      * @param userId 用户ID
+     * @param cvType 简历类型（可选，null表示查询所有类型）
      * @return 简历详情列表
      */
     @Override
-    public List<ResumeDetailResponse> getResumeList(Long userId) {
-        log.info("获取用户简历列表，userId: {}", userId);
+    public List<ResumeDetailResponse> getResumeList(Long userId, String cvType) {
+        log.info("获取用户简历列表，userId: {}, cvType: {}", userId, cvType);
         if (Objects.isNull(userId)) {
             return new ArrayList<>();
         }
 
         try {
-
-            List<CvPO> cvPOList = cvRepository.getCvByCondition(userId);
+            List<CvPO> cvPOList;
+            // 根据cvType参数决定查询方式
+            if (StringUtils.isNotEmpty(cvType)) {
+                cvPOList = cvRepository.getCvByCondition(userId, null, cvType);
+            } else {
+                cvPOList = cvRepository.getCvByCondition(userId, null, null);
+            }
             if (CollectionUtils.isEmpty(cvPOList)) {
                 return new ArrayList<>();
             }
@@ -678,10 +688,12 @@ public class ResumeApplicationServiceImpl implements ResumeApplicationService {
      */
     @Override
     public ResumeDetailResponse getResumeDetail(Long resumeId, Long userId) {
-        CvPO cvPO = cvRepository.getCvByCondition(resumeId, userId);
-        if (Objects.isNull(cvPO)) {
+        List<CvPO> cvPOList = cvRepository.getCvByCondition(userId, resumeId, null);
+        if (CollectionUtils.isEmpty(cvPOList)) {
             throw new BusinessException(ResultCodeEnum.RESUME_NOT_FOUND, "简历不存在");
         }
+
+        CvPO cvPO = cvPOList.get(0);
 
         // 将PO转换为BO，获取结构化数据
         CvBO cvBO = resumePersistenceService.convertToCvBO(cvPO);
@@ -689,14 +701,13 @@ public class ResumeApplicationServiceImpl implements ResumeApplicationService {
             return new ResumeDetailResponse();
         }
 
-        ResumeDetailResponse resumeDetailResponse = new ResumeDetailResponse();
         // 构建响应对象
         ResumeDetailResponse response = new ResumeDetailResponse();
         // 复制BO属性到响应对象
         BeanUtils.copyProperties(cvBO, response);
         // 设置简历主键ID
         response.setResumeId(String.valueOf(cvPO.getId()));
-        return resumeDetailResponse;
+        return response;
     }
 
     /**
@@ -879,17 +890,17 @@ public class ResumeApplicationServiceImpl implements ResumeApplicationService {
         log.info("开始将简历保存到向量数据库，resumeId: {}, userId: {}", resumeId, userId);
 
         // 使用cvRepository.getCvByCondition查询CvPO
-        CvPO cvPO = cvRepository.getCvByCondition(resumeId, userId);
+        List<CvPO> cvPOList = cvRepository.getCvByCondition(userId, resumeId, CvTypeEnum.EXCELLENT.getType());
 
         // 校验CvPO是否存在
-        if (Objects.isNull(cvPO)) {
+        if (CollectionUtils.isEmpty(cvPOList)) {
             log.error("简历不存在，resumeId: {}, userId: {}", resumeId, userId);
             throw new BusinessException(ResultCodeEnum.RESUME_NOT_FOUND, "简历不存在");
         }
 
         try {
             // 将CvPO转换为CvBO
-            CvBO cvBO = resumePersistenceService.convertToCvBO(cvPO);
+            CvBO cvBO = resumePersistenceService.convertToCvBO(cvPOList.get(0));
             // 调用resumeRagService.storeCvBO保存到向量数据库
             resumeRagService.storeCvBO(cvBO);
             log.info("简历成功保存到向量数据库，resumeId: {}", resumeId);

@@ -46,7 +46,7 @@ mybatis-plus:
 
 jwt:
   # token密钥生成在线地址：https://www.btool.cn/token-generator?symbols=true
-  secret: Z!{Q'I#FU|+PlA#CG0Rd0yDZBU@QU-L\RMqpPF-smXxp}7,o:OHzhTd[![oqf-"f # 至少32位
+  secret: M0NjRTE5OTgtM0NjRC00MTI5LThFMTAtNTNDNkY0NzgzOTdBI0NDZjAxMjM0NTY3ODlhYmNkZWZnMTIzNDU2Nzg5MGFiY2RlZmcxMjM0NTY3ODkwYWJjZGVmZzEyMzQ1Njc4OTALWFiY2RlZmctMTIzNDU2Nzg5MA==
   access-token-expiration: 7200    # Access Token 有效期：两小时（秒）
 
 langchain4j:

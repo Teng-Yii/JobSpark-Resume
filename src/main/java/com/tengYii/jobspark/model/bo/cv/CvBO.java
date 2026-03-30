@@ -25,6 +25,13 @@ public class CvBO {
     private Long userId;
 
     /**
+     * 简历类型，upload-用户上传简历（用于查询/解析/优化），excellent-优秀参考简历（用于简历优化参考）
+     *
+     * @see com.tengYii.jobspark.common.enums.CvTypeEnum
+     */
+    private String cvType;
+
+    /**
      * 姓名（必填）
      */
     private String name;

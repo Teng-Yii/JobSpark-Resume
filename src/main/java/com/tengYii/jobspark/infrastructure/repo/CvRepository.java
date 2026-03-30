@@ -16,19 +16,12 @@ import java.util.List;
 public interface CvRepository extends IService<CvPO> {
 
     /**
-     * 根据简历ID和用户ID获取简历对象
+     * 根据用户ID和简历类型获取简历对象列表
      *
-     * @param resumeId 简历ID
      * @param userId   用户ID
-     * @return 匹配条件的简历对象
-     */
-    CvPO getCvByCondition(Long resumeId, Long userId);
-
-    /**
-     * 根据用户ID获取简历对象列表
-     *
-     * @param userId 用户ID
+     * @param resumeId 简历ID
+     * @param cvType   简历类型
      * @return 匹配条件的简历对象列表
      */
-    List<CvPO> getCvByCondition(Long userId);
+    List<CvPO> getCvByCondition(Long userId, Long resumeId, String cvType);
 }

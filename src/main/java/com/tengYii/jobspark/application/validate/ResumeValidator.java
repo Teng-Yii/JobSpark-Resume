@@ -1,6 +1,7 @@
 package com.tengYii.jobspark.application.validate;
 
 import com.google.common.base.Joiner;
+import com.tengYii.jobspark.common.enums.CvTypeEnum;
 import com.tengYii.jobspark.common.enums.DownloadFileTypeEnum;
 import org.apache.commons.collections4.CollectionUtils;
 import com.tengYii.jobspark.dto.request.ResumeOptimizeRequest;
@@ -51,6 +52,12 @@ public class ResumeValidator {
 
         // 3. 校验文件大小
         validateFileSize(file, errorMessages);
+
+        // 4. 校验上传的简历类型
+        CvTypeEnum cvTypeEnum = CvTypeEnum.getByType(request.getCvType());
+        if(Objects.isNull(cvTypeEnum)){
+            errorMessages.add("上传的简历类型不合法");
+        }
 
         // 返回所有错误信息（逗号分隔）
         return Joiner.on(ParseConstant.COMMA).join(errorMessages);
