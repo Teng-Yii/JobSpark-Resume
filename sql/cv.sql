@@ -20,18 +20,23 @@ CREATE TABLE `user_info` (
 -- 简历主表
 DROP TABLE IF EXISTS cv;
 CREATE TABLE `cv` (
-  `id` BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '简历ID',
-  `user_id` BIGINT DEFAULT NULL COMMENT '用户ID',
-  `name` VARCHAR(100) NOT NULL COMMENT '姓名（必填）',
-  `birth_date` DATE NULL COMMENT '出生日期（用于计算年龄，可选）',
-  `title` VARCHAR(200) NULL COMMENT '期望岗位/头衔（可选）',
-  `avatar_url` VARCHAR(500) NULL COMMENT '头像URL（可选）',
-  `summary` VARCHAR(500) NULL COMMENT '个人摘要（Markdown格式）',
-  `delete_flag` TINYINT(1) DEFAULT 0 COMMENT '逻辑删除：0-未删除 1-已删除',
-  `created_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-  `updated_time` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-  INDEX `idx_name` (`name`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='简历基本信息表';
+  `id` bigint NOT NULL AUTO_INCREMENT COMMENT '简历ID',
+  `user_id` bigint DEFAULT NULL COMMENT '用户ID',
+  -- 新增cv_type字段用于区分简历类型
+  `cv_type` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '简历类型：upload-用户上传简历（用于查询/解析/优化），excellent-优秀参考简历（用于简历优化参考）',
+  `name` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '姓名（必填）',
+  `birth_date` date DEFAULT NULL COMMENT '出生日期（用于计算年龄，可选）',
+  `title` varchar(200) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '期望岗位/头衔（可选）',
+  `avatar_url` varchar(500) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '头像URL（可选）',
+  `summary` varchar(500) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '个人摘要（Markdown格式）',
+  `delete_flag` tinyint(1) DEFAULT '0' COMMENT '逻辑删除：0-未删除 1-已删除',
+  `created_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `updated_time` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  PRIMARY KEY (`id`),
+  KEY `idx_name` (`name`),
+  KEY `idx_delete_flag` (`delete_flag`) COMMENT '逻辑删除查询索引'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='简历基本信息表'
+
 
 -- 联系方式表
 DROP TABLE IF EXISTS cv_contact;
