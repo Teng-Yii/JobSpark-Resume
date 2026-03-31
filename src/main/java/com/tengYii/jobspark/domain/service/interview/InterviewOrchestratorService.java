@@ -2,6 +2,8 @@ package com.tengYii.jobspark.domain.service.interview;
 
 import com.tengYii.jobspark.domain.agent.interview.*;
 import com.tengYii.jobspark.common.enums.InterviewDecisionEnum;
+import com.tengYii.jobspark.dto.request.InterviewSimulationRequest;
+import com.tengYii.jobspark.model.bo.interview.JavaInterviewResultBO;
 import com.tengYii.jobspark.model.bo.interview.ReflectionResultBO;
 import dev.langchain4j.agentic.AgenticServices;
 import dev.langchain4j.agentic.UntypedAgent;
@@ -184,21 +186,23 @@ public class InterviewOrchestratorService {
                         reflector,
                         decisionRouter
                 )
-                .outputKey("currentQuestion")
+                .outputKey("interviewResult")
                 .build();
     }
 
     /**
      * 启动面试流程的对外接口方法
      *
-     * @param userId     用户ID
-     * @param cvId       简历ID
-     * @param jdText     职位描述文本
-     * @param userAnswer 用户当前回答
-     * @return 面试流程执行结果，包含当前问题或面试状态
+     * @param request 模拟面试请求对象
+     * @return 包含当前阶段信息和可恢复上下文的面试结果
      */
-    public Object startInterview(Long userId, Long cvId, String jdText, String userAnswer) {
-        return workflow.startInterview(userId, cvId, jdText, userAnswer);
+    public JavaInterviewResultBO startInterview(InterviewSimulationRequest request) {
+
+        long userId = request.getUserId();
+        Long resumeId = Long.valueOf(request.getResumeId());
+        String jobDescription = request.getJobDescription();
+        String userAnswer = request.getUserAnswer();
+        return workflow.startInterview(userId, resumeId, jobDescription, userAnswer);
     }
 
 }
