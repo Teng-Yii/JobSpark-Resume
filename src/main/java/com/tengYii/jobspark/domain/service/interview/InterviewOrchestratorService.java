@@ -109,15 +109,21 @@ public class InterviewOrchestratorService {
     private UntypedAgent decisionRouter;
 
     /**
+     * 多轮问答循环Agent，支持完整的面试流程
+     * <p>
+     * 最大迭代次数为30次，当反思结果为FINISH时退出循环
+     */
+    private UntypedAgent interviewLoop;
+
+    /**
      * 主工作流，串联所有Agent完成完整的面试流程
      * <p>
-     * 执行顺序：JD对齐 → 制定计划 → 执行提问 → 反思评估 → 条件路由
+     * 执行顺序：JD对齐 → 制定计划 → 多轮问答循环
      */
     private JavaInterviewPlanAndExecuteWorkflow workflow;
 
     /**
      * 初始化所有Agent组件
-     * <p>
      * 在Spring容器完成依赖注入后调用，确保ChatModel已正确注入
      */
     @PostConstruct
@@ -165,16 +171,26 @@ public class InterviewOrchestratorService {
                 .conditionalBuilder()
                 .subAgents(scope -> {
                     ReflectionResultBO r = scope.readState("reflection", null);
-                    return r.getDecision() == InterviewDecisionEnum.PROBE;
+                    return r != null && InterviewDecisionEnum.PROBE.equals(r.getDecision());
                 }, probeLoop)
                 .subAgents(scope -> {
                     ReflectionResultBO r = scope.readState("reflection", null);
-                    return r.getDecision() == InterviewDecisionEnum.NEXT;
+                    return r != null && InterviewDecisionEnum.NEXT.equals(r.getDecision());
                 }, executor)
                 .subAgents(scope -> {
                     ReflectionResultBO r = scope.readState("reflection", null);
-                    return r.getDecision() == InterviewDecisionEnum.STAGE_FINISH;
+                    return r != null && InterviewDecisionEnum.STAGE_FINISH.equals(r.getDecision());
                 }, executor)
+                .build();
+
+        interviewLoop = AgenticServices
+                .loopBuilder()
+                .subAgents(executor, reflector, decisionRouter)
+                .maxIterations(30)
+                .exitCondition((scope, count) -> {
+                    ReflectionResultBO r = scope.readState("reflection", null);
+                    return r != null && InterviewDecisionEnum.FINISH.equals(r.getDecision());
+                })
                 .build();
 
         workflow = AgenticServices
@@ -182,9 +198,7 @@ public class InterviewOrchestratorService {
                 .subAgents(
                         jdAlignAgent,
                         planner,
-                        executor,
-                        reflector,
-                        decisionRouter
+                        interviewLoop
                 )
                 .outputKey("interviewResult")
                 .build();

@@ -9,7 +9,7 @@ import dev.langchain4j.service.V;
  */
 public interface JavaTechInterviewerAgent {
 
-    @Agent("Java 技术面试官")
+    @Agent(value = "Java 技术面试官", outputKey = "currentQuestion")
     @SystemMessage("""
             你是一位经验丰富的 Java 后端技术面试官。
             规则：

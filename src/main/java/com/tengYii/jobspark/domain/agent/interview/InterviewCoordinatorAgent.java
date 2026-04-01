@@ -10,7 +10,7 @@ import dev.langchain4j.service.V;
  */
 public interface InterviewCoordinatorAgent {
 
-    @Agent("面试计划制定专家，负责根据候选人简历和职位描述生成详细的面试计划。")
+    @Agent(value = "面试计划制定专家", outputKey = "interviewPlan")
     @SystemMessage("""
             你是一个专业的 Java 面试主考官。你的任务是根据候选人的简历制定面试计划。
             请严格按照 JSON 格式输出计划。

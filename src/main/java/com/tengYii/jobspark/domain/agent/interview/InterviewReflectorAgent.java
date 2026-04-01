@@ -10,7 +10,7 @@ import dev.langchain4j.service.V;
  */
 public interface InterviewReflectorAgent {
 
-    @Agent("面试评审官：评分并决策下一步")
+    @Agent(value = "面试评审官：评分并决策下一步", outputKey = "reflection")
     @UserMessage("""
                 评估回答，score:0-10。
                 decision只能是：PROBE/NEXT/STAGE_FINISH/FINISH
