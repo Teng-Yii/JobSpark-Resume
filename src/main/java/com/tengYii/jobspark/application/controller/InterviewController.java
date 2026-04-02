@@ -3,13 +3,8 @@ package com.tengYii.jobspark.application.controller;
 import com.tengYii.jobspark.application.service.InterviewApplicationService;
 import com.tengYii.jobspark.common.utils.login.UserContext;
 import com.tengYii.jobspark.domain.service.interview.InterviewOrchestratorService;
-import com.tengYii.jobspark.dto.request.CompleteInterviewRequest;
-import com.tengYii.jobspark.dto.request.CreateInterviewRequest;
 import com.tengYii.jobspark.dto.request.InterviewSimulationRequest;
-import com.tengYii.jobspark.dto.request.SubmitAnswerRequest;
 import com.tengYii.jobspark.dto.response.*;
-import com.tengYii.jobspark.model.InterviewEvaluation;
-import com.tengYii.jobspark.model.InterviewQuestion;
 import com.tengYii.jobspark.model.InterviewSession;
 import com.tengYii.jobspark.model.bo.interview.JavaInterviewResultBO;
 import jakarta.annotation.Resource;
@@ -27,7 +22,8 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class InterviewController {
 
-    private final InterviewApplicationService interviewApplicationServiceImpl;
+    @Resource
+    private InterviewApplicationService interviewApplicationServiceImpl;
 
     @Resource
     private InterviewOrchestratorService interviewOrchestratorService;
@@ -36,14 +32,13 @@ public class InterviewController {
      * 创建新的面试会话
      */
     @PostMapping("/sessions")
-    public ResponseEntity<ApiResponse<InterviewSessionResponse>> createInterviewSession(
-            @RequestBody CreateInterviewRequest request) {
+    public ResponseEntity<ApiResponse<InterviewSessionResponse>> startInterview(@RequestBody InterviewSimulationRequest request) {
+
+        Long userId = getLoginUserId();
+        request.setUserId(userId);
         try {
-            InterviewSession session = interviewApplicationServiceImpl.createInterviewSession(
-                    request.getResumeId(),
-                    request.getInterviewType(),
-                    request.getQuestionCount()
-            );
+
+            InterviewSession session = interviewApplicationServiceImpl.startInterview(request);
 
             InterviewSessionResponse response = new InterviewSessionResponse(
                     session.getSessionId(),
@@ -62,160 +57,6 @@ public class InterviewController {
         }
     }
 
-    /**
-     * 获取当前面试问题
-     */
-    @GetMapping("/sessions/{sessionId}/current-question")
-    public ResponseEntity<ApiResponse<InterviewQuestionResponse>> getCurrentQuestion(
-            @PathVariable String sessionId) {
-        try {
-            InterviewQuestion question = interviewApplicationServiceImpl.getCurrentQuestion(sessionId);
-
-            if (question == null) {
-                return ResponseEntity.ok(ApiResponse.success(null, "没有更多问题"));
-            }
-
-            InterviewQuestionResponse response = new InterviewQuestionResponse(
-                    question.getQuestionId(),
-                    question.getContent(),
-                    question.getType(),
-                    question.getSkillTag(),
-                    question.getDifficulty()
-            );
-
-            return ResponseEntity.ok(ApiResponse.success(response));
-
-        } catch (Exception e) {
-            log.error("获取当前问题失败", e);
-            return ResponseEntity.badRequest()
-                    .body(ApiResponse.error("获取当前问题失败: " + e.getMessage()));
-        }
-    }
-
-    /**
-     * 提交面试回答
-     */
-    @PostMapping("/sessions/{sessionId}/answer")
-    public ResponseEntity<ApiResponse<InterviewEvaluationResponse>> submitAnswer(
-            @PathVariable String sessionId,
-            @RequestBody SubmitAnswerRequest request) {
-        try {
-            InterviewEvaluation evaluation = interviewApplicationServiceImpl.evaluateAnswer(
-                    sessionId, request.getAnswer()
-            );
-
-            InterviewEvaluationResponse response = new InterviewEvaluationResponse(
-                    evaluation.getOverallScore(),
-                    evaluation.getTechnicalScore(),
-                    evaluation.getCommunicationScore(),
-                    evaluation.getProblemSolvingScore(),
-                    evaluation.getTeamworkScore(),
-                    evaluation.getStrengths(),
-                    evaluation.getImprovementSuggestions()
-            );
-
-            return ResponseEntity.ok(ApiResponse.success(response));
-
-        } catch (Exception e) {
-            log.error("提交回答失败", e);
-            return ResponseEntity.badRequest()
-                    .body(ApiResponse.error("提交回答失败: " + e.getMessage()));
-        }
-    }
-
-    /**
-     * 完成面试
-     */
-    @PostMapping("/sessions/{sessionId}/complete")
-    public ResponseEntity<ApiResponse<InterviewEvaluationResponse>> completeInterview(
-            @PathVariable String sessionId,
-            @RequestBody CompleteInterviewRequest request) {
-        try {
-            InterviewEvaluation evaluation = interviewApplicationServiceImpl.completeInterview(
-                    sessionId, request.getAllAnswers()
-            );
-
-            InterviewEvaluationResponse response = new InterviewEvaluationResponse(
-                    evaluation.getOverallScore(),
-                    evaluation.getTechnicalScore(),
-                    evaluation.getCommunicationScore(),
-                    evaluation.getProblemSolvingScore(),
-                    evaluation.getTeamworkScore(),
-                    evaluation.getStrengths(),
-                    evaluation.getImprovementSuggestions()
-            );
-
-            return ResponseEntity.ok(ApiResponse.success(response));
-
-        } catch (Exception e) {
-            log.error("完成面试失败", e);
-            return ResponseEntity.badRequest()
-                    .body(ApiResponse.error("完成面试失败: " + e.getMessage()));
-        }
-    }
-
-    /**
-     * 获取面试建议
-     */
-    @GetMapping("/suggestions")
-    public ResponseEntity<ApiResponse<String>> getInterviewSuggestions(
-            @RequestParam String resumeId,
-            @RequestParam String targetPosition) {
-        try {
-            String suggestions = interviewApplicationServiceImpl.generateInterviewSuggestions(
-                    Long.parseLong(resumeId), targetPosition
-            );
-
-            return ResponseEntity.ok(ApiResponse.success(suggestions));
-
-        } catch (Exception e) {
-            log.error("获取面试建议失败", e);
-            return ResponseEntity.badRequest()
-                    .body(ApiResponse.error("获取面试建议失败: " + e.getMessage()));
-        }
-    }
-
-    /**
-     * 检查面试状态
-     */
-    @GetMapping("/sessions/{sessionId}/status")
-    public ResponseEntity<ApiResponse<InterviewStatusResponse>> getInterviewStatus(
-            @PathVariable String sessionId) {
-        try {
-            boolean isCompleted = interviewApplicationServiceImpl.isInterviewCompleted(sessionId);
-            InterviewQuestion currentQuestion = interviewApplicationServiceImpl.getCurrentQuestion(sessionId);
-
-            InterviewStatusResponse response = new InterviewStatusResponse(
-                    sessionId,
-                    isCompleted ? "已完成" : "进行中",
-                    currentQuestion != null ? currentQuestion.getQuestionId() : null,
-                    currentQuestion != null ? currentQuestion.getContent() : null
-            );
-
-            return ResponseEntity.ok(ApiResponse.success(response));
-
-        } catch (Exception e) {
-            log.error("获取面试状态失败", e);
-            return ResponseEntity.badRequest()
-                    .body(ApiResponse.error("获取面试状态失败: " + e.getMessage()));
-        }
-    }
-
-    /**
-     * 终止面试
-     */
-    @PostMapping("/sessions/{sessionId}/terminate")
-    public ResponseEntity<ApiResponse<Void>> terminateInterview(@PathVariable String sessionId) {
-        try {
-            interviewApplicationServiceImpl.terminateInterview(sessionId);
-            return ResponseEntity.ok(ApiResponse.success(null, "面试已终止"));
-
-        } catch (Exception e) {
-            log.error("终止面试失败", e);
-            return ResponseEntity.badRequest()
-                    .body(ApiResponse.error("终止面试失败: " + e.getMessage()));
-        }
-    }
 
     /**
      * 测试面试
@@ -226,7 +67,7 @@ public class InterviewController {
 
             Long userId = getLoginUserId();
             request.setUserId(userId);
-            JavaInterviewResultBO interviewResult = interviewOrchestratorService.startInterview(request);
+            JavaInterviewResultBO interviewResult = interviewOrchestratorService.startInterview(request, new ResumeDetailResponse());
             return ResponseEntity.ok(ApiResponse.success(interviewResult, "面试已终止"));
 
         } catch (Exception e) {

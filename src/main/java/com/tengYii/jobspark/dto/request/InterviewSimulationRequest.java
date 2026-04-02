@@ -29,7 +29,7 @@ public class InterviewSimulationRequest implements Serializable {
     private String jobDescription;
 
     /**
-     * 用户回答内容
+     * 用户对话内容
      */
-    private String userAnswer;
+    private String userMessage;
 }

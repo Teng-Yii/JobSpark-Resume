@@ -4,7 +4,7 @@ description: 根据候选人的回答和简历背景，生成有针对性、层�
 ---
 # 指令内容
 
-当接收到 `question`（原问题）、`answer`（候选人回答）、`resume_context`（简历上下文）时，按以下策略生成追问：
+当接收到 `question`（原问题）、`answer`（候选人回答）、`resumeContext`（简历上下文）时，按以下策略生成追问：
 
 1. **回答不完整/模糊时**
    - 使用 5W1H（Who/What/When/Where/Why/How）追问细节

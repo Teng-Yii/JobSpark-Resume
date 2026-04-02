@@ -3,6 +3,7 @@ package com.tengYii.jobspark.domain.service.interview;
 import com.tengYii.jobspark.domain.agent.interview.*;
 import com.tengYii.jobspark.common.enums.InterviewDecisionEnum;
 import com.tengYii.jobspark.dto.request.InterviewSimulationRequest;
+import com.tengYii.jobspark.dto.response.ResumeDetailResponse;
 import com.tengYii.jobspark.model.bo.interview.JavaInterviewResultBO;
 import com.tengYii.jobspark.model.bo.interview.ReflectionResultBO;
 import dev.langchain4j.agentic.AgenticServices;
@@ -132,13 +133,26 @@ public class InterviewOrchestratorService {
                 .agentBuilder(JDAlignmentAgent.class)
                 .chatModel(chatModel)
                 .toolProvider(jdAlignmentSkill.toolProvider())
-                .outputKey("jdAlignResult")
+                // 系统消息：告知LLM可用技能，要求先激活技能再执行
+                .systemMessage("""
+                        你拥有以下skills权限：
+                        %s
+                        当用户请求涉及上述skills时，必须先通过activate_skill工具激活skill，再执行操作。
+                        """.formatted(jdAlignmentSkill.formatAvailableSkills()))
+
+//                .outputKey("jdAlignResult")
                 .build();
 
         planner = AgenticServices
                 .agentBuilder(InterviewCoordinatorAgent.class)
                 .chatModel(chatModel)
                 .toolProvider(resumeAnalysisSkill.toolProvider())
+                // 系统消息：告知LLM可用技能，要求先激活技能再执行
+                .systemMessage("""
+                        你拥有以下skills权限：
+                        %s
+                        当用户请求涉及上述skills时，必须先通过activate_skill工具激活skill，再执行操作。
+                        """.formatted(resumeAnalysisSkill.formatAvailableSkills()))
                 .outputKey("interviewPlan")
                 .build();
 
@@ -147,6 +161,12 @@ public class InterviewOrchestratorService {
                 .chatModel(chatModel)
                 .toolProvider(resumeAnalysisSkill.toolProvider())
                 .toolProvider(questionProbingSkill.toolProvider())
+                // 系统消息：告知LLM可用技能，要求先激活技能再执行
+                .systemMessage("""
+                        你拥有以下skills权限：
+                        %s
+                        当用户请求涉及上述skills时，必须先通过activate_skill工具激活skill，再执行操作。
+                        """.formatted(resumeAnalysisSkill.formatAvailableSkills() + "\n" + questionProbingSkill.formatAvailableSkills()))
                 .outputKey("currentQuestion")
                 .build();
 
@@ -154,6 +174,12 @@ public class InterviewOrchestratorService {
                 .agentBuilder(InterviewReflectorAgent.class)
                 .chatModel(chatModel)
                 .toolProvider(resumeAnalysisSkill.toolProvider())
+                // 系统消息：告知LLM可用技能，要求先激活技能再执行
+                .systemMessage("""
+                        你拥有以下skills权限：
+                        %s
+                        当用户请求涉及上述skills时，必须先通过activate_skill工具激活skill，再执行操作。
+                        """.formatted(resumeAnalysisSkill.formatAvailableSkills()))
                 .outputKey("reflection")
                 .build();
 
@@ -210,13 +236,13 @@ public class InterviewOrchestratorService {
      * @param request 模拟面试请求对象
      * @return 包含当前阶段信息和可恢复上下文的面试结果
      */
-    public JavaInterviewResultBO startInterview(InterviewSimulationRequest request) {
+    public JavaInterviewResultBO startInterview(InterviewSimulationRequest request, ResumeDetailResponse resumeDetail) {
 
         long userId = request.getUserId();
         Long resumeId = Long.valueOf(request.getResumeId());
         String jobDescription = request.getJobDescription();
-        String userAnswer = request.getUserAnswer();
-        return workflow.startInterview(userId, resumeId, jobDescription, userAnswer);
+        String userMessage = request.getUserMessage();
+        return workflow.startInterview(userId, resumeId, jobDescription, userMessage);
     }
 
 }
