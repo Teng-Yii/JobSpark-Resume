@@ -3,31 +3,12 @@ package com.tengYii.jobspark.domain.agent.interview;
 import com.tengYii.jobspark.dto.response.ResumeDetailResponse;
 import com.tengYii.jobspark.model.bo.interview.JDAlignmentResultBO;
 import dev.langchain4j.agentic.Agent;
+import dev.langchain4j.service.MemoryId;
 import dev.langchain4j.service.UserMessage;
 import dev.langchain4j.service.V;
 
 /**
  * JD对齐：分析职位描述与候选人简历的技能匹配度。
- * <p>
- * 该Agent负责：
- * <ul>
- *   <li>解析职位描述中的关键技能要求</li>
- *   <li>分析候选人简历中展示的技能</li>
- *   <li>计算技能匹配度并输出对齐结果</li>
- * </ul>
- * <p>
- * 输入：
- * <ul>
- *   <li>jobDescription - 职位描述文本</li>
- *   <li>resumeId - 简历ID</li>
- * </ul>
- * <p>
- * 输出：
- * <ul>
- *   <li>jdAlignResult - 包含匹配度分析和关键差异点的结果</li>
- * </ul>
- *
- * @see JDAlignmentResultBO
  */
 public interface JDAlignmentAgent {
     /**
@@ -56,8 +37,8 @@ public interface JDAlignmentAgent {
             ## 职位描述 (JD)
             {{jobDescription}}
             
-            ## 简历ID
-            {{resumeId}}
+            ## 简历上下文
+            {{resumeContext}}
             
             ## 任务要求
             1. 首先通过 activate_skill 工具激活 JDAlignmentSkill
@@ -76,6 +57,6 @@ public interface JDAlignmentAgent {
                - suggestion: 综合建议
             6. 输出 JSON 格式的 JDAlignmentResultBO 对象
             """)
-    JDAlignmentResultBO align(@V("jobDescription") String jobDescription, @V("resumeContext") ResumeDetailResponse resumeContext);
+    JDAlignmentResultBO align(@MemoryId String memoryId, @V("jobDescription") String jobDescription, @V("resumeContext") ResumeDetailResponse resumeContext);
 
 }

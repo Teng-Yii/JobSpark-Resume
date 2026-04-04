@@ -2,6 +2,7 @@ package com.tengYii.jobspark.domain.agent.interview;
 
 import com.tengYii.jobspark.model.bo.interview.ReflectionResultBO;
 import dev.langchain4j.agentic.Agent;
+import dev.langchain4j.service.MemoryId;
 import dev.langchain4j.service.SystemMessage;
 import dev.langchain4j.service.UserMessage;
 import dev.langchain4j.service.V;
@@ -106,8 +107,9 @@ public interface InterviewReflectorAgent {
             6. 输出 JSON 格式的 ReflectionResultBO 对象
             """)
     ReflectionResultBO reflect(
-            @V("currentQuestion") String question,
-            @V("userAnswer") String answer,
+            @MemoryId String memoryId,
+            @V("currentQuestion") String currentQuestion,
+            @V("userAnswer") String userAnswer,
             @V("resumeContext") String resumeContext
     );
 }

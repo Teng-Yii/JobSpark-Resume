@@ -17,14 +17,14 @@ description: 对比岗位 JD 与候选人简历，识别匹配度、缺失技能
    - 对比项目经验：标记与 JD 业务场景相关的项目
    - 对比工作年限：计算候选人工作年限是否满足要求
 
-3. **输出格式**
-   以结构化 JSON 格式输出，包含以下字段：
+3. **输出格式（重要！）**
+   必须输出**纯 JSON 格式**，不使用任何 Markdown 代码块包裹，使用 camelCase 命名：
    ```json
    {
-     "match_score": 85, // 整体匹配度 0-100
-     "matched_skills": ["Java", "Spring Boot", "MySQL"], // 已匹配技能
-     "missing_skills": ["Redis Cluster", "Kubernetes"], // 缺失技能
-     "related_projects": ["秒杀系统重构项目"], // 相关项目
-     "focus_areas": ["Redis 集群经验", "云原生相关技术"], // 面试重点考察方向
+     "matchScore": 85,
+     "matchedSkills": ["Java", "Spring Boot", "MySQL"],
+     "missingSkills": ["Redis Cluster", "Kubernetes"],
+     "relatedProjects": ["秒杀系统重构项目"],
+     "focusAreas": ["Redis 集群经验", "云原生相关技术"],
      "suggestion": "候选人基础扎实，但缺少云原生经验，建议重点考察学习能力和Redis使用经验"
    }

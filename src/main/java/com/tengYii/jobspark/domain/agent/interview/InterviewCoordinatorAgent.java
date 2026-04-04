@@ -4,6 +4,7 @@ import com.tengYii.jobspark.dto.response.ResumeDetailResponse;
 import com.tengYii.jobspark.model.bo.interview.InterviewPlanBO;
 import com.tengYii.jobspark.model.bo.interview.JDAlignmentResultBO;
 import dev.langchain4j.agentic.Agent;
+import dev.langchain4j.service.MemoryId;
 import dev.langchain4j.service.SystemMessage;
 import dev.langchain4j.service.UserMessage;
 import dev.langchain4j.service.V;
@@ -59,11 +60,11 @@ public interface InterviewCoordinatorAgent {
             ## 面试计划结构要求
             面试计划应包含以下阶段（可根据实际情况调整顺序和重点）：
             
-            1. **自我介绍与项目破冰** (5-10分钟)
+            1. **自我介绍与项目破冰** (1-3分钟)
                - 针对简历中最有代表性的项目进行深入了解
                - 考察候选人的表达能力和项目深度
             
-            2. **Java基础与进阶** (15-20分钟)
+            2. **Java基础与进阶** (8-15分钟)
                - 根据简历技能栈选择合适的知识点
                - 涵盖：集合、多线程、并发、JVM、设计模式等
             
@@ -75,7 +76,7 @@ public interface InterviewCoordinatorAgent {
                - 针对简历中的技术亮点进行深度追问
                - 考察技术的深度理解和实际应用能力
             
-            5. **综合能力评估** (5-10分钟)
+            5. **综合能力评估** (2-5分钟)
                - 团队协作、问题解决能力、职业规划等
             
             ## 输出格式
@@ -102,5 +103,5 @@ public interface InterviewCoordinatorAgent {
             5. 生成结构化的面试计划，包含每个阶段的问题列表
             6. 输出JSON格式的 InterviewPlanBO 对象
             """)
-    InterviewPlanBO generateInterviewPlan(@V("resumeContext") ResumeDetailResponse resumeContext, @V("jdAlignResult") JDAlignmentResultBO jdAlignResult);
+    InterviewPlanBO generateInterviewPlan(@MemoryId String memoryId, @V("resumeContext") ResumeDetailResponse resumeContext, @V("jdAlignResult") JDAlignmentResultBO jdAlignResult);
 }
