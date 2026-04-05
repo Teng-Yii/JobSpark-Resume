@@ -51,6 +51,11 @@ public class InterviewSessionContext {
     private long createdTime;
 
     /**
+     * 简历上下文信息
+     */
+    private ResumeContextBO resumeContextBO;
+
+    /**
      * JD对齐结果
      */
     private JDAlignmentResultBO jdAlignmentResult;
@@ -71,9 +76,14 @@ public class InterviewSessionContext {
     private int currentQuestionIndex;
 
     /**
-     * 当前问题内容
+     * 当前问题内容（字符串形式，便捷访问）
      */
     private String currentQuestion;
+
+    /**
+     * 当前问题完整对象（包含意图分析、追问预案等元数据）
+     */
+    private InterviewQuestionBO currentQuestionBO;
 
     /**
      * 上一轮用户回答

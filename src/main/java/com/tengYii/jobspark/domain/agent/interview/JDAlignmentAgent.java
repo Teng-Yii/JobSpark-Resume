@@ -1,7 +1,7 @@
 package com.tengYii.jobspark.domain.agent.interview;
 
-import com.tengYii.jobspark.dto.response.ResumeDetailResponse;
 import com.tengYii.jobspark.model.bo.interview.JDAlignmentResultBO;
+import com.tengYii.jobspark.model.bo.interview.ResumeContextBO;
 import dev.langchain4j.agentic.Agent;
 import dev.langchain4j.service.MemoryId;
 import dev.langchain4j.service.UserMessage;
@@ -57,6 +57,6 @@ public interface JDAlignmentAgent {
                - suggestion: 综合建议
             6. 输出 JSON 格式的 JDAlignmentResultBO 对象
             """)
-    JDAlignmentResultBO align(@MemoryId String memoryId, @V("jobDescription") String jobDescription, @V("resumeContext") ResumeDetailResponse resumeContext);
+    JDAlignmentResultBO align(@MemoryId String memoryId, @V("jobDescription") String jobDescription, @V("resumeContext") ResumeContextBO resumeContext);
 
 }

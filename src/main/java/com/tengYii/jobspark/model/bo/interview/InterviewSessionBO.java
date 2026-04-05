@@ -6,7 +6,7 @@ import java.util.List;
 
 /**
  * 面试会话响应对象（首次交互返回）
- * 包含会话初始化所需的完整信息
+ * 仅返回给候选人必要的信息，保护面试评估逻辑
  */
 @Data
 public class InterviewSessionBO {
@@ -15,33 +15,6 @@ public class InterviewSessionBO {
      * 面试会话唯一标识ID
      */
     private Long sessionId;
-
-    /**
-     * 简历ID
-     */
-    private Long resumeId;
-
-    /**
-     * 用户ID
-     */
-    private Long userId;
-
-    /**
-     * 职位描述
-     */
-    private String jobDescription;
-
-    /**
-     * JD对齐结果
-     * 首次返回，包含简历与职位的技能匹配分析
-     */
-    private JDAlignmentResultBO jdAlignmentResult;
-
-    /**
-     * 面试计划
-     * 首次返回，包含完整的阶段规划和问题列表
-     */
-    private InterviewPlanBO interviewPlan;
 
     /**
      * 当前阶段索引（从0开始）
@@ -69,9 +42,14 @@ public class InterviewSessionBO {
     private int totalPlannedQuestions;
 
     /**
-     * 阶段信息列表（用于前端展示进度）
+     * 阶段信息列表（仅包含阶段名称和进度，不含具体问题）
      */
     private List<StageInfo> stageInfos;
+
+    /**
+     * 欢迎提示信息
+     */
+    private String welcomeMessage;
 
     /**
      * 阶段信息内部类

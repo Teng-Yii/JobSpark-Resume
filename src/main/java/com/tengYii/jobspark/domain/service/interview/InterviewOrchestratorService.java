@@ -1,9 +1,9 @@
 package com.tengYii.jobspark.domain.service.interview;
 
+import com.tengYii.jobspark.common.utils.SnowflakeUtil;
 import com.tengYii.jobspark.domain.agent.interview.*;
 import com.tengYii.jobspark.common.enums.InterviewDecisionEnum;
 import com.tengYii.jobspark.dto.request.InterviewSimulationRequest;
-import com.tengYii.jobspark.dto.response.ResumeDetailResponse;
 import com.tengYii.jobspark.infrastructure.store.RedisChatMemoryStore;
 import com.tengYii.jobspark.model.bo.interview.*;
 import dev.langchain4j.agentic.AgenticServices;
@@ -12,14 +12,13 @@ import dev.langchain4j.memory.chat.ChatMemoryProvider;
 import dev.langchain4j.memory.chat.MessageWindowChatMemory;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.skills.FileSystemSkillLoader;
-import dev.langchain4j.skills.Skill;
 import dev.langchain4j.skills.Skills;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 
 import java.nio.file.Path;
-import java.util.UUID;
+import java.util.Objects;
 
 /**
  * 面试编排服务类，负责协调多代理系统完成完整的面试流程。
@@ -65,11 +64,6 @@ public class InterviewOrchestratorService {
      */
     @Resource
     private RedisChatMemoryStore redisChatMemoryStore;
-
-    /**
-     * 简历分析Skill，加载文件系统中的简历分析技能
-     */
-    Skills resumeAnalysisSkill = Skills.from(FileSystemSkillLoader.loadSkill(Path.of("skills/resume-analysis")));
 
     /**
      * 问题探查Skill，加载文件系统中的问题探查技能，用于追问场景
@@ -133,11 +127,6 @@ public class InterviewOrchestratorService {
                 .chatMemoryStore(redisChatMemoryStore)
                 .build();
 
-        Skills combinedSkills = Skills.from(
-                FileSystemSkillLoader.loadSkill(Path.of("skills/resume-analysis")),
-                FileSystemSkillLoader.loadSkill(Path.of("skills/question-probing"))
-        );
-
         jdAlignAgent = AgenticServices
                 .agentBuilder(JDAlignmentAgent.class)
                 .chatModel(chatModel)
@@ -157,13 +146,6 @@ public class InterviewOrchestratorService {
                 .agentBuilder(InterviewCoordinatorAgent.class)
                 .chatModel(chatModel)
                 .chatMemoryProvider(redisChatMemoryProvider)
-                .toolProvider(resumeAnalysisSkill.toolProvider())
-                // 系统消息：告知LLM可用技能，要求先激活技能再执行
-                .systemMessage("""
-                        你拥有以下skills权限：
-                        %s
-                        当用户请求涉及上述skills时，必须先通过activate_skill工具激活skill，再执行操作。
-                        """.formatted(resumeAnalysisSkill.formatAvailableSkills()))
                 .outputKey("interviewPlan")
                 .build();
 
@@ -171,27 +153,20 @@ public class InterviewOrchestratorService {
                 .agentBuilder(JavaTechInterviewerAgent.class)
                 .chatModel(chatModel)
                 .chatMemoryProvider(redisChatMemoryProvider)
-                .toolProvider(combinedSkills.toolProvider())
+                .toolProvider(questionProbingSkill.toolProvider())
                 // 系统消息：告知LLM可用技能，要求先激活技能再执行
                 .systemMessage("""
                         你拥有以下skills权限：
                         %s
                         当用户请求涉及上述skills时，必须先通过activate_skill工具激活skill，再执行操作。
-                        """.formatted(resumeAnalysisSkill.formatAvailableSkills() + "\n" + questionProbingSkill.formatAvailableSkills()))
-                .outputKey("currentQuestion")
+                        """.formatted(questionProbingSkill.formatAvailableSkills()))
+                .outputKey("questionBO")
                 .build();
 
         reflector = AgenticServices
                 .agentBuilder(InterviewReflectorAgent.class)
                 .chatModel(chatModel)
                 .chatMemoryProvider(redisChatMemoryProvider)
-                .toolProvider(resumeAnalysisSkill.toolProvider())
-                // 系统消息：告知LLM可用技能，要求先激活技能再执行
-                .systemMessage("""
-                        你拥有以下skills权限：
-                        %s
-                        当用户请求涉及上述skills时，必须先通过activate_skill工具激活skill，再执行操作。
-                        """.formatted(resumeAnalysisSkill.formatAvailableSkills()))
                 .outputKey("reflection")
                 .build();
 
@@ -226,11 +201,11 @@ public class InterviewOrchestratorService {
      * 启动面试流程（首次交互）
      * 执行JD对齐和计划制定，返回首次问题和会话信息
      *
-     * @param request 模拟面试请求对象
-     * @param resumeDetail 简历详情
+     * @param request         模拟面试请求对象
+     * @param resumeContextBO 简历上下文对象
      * @return 首次会话响应
      */
-    public InterviewResponseBO startInterview(InterviewSimulationRequest request, ResumeDetailResponse resumeDetail) {
+    public InterviewResponseBO startInterview(InterviewSimulationRequest request, ResumeContextBO resumeContextBO) {
         Long sessionId = generateSessionId();
         Long userId = request.getUserId();
         Long resumeId = Long.valueOf(request.getResumeId());
@@ -238,40 +213,43 @@ public class InterviewOrchestratorService {
         InterviewSessionContext context = InterviewSessionContext.getOrCreate(
                 sessionId, userId, resumeId, request.getJobDescription());
 
-        String memoryId = buildMemoryId(userId, resumeId);
+        // 填充简历信息至会话上下文
+        context.setResumeContextBO(resumeContextBO);
 
         // 调用JD对齐Agent
-        JDAlignmentResultBO jdResult = jdAlignAgent.align(memoryId, request.getJobDescription(), resumeDetail);
+        String memoryId = buildMemoryId(userId, resumeId);
+        JDAlignmentResultBO jdResult = jdAlignAgent.align(memoryId, request.getJobDescription(), resumeContextBO);
         context.setJdAlignmentResult(jdResult);
 
         // 调用计划制定Agent
-        InterviewPlanBO plan = planner.generateInterviewPlan(memoryId, resumeDetail, jdResult);
+        InterviewPlanBO plan = planner.generateInterviewPlan(memoryId, resumeContextBO, jdResult);
         context.setInterviewPlan(plan);
 
         // 调用问题生成Agent
-        String firstQuestion = executor.generateQuestion(
+        InterviewQuestionBO firstQuestionBO = executor.generateQuestion(
                 memoryId,
                 plan,
                 context.getCurrentStageIndex(),
                 context.getCurrentQuestionIndex(),
                 false
         );
-        context.setCurrentQuestion(firstQuestion);
+        context.setCurrentQuestionBO(firstQuestionBO);
+        context.setCurrentQuestion(firstQuestionBO.getQuestionContent());
 
-        return buildSessionResponse(sessionId, context, firstQuestion);
+        return buildSessionResponse(sessionId, context, firstQuestionBO.getQuestionContent());
     }
 
     /**
      * 继续面试流程（后续交互）
      * 每轮用户回答后执行：反思 → 决策 → 生成下一问题
      *
-     * @param sessionId 会话ID
+     * @param sessionId  会话ID
      * @param userAnswer 用户回答
      * @return 进行中或结束响应
      */
     public InterviewResponseBO continueInterview(Long sessionId, String userAnswer) {
         InterviewSessionContext context = InterviewSessionContext.get(sessionId);
-        if (context == null) {
+        if (Objects.isNull(context)) {
             return InterviewResponseBO.error(sessionId, "会话不存在或已过期");
         }
 
@@ -282,13 +260,10 @@ public class InterviewOrchestratorService {
         String memoryId = buildMemoryId(context.getUserId(), context.getResumeId());
         context.setLastUserAnswer(userAnswer);
 
+        ResumeContextBO resumeContextBO = context.getResumeContextBO();
+
         // 调用反思评估Agent
-        ReflectionResultBO reflection = reflector.reflect(
-                memoryId,
-                context.getCurrentQuestion(),
-                userAnswer,
-                ""
-        );
+        ReflectionResultBO reflection = reflector.reflect(memoryId, context.getCurrentQuestion(), userAnswer, resumeContextBO);
         context.setCurrentDecision(reflection.getDecision());
 
         addQARecord(context, reflection);
@@ -313,14 +288,15 @@ public class InterviewOrchestratorService {
         }
 
         // 调用问题生成Agent
-        String nextQuestion = executor.generateQuestion(
+        InterviewQuestionBO nextQuestionBO = executor.generateQuestion(
                 memoryId,
                 context.getInterviewPlan(),
                 context.getCurrentStageIndex(),
                 context.getCurrentQuestionIndex(),
                 isProbe
         );
-        context.setCurrentQuestion(nextQuestion);
+        context.setCurrentQuestionBO(nextQuestionBO);
+        context.setCurrentQuestion(nextQuestionBO.getQuestionContent());
 
         return buildProgressResponse(sessionId, context, reflection);
     }
@@ -355,7 +331,7 @@ public class InterviewOrchestratorService {
     }
 
     private Long generateSessionId() {
-        return Math.abs(UUID.randomUUID().getMostSignificantBits());
+        return SnowflakeUtil.snowflakeId();
     }
 
     private String buildMemoryId(Long userId, Long resumeId) {
@@ -365,17 +341,13 @@ public class InterviewOrchestratorService {
     private InterviewResponseBO buildSessionResponse(Long sessionId, InterviewSessionContext context, String firstQuestion) {
         InterviewSessionBO sessionBO = new InterviewSessionBO();
         sessionBO.setSessionId(sessionId);
-        sessionBO.setResumeId(context.getResumeId());
-        sessionBO.setUserId(context.getUserId());
-        sessionBO.setJobDescription(context.getJobDescription());
-        sessionBO.setJdAlignmentResult(context.getJdAlignmentResult());
-        sessionBO.setInterviewPlan(context.getInterviewPlan());
         sessionBO.setCurrentStageIndex(context.getCurrentStageIndex());
         sessionBO.setCurrentStageName(getStageName(context));
         sessionBO.setCurrentQuestionIndex(context.getCurrentQuestionIndex());
         sessionBO.setCurrentQuestion(firstQuestion);
         sessionBO.setTotalPlannedQuestions(calculateTotalQuestions(context.getInterviewPlan()));
         sessionBO.setStageInfos(buildStageInfos(context));
+        sessionBO.setWelcomeMessage("欢迎参加Java技术面试，我会根据您的简历和职位要求进行个性化提问。请放松心态，展现您的真实水平。");
 
         return InterviewResponseBO.session(sessionId, sessionBO);
     }
@@ -387,10 +359,8 @@ public class InterviewOrchestratorService {
         progressBO.setCurrentStageIndex(context.getCurrentStageIndex());
         progressBO.setCurrentStageName(getStageName(context));
         progressBO.setCurrentQuestion(context.getCurrentQuestion());
-        progressBO.setLastUserAnswer(context.getLastUserAnswer());
-        progressBO.setLastReflection(lastReflection);
-        progressBO.setCurrentDecision(context.getCurrentDecision());
         progressBO.setProgress(buildProgressInfo(context));
+        progressBO.setFinished(context.isFinished());
 
         return InterviewResponseBO.progress(sessionId, progressBO);
     }
@@ -399,11 +369,12 @@ public class InterviewOrchestratorService {
         InterviewCompleteBO completeBO = new InterviewCompleteBO();
         completeBO.setSessionId(sessionId);
         completeBO.setFinished(true);
-        completeBO.setQaHistory(convertQARecords(context.getQaHistory()));
-        completeBO.setStageResults(buildStageResults(context));
+        completeBO.setQaHistory(convertQARecordsForCandidate(context.getQaHistory()));
         completeBO.setStatistics(buildStatistics(context));
         completeBO.setTotalScore(calculateTotalScore(context.getQaHistory()));
         completeBO.setFinalFeedback(generateFinalFeedback(context));
+        completeBO.setImprovementAreas(extractWeakAreas(context.getQaHistory()));
+        completeBO.setStrongAreas(extractStrongAreas(context.getQaHistory()));
 
         return InterviewResponseBO.complete(sessionId, completeBO);
     }
@@ -480,36 +451,18 @@ public class InterviewOrchestratorService {
         context.getQaHistory().add(record);
     }
 
-    private java.util.List<InterviewCompleteBO.QARecord> convertQARecords(
+    /**
+     * 转换问答记录（候选人视角）- 不包含评估信息
+     */
+    private java.util.List<InterviewCompleteBO.QARecord> convertQARecordsForCandidate(
             java.util.List<InterviewSessionContext.QARecord> records) {
         return records.stream()
                 .map(r -> {
                     InterviewCompleteBO.QARecord record = new InterviewCompleteBO.QARecord();
-                    record.setStageIndex(r.getStageIndex());
                     record.setStageName(r.getStageName());
                     record.setQuestion(r.getQuestion());
                     record.setAnswer(r.getAnswer());
-                    record.setScore(r.getScore());
-                    record.setDecision(r.getDecision());
-                    record.setFeedback(r.getFeedback());
-                    record.setProbe(r.isProbe());
                     return record;
-                })
-                .toList();
-    }
-
-    private java.util.List<InterviewCompleteBO.StageResult> buildStageResults(InterviewSessionContext context) {
-        if (context.getInterviewPlan() == null || context.getInterviewPlan().getStages() == null) {
-            return java.util.Collections.emptyList();
-        }
-
-        return context.getInterviewPlan().getStages().stream()
-                .map(stage -> {
-                    InterviewCompleteBO.StageResult result = new InterviewCompleteBO.StageResult();
-                    result.setStageIndex(stage.getOrder() - 1);
-                    result.setStageName(stage.getName());
-                    result.setQuestionCount(stage.getKeyTopics() != null ? stage.getKeyTopics().size() : 0);
-                    return result;
                 })
                 .toList();
     }
@@ -530,7 +483,49 @@ public class InterviewOrchestratorService {
         return (int) records.stream().mapToInt(InterviewSessionContext.QARecord::getScore).average().orElse(0);
     }
 
+    /**
+     * 从问答历史中提取需要加强的知识点
+     * 基于评分较低的记录分析
+     */
+    private java.util.List<String> extractWeakAreas(java.util.List<InterviewSessionContext.QARecord> records) {
+        if (records == null || records.isEmpty()) {
+            return java.util.Collections.emptyList();
+        }
+
+        return records.stream()
+                .filter(r -> r.getScore() < 60)
+                .map(InterviewSessionContext.QARecord::getStageName)
+                .distinct()
+                .limit(3)
+                .toList();
+    }
+
+    /**
+     * 从问答历史中提取表现优秀的知识点
+     * 基于评分较高的记录分析
+     */
+    private java.util.List<String> extractStrongAreas(java.util.List<InterviewSessionContext.QARecord> records) {
+        if (records == null || records.isEmpty()) {
+            return java.util.Collections.emptyList();
+        }
+
+        return records.stream()
+                .filter(r -> r.getScore() >= 80)
+                .map(InterviewSessionContext.QARecord::getStageName)
+                .distinct()
+                .limit(3)
+                .toList();
+    }
+
     private String generateFinalFeedback(InterviewSessionContext context) {
-        return "面试已完成，请查看详细结果。";
+        int totalScore = calculateTotalScore(context.getQaHistory());
+
+        if (totalScore >= 80) {
+            return "恭喜！您在本次面试中表现优秀，展现了扎实的技术功底。建议继续保持学习深度，关注新技术趋势。";
+        } else if (totalScore >= 60) {
+            return "面试已完成，您的表现达到基本要求。建议针对薄弱环节加强学习，多做项目实践提升经验。";
+        } else {
+            return "面试已完成。建议您系统复习Java核心技术栈，加强项目经验积累，平时多练习编码和系统设计。";
+        }
     }
 }

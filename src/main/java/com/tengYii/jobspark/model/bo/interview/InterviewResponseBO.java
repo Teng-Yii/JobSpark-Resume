@@ -1,6 +1,5 @@
 package com.tengYii.jobspark.model.bo.interview;
 
-import com.tengYii.jobspark.common.enums.InterviewDecisionEnum;
 import lombok.Data;
 
 /**
@@ -139,8 +138,8 @@ public class InterviewResponseBO {
      * 判断当前决策是否需要结束面试
      */
     public boolean isFinished() {
-        if (progress != null && progress.getCurrentDecision() != null) {
-            return InterviewDecisionEnum.FINISH.equals(progress.getCurrentDecision());
+        if (progress != null) {
+            return progress.isFinished();
         }
         if (complete != null) {
             return complete.isFinished();

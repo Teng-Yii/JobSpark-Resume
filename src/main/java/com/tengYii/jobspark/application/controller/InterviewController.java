@@ -6,7 +6,6 @@ import com.tengYii.jobspark.domain.service.interview.InterviewOrchestratorServic
 import com.tengYii.jobspark.dto.request.InterviewContinueRequest;
 import com.tengYii.jobspark.dto.request.InterviewSimulationRequest;
 import com.tengYii.jobspark.dto.response.*;
-import com.tengYii.jobspark.model.InterviewSession;
 import com.tengYii.jobspark.model.bo.interview.InterviewResponseBO;
 import jakarta.annotation.Resource;
 import lombok.RequiredArgsConstructor;

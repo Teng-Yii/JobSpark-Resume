@@ -7,8 +7,10 @@ import com.tengYii.jobspark.dto.request.InterviewSimulationRequest;
 import com.tengYii.jobspark.dto.response.ResumeDetailResponse;
 import com.tengYii.jobspark.model.bo.interview.InterviewResponseBO;
 import com.tengYii.jobspark.model.bo.interview.InterviewSessionContext;
+import com.tengYii.jobspark.model.bo.interview.ResumeContextBO;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
 /**
@@ -31,10 +33,12 @@ public class InterviewApplicationServiceImpl implements InterviewApplicationServ
     public InterviewResponseBO startInterview(InterviewSimulationRequest request) {
         Long userId = request.getUserId();
         Long resumeId = Long.parseLong(request.getResumeId());
-        String jobDescription = request.getJobDescription();
 
         ResumeDetailResponse resumeDetail = resumeApplicationService.getResumeDetail(resumeId, userId);
-        return interviewOrchestratorService.startInterview(request, resumeDetail);
+
+        ResumeContextBO resumeContextBO = new ResumeContextBO();
+        BeanUtils.copyProperties(resumeDetail, resumeContextBO);
+        return interviewOrchestratorService.startInterview(request, resumeContextBO);
     }
 
     @Override

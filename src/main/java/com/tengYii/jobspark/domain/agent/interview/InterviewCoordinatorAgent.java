@@ -1,8 +1,8 @@
 package com.tengYii.jobspark.domain.agent.interview;
 
-import com.tengYii.jobspark.dto.response.ResumeDetailResponse;
 import com.tengYii.jobspark.model.bo.interview.InterviewPlanBO;
 import com.tengYii.jobspark.model.bo.interview.JDAlignmentResultBO;
+import com.tengYii.jobspark.model.bo.interview.ResumeContextBO;
 import dev.langchain4j.agentic.Agent;
 import dev.langchain4j.service.MemoryId;
 import dev.langchain4j.service.SystemMessage;
@@ -96,12 +96,10 @@ public interface InterviewCoordinatorAgent {
             {{jdAlignResult}}
             
             ## 任务要求
-            1. 首先通过 activate_skill 工具激活 ResumeAnalysisSkill
-            2. 调用 ResumeAnalysisSkill 进一步分析候选人技能
-            3. 结合JD对齐结果，识别需要重点考察的技能领域
-            4. 根据候选人技能栈设计合适的问题难度和深度
-            5. 生成结构化的面试计划，包含每个阶段的问题列表
-            6. 输出JSON格式的 InterviewPlanBO 对象
+            1. 结合候选人简历上下文和JD对齐结果，识别需要重点考察的技能领域
+            2. 根据候选人技能栈设计合适的问题难度和深度
+            3. 生成结构化的面试计划，包含每个阶段的问题列表
+            4. 输出JSON格式的 InterviewPlanBO 对象
             """)
-    InterviewPlanBO generateInterviewPlan(@MemoryId String memoryId, @V("resumeContext") ResumeDetailResponse resumeContext, @V("jdAlignResult") JDAlignmentResultBO jdAlignResult);
+    InterviewPlanBO generateInterviewPlan(@MemoryId String memoryId, @V("resumeContext") ResumeContextBO resumeContext, @V("jdAlignResult") JDAlignmentResultBO jdAlignResult);
 }

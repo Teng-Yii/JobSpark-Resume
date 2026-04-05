@@ -1,13 +1,12 @@
 package com.tengYii.jobspark.model.bo.interview;
 
-import com.tengYii.jobspark.common.enums.InterviewDecisionEnum;
 import lombok.Data;
 
 import java.util.List;
 
 /**
  * 面试完成响应对象
- * 面试结束时返回，包含完整的结果汇总
+ * 候选人视角：返回综合评估结果，不暴露评估细节
  */
 @Data
 public class InterviewCompleteBO {
@@ -33,15 +32,14 @@ public class InterviewCompleteBO {
     private String finalFeedback;
 
     /**
-     * 问答历史记录
-     * 仅在面试结束时返回完整历史
+     * 需要加强的知识点（作为成长建议）
      */
-    private List<QARecord> qaHistory;
+    private List<String> improvementAreas;
 
     /**
-     * 阶段结果汇总
+     * 表现优秀的知识点
      */
-    private List<StageResult> stageResults;
+    private List<String> strongAreas;
 
     /**
      * 面试统计信息
@@ -49,15 +47,15 @@ public class InterviewCompleteBO {
     private Statistics statistics;
 
     /**
-     * 问答记录内部类
+     * 问答历史记录（仅包含问题和回答，不含评估信息）
+     */
+    private List<QARecord> qaHistory;
+
+    /**
+     * 问答记录内部类（候选人视角）
      */
     @Data
     public static class QARecord {
-
-        /**
-         * 所属阶段索引
-         */
-        private int stageIndex;
 
         /**
          * 阶段名称
@@ -73,63 +71,6 @@ public class InterviewCompleteBO {
          * 回答内容
          */
         private String answer;
-
-        /**
-         * 评估分数
-         */
-        private int score;
-
-        /**
-         * 决策结果
-         */
-        private InterviewDecisionEnum decision;
-
-        /**
-         * 反馈评语
-         */
-        private String feedback;
-
-        /**
-         * 是否为追问
-         */
-        private boolean isProbe;
-    }
-
-    /**
-     * 阶段结果内部类
-     */
-    @Data
-    public static class StageResult {
-
-        /**
-         * 阶段索引
-         */
-        private int stageIndex;
-
-        /**
-         * 阶段名称
-         */
-        private String stageName;
-
-        /**
-         * 阶段得分（该阶段所有问题平均分）
-         */
-        private Double stageScore;
-
-        /**
-         * 该阶段问题数
-         */
-        private int questionCount;
-
-        /**
-         * 该阶段追问数
-         */
-        private int probeCount;
-
-        /**
-         * 阶段综合评价
-         */
-        private String stageFeedback;
     }
 
     /**
@@ -147,26 +88,6 @@ public class InterviewCompleteBO {
          * 总追问数
          */
         private int totalProbes;
-
-        /**
-         * 回答正确数
-         */
-        private int correctAnswers;
-
-        /**
-         * 回答错误数
-         */
-        private int wrongAnswers;
-
-        /**
-         * 需要加强的知识点
-         */
-        private List<String> weakAreas;
-
-        /**
-         * 表现优秀的知识点
-         */
-        private List<String> strongAreas;
 
         /**
          * 面试耗时（分钟）

@@ -1,6 +1,7 @@
 package com.tengYii.jobspark.domain.agent.interview;
 
 import com.tengYii.jobspark.model.bo.interview.ReflectionResultBO;
+import com.tengYii.jobspark.model.bo.interview.ResumeContextBO;
 import dev.langchain4j.agentic.Agent;
 import dev.langchain4j.service.MemoryId;
 import dev.langchain4j.service.SystemMessage;
@@ -110,6 +111,6 @@ public interface InterviewReflectorAgent {
             @MemoryId String memoryId,
             @V("currentQuestion") String currentQuestion,
             @V("userAnswer") String userAnswer,
-            @V("resumeContext") String resumeContext
+            @V("resumeContext") ResumeContextBO resumeContext
     );
 }

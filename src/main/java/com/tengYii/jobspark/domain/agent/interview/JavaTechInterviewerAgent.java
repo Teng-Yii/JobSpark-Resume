@@ -29,7 +29,7 @@ import dev.langchain4j.service.V;
  * <p>
  * 输出：
  * <ul>
- *   <li>currentQuestion - 当前要提出的技术问题</li>
+ *   <li>currentQuestion - 当前要提出的技术问题（InterviewQuestionBO对象）</li>
  * </ul>
  */
 public interface JavaTechInterviewerAgent {
@@ -42,16 +42,16 @@ public interface JavaTechInterviewerAgent {
      *   <li>根据阶段和问题索引从面试计划获取对应的考察主题</li>
      *   <li>结合会话上下文中的候选人信息定制问题</li>
      *   <li>如果是追问模式，基于上一轮回答深挖</li>
-     *   <li>输出定制化的问题文本</li>
+     *   <li>输出结构化的面试问题对象</li>
      * </ol>
      *
      * @param interviewPlan       面试计划，包含问题列表和阶段安排
      * @param currentStageIndex   当前阶段索引
      * @param currentQuestionIndex 当前问题索引
      * @param isProbe             是否为追问模式
-     * @return 当前阶段需要提出的技术问题
+     * @return 包含问题内容、出题意图、追问预案等完整元数据的面试问题对象
      */
-    @Agent(value = "Java技术面试执行Agent：根据面试计划和会话上下文，执行定制化的技术问题，动态调整问题难度和深度", outputKey = "currentQuestion")
+    @Agent(value = "Java技术面试执行Agent：根据面试计划和会话上下文，执行定制化的技术问题，动态调整问题难度和深度", outputKey = "questionBO")
     @SystemMessage("""
             你是一位拥有10年以上开发经验的资深Java技术面试官。
 
@@ -73,10 +73,14 @@ public interface JavaTechInterviewerAgent {
             - 项目问题要深挖：为什么用这个技术？遇到的最大挑战？如何解决的？
 
             ## 输出要求
-            输出格式化的技术问题，包含：
-            - 问题核心要点
-            - 追问方向（如果候选人回答得好）
-            - 备选简化问题（如果候选人回答困难）
+            输出 JSON 格式的 InterviewQuestionBO 对象，包含：
+            - stageName: 当前阶段名称
+            - stageOrder: 当前阶段序号
+            - topicName: 考察主题名称
+            - questionContent: 面试官提问内容（问题文本）
+            - intentAnalyses: 出题意图分析列表
+            - followUpPlans: 追问预案列表
+            - simplifiedQuestion: 备选简化问题
             """)
     @UserMessage("""
             请根据以下信息生成技术面试问题：
@@ -94,13 +98,13 @@ public interface JavaTechInterviewerAgent {
             {{isProbe}}
 
             ## 任务要求
-            1. 首先通过 activate_skill 工具激活 ResumeAnalysisSkill（分析候选人技能）和 QuestionProbingSkill（追问能力）
+            1. 首先通过 activate_skill 工具激活 QuestionProbingSkill（追问能力）
             2. 根据当前阶段索引从面试计划获取对应阶段，根据问题索引获取考察主题
             3. 结合会话上下文中的候选人项目经历，定制化生成技术问题
             4. 如果是追问模式（isProbe=true），基于上一轮回答内容进行深入追问
-            5. 输出当前阶段的技术问题文本
+            5. 输出 JSON 格式的 InterviewQuestionBO 对象
             """)
-    String generateQuestion(
+    InterviewQuestionBO generateQuestion(
             @MemoryId String memoryId,
             @V("interviewPlan") InterviewPlanBO interviewPlan,
             @V("currentStageIndex") int currentStageIndex,
