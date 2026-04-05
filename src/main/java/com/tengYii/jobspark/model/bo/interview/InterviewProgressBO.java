@@ -1,13 +1,10 @@
 package com.tengYii.jobspark.model.bo.interview;
 
-import com.tengYii.jobspark.common.enums.InterviewDecisionEnum;
 import lombok.Data;
-
-import java.util.List;
 
 /**
  * 面试进行中响应对象
- * 用户每次回答问题后返回，包含当前状态和下一个问题
+ * 候选人视角：仅返回必要信息，保持面试专注度
  */
 @Data
 public class InterviewProgressBO {
@@ -38,25 +35,14 @@ public class InterviewProgressBO {
     private String currentQuestion;
 
     /**
-     * 上一轮用户回答（用于确认）
-     */
-    private String lastUserAnswer;
-
-    /**
-     * 上一轮评估结果
-     */
-    private ReflectionResultBO lastReflection;
-
-    /**
-     * 当前决策状态
-     * 决定下一轮的行为
-     */
-    private InterviewDecisionEnum currentDecision;
-
-    /**
      * 进度信息
      */
     private ProgressInfo progress;
+
+    /**
+     * 面试是否已结束
+     */
+    private boolean finished;
 
     /**
      * 进度信息内部类
@@ -99,11 +85,11 @@ public class InterviewProgressBO {
      * 快速返回的便捷方法 - 仅包含最小信息
      * 适用于前后端约定好不需要完整信息的场景
      */
-    public static InterviewProgressBO minimal(Long sessionId, String question, InterviewDecisionEnum decision) {
+    public static InterviewProgressBO minimal(Long sessionId, String question, boolean finished) {
         InterviewProgressBO result = new InterviewProgressBO();
         result.setSessionId(sessionId);
         result.setCurrentQuestion(question);
-        result.setCurrentDecision(decision);
+        result.setFinished(finished);
         return result;
     }
 }
