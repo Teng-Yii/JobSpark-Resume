@@ -17,7 +17,7 @@ public class InterviewResponseBO {
     /**
      * 会话ID
      */
-    private Long sessionId;
+    private String sessionId;
 
     /**
      * 当前面试状态
@@ -90,7 +90,7 @@ public class InterviewResponseBO {
     /**
      * 创建首次会话响应
      */
-    public static InterviewResponseBO session(Long sessionId, InterviewSessionBO session) {
+    public static InterviewResponseBO session(String sessionId, InterviewSessionBO session) {
         InterviewResponseBO response = new InterviewResponseBO();
         response.setResponseType(ResponseType.SESSION);
         response.setSessionId(sessionId);
@@ -102,7 +102,7 @@ public class InterviewResponseBO {
     /**
      * 创建进行中响应
      */
-    public static InterviewResponseBO progress(Long sessionId, InterviewProgressBO progress) {
+    public static InterviewResponseBO progress(String sessionId, InterviewProgressBO progress) {
         InterviewResponseBO response = new InterviewResponseBO();
         response.setResponseType(ResponseType.PROGRESS);
         response.setSessionId(sessionId);
@@ -114,7 +114,7 @@ public class InterviewResponseBO {
     /**
      * 创建结束响应
      */
-    public static InterviewResponseBO complete(Long sessionId, InterviewCompleteBO complete) {
+    public static InterviewResponseBO complete(String sessionId, InterviewCompleteBO complete) {
         InterviewResponseBO response = new InterviewResponseBO();
         response.setResponseType(ResponseType.COMPLETE);
         response.setSessionId(sessionId);
@@ -126,7 +126,7 @@ public class InterviewResponseBO {
     /**
      * 创建错误响应
      */
-    public static InterviewResponseBO error(Long sessionId, String message) {
+    public static InterviewResponseBO error(String sessionId, String message) {
         InterviewResponseBO response = new InterviewResponseBO();
         response.setResponseType(ResponseType.ERROR);
         response.setSessionId(sessionId);

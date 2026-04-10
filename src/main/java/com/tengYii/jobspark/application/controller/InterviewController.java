@@ -54,7 +54,7 @@ public class InterviewController {
      */
     @PostMapping("/sessions/{sessionId}/continue")
     public ResponseEntity<ApiResponse<InterviewResponseBO>> continueInterview(
-            @PathVariable Long sessionId,
+            @PathVariable String sessionId,
             @RequestBody InterviewContinueRequest request) {
 
         try {
@@ -71,7 +71,7 @@ public class InterviewController {
      * 获取面试会话当前状态
      */
     @GetMapping("/sessions/{sessionId}/status")
-    public ResponseEntity<ApiResponse<InterviewResponseBO>> getSessionStatus(@PathVariable Long sessionId) {
+    public ResponseEntity<ApiResponse<InterviewResponseBO>> getSessionStatus(@PathVariable String sessionId) {
         try {
             InterviewResponseBO response = interviewApplicationService.getSessionStatus(sessionId);
             return ResponseEntity.ok(ApiResponse.success(response));
@@ -86,7 +86,7 @@ public class InterviewController {
      * 结束面试会话
      */
     @PostMapping("/sessions/{sessionId}/finish")
-    public ResponseEntity<ApiResponse<InterviewResponseBO>> finishInterview(@PathVariable Long sessionId) {
+    public ResponseEntity<ApiResponse<InterviewResponseBO>> finishInterview(@PathVariable String sessionId) {
         try {
             InterviewResponseBO response = interviewApplicationService.finishInterview(sessionId);
             return ResponseEntity.ok(ApiResponse.success(response));

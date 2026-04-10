@@ -23,12 +23,12 @@ public class InterviewSessionContext {
      * 会话状态Map，用于存储所有活跃会话的上下文
      * key: sessionId
      */
-    private static final ConcurrentHashMap<Long, InterviewSessionContext> SESSIONS = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<String, InterviewSessionContext> SESSIONS = new ConcurrentHashMap<>();
 
     /**
      * 会话ID
      */
-    private Long sessionId;
+    private String sessionId;
 
     /**
      * 简历ID
@@ -128,7 +128,7 @@ public class InterviewSessionContext {
     /**
      * 获取会话上下文，如果不存在则创建
      */
-    public static InterviewSessionContext getOrCreate(Long sessionId, Long userId, Long resumeId, String jobDescription) {
+    public static InterviewSessionContext getOrCreate(String sessionId, Long userId, Long resumeId, String jobDescription) {
         return SESSIONS.computeIfAbsent(sessionId, k -> {
             InterviewSessionContext context = new InterviewSessionContext();
             context.sessionId = sessionId;
@@ -144,21 +144,21 @@ public class InterviewSessionContext {
     /**
      * 根据sessionId获取会话上下文
      */
-    public static InterviewSessionContext get(Long sessionId) {
+    public static InterviewSessionContext get(String sessionId) {
         return SESSIONS.get(sessionId);
     }
 
     /**
      * 移除会话上下文
      */
-    public static void remove(Long sessionId) {
+    public static void remove(String sessionId) {
         SESSIONS.remove(sessionId);
     }
 
     /**
      * 检查会话是否存在
      */
-    public static boolean exists(Long sessionId) {
+    public static boolean exists(String sessionId) {
         return SESSIONS.containsKey(sessionId);
     }
 

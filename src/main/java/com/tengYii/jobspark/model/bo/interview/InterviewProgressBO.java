@@ -12,7 +12,7 @@ public class InterviewProgressBO {
     /**
      * 面试会话唯一标识ID
      */
-    private Long sessionId;
+    private String sessionId;
 
     /**
      * 当前问题索引
@@ -85,7 +85,7 @@ public class InterviewProgressBO {
      * 快速返回的便捷方法 - 仅包含最小信息
      * 适用于前后端约定好不需要完整信息的场景
      */
-    public static InterviewProgressBO minimal(Long sessionId, String question, boolean finished) {
+    public static InterviewProgressBO minimal(String sessionId, String question, boolean finished) {
         InterviewProgressBO result = new InterviewProgressBO();
         result.setSessionId(sessionId);
         result.setCurrentQuestion(question);

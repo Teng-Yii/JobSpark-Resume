@@ -1,5 +1,6 @@
 package com.tengYii.jobspark.domain.agent.interview;
 
+import com.tengYii.jobspark.domain.agent.cv.JsonResponseCleanGuard;
 import com.tengYii.jobspark.model.bo.interview.InterviewPlanBO;
 import com.tengYii.jobspark.model.bo.interview.InterviewQuestionBO;
 import dev.langchain4j.agentic.Agent;
@@ -7,6 +8,7 @@ import dev.langchain4j.service.MemoryId;
 import dev.langchain4j.service.SystemMessage;
 import dev.langchain4j.service.UserMessage;
 import dev.langchain4j.service.V;
+import dev.langchain4j.service.guardrail.OutputGuardrails;
 
 /**
  * Java技术面试执行Agent：交互式面试中的问题执行者。
@@ -104,6 +106,7 @@ public interface JavaTechInterviewerAgent {
             4. 如果是追问模式（isProbe=true），基于上一轮回答内容进行深入追问
             5. 输出 JSON 格式的 InterviewQuestionBO 对象
             """)
+    @OutputGuardrails(value = {JsonResponseCleanGuard.class}, maxRetries = 0)
     InterviewQuestionBO generateQuestion(
             @MemoryId String memoryId,
             @V("interviewPlan") InterviewPlanBO interviewPlan,

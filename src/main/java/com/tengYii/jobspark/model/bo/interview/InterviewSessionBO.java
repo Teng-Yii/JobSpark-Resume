@@ -14,7 +14,7 @@ public class InterviewSessionBO {
     /**
      * 面试会话唯一标识ID
      */
-    private Long sessionId;
+    private String sessionId;
 
     /**
      * 当前阶段索引（从0开始）

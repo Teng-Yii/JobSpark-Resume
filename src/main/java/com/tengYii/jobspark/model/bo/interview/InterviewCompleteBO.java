@@ -14,7 +14,7 @@ public class InterviewCompleteBO {
     /**
      * 面试会话唯一标识ID
      */
-    private Long sessionId;
+    private String sessionId;
 
     /**
      * 面试是否已完成

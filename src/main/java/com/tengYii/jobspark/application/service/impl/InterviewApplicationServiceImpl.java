@@ -42,7 +42,7 @@ public class InterviewApplicationServiceImpl implements InterviewApplicationServ
     }
 
     @Override
-    public InterviewResponseBO continueInterview(Long sessionId, String userAnswer) {
+    public InterviewResponseBO continueInterview(String sessionId, String userAnswer) {
         if (!InterviewSessionContext.exists(sessionId)) {
             throw new IllegalArgumentException("会话不存在或已过期");
         }
@@ -51,7 +51,7 @@ public class InterviewApplicationServiceImpl implements InterviewApplicationServ
     }
 
     @Override
-    public InterviewResponseBO getSessionStatus(Long sessionId) {
+    public InterviewResponseBO getSessionStatus(String sessionId) {
         if (!InterviewSessionContext.exists(sessionId)) {
             throw new IllegalArgumentException("会话不存在或已过期");
         }
@@ -60,7 +60,7 @@ public class InterviewApplicationServiceImpl implements InterviewApplicationServ
     }
 
     @Override
-    public InterviewResponseBO finishInterview(Long sessionId) {
+    public InterviewResponseBO finishInterview(String sessionId) {
         if (!InterviewSessionContext.exists(sessionId)) {
             throw new IllegalArgumentException("会话不存在或已过期");
         }

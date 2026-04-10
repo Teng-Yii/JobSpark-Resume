@@ -24,7 +24,7 @@ public interface InterviewApplicationService {
      * @param userAnswer 用户回答
      * @return 面试响应结果
      */
-    InterviewResponseBO continueInterview(Long sessionId, String userAnswer);
+    InterviewResponseBO continueInterview(String sessionId, String userAnswer);
 
     /**
      * 获取会话状态
@@ -32,7 +32,7 @@ public interface InterviewApplicationService {
      * @param sessionId 会话ID
      * @return 面试响应结果
      */
-    InterviewResponseBO getSessionStatus(Long sessionId);
+    InterviewResponseBO getSessionStatus(String sessionId);
 
     /**
      * 结束面试会话
@@ -40,5 +40,5 @@ public interface InterviewApplicationService {
      * @param sessionId 会话ID
      * @return 面试响应结果
      */
-    InterviewResponseBO finishInterview(Long sessionId);
+    InterviewResponseBO finishInterview(String sessionId);
 }

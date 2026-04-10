@@ -1,5 +1,6 @@
 package com.tengYii.jobspark.domain.agent.interview;
 
+import com.tengYii.jobspark.domain.agent.cv.JsonResponseCleanGuard;
 import com.tengYii.jobspark.model.bo.interview.InterviewPlanBO;
 import com.tengYii.jobspark.model.bo.interview.JDAlignmentResultBO;
 import com.tengYii.jobspark.model.bo.interview.ResumeContextBO;
@@ -8,6 +9,7 @@ import dev.langchain4j.service.MemoryId;
 import dev.langchain4j.service.SystemMessage;
 import dev.langchain4j.service.UserMessage;
 import dev.langchain4j.service.V;
+import dev.langchain4j.service.guardrail.OutputGuardrails;
 
 /**
  * 面试计划制定Agent：Plan-and-Execute 模式中的计划制定者。
@@ -82,9 +84,6 @@ public interface InterviewCoordinatorAgent {
             ## 输出格式
             请严格按照 JSON 格式输出 InterviewPlanBO 对象，包含：
             - stages: 面试阶段列表
-            - estimatedDuration: 预计面试时长
-            - focusAreas: 本次面试的重点考察领域
-            - questionPriorities: 问题优先级排序
             """)
     @UserMessage("""
             请根据以下信息生成面试计划：
@@ -101,5 +100,6 @@ public interface InterviewCoordinatorAgent {
             3. 生成结构化的面试计划，包含每个阶段的问题列表
             4. 输出JSON格式的 InterviewPlanBO 对象
             """)
+    @OutputGuardrails(value = {JsonResponseCleanGuard.class}, maxRetries = 0)
     InterviewPlanBO generateInterviewPlan(@MemoryId String memoryId, @V("resumeContext") ResumeContextBO resumeContext, @V("jdAlignResult") JDAlignmentResultBO jdAlignResult);
 }

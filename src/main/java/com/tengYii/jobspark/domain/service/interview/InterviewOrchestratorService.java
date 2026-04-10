@@ -7,7 +7,6 @@ import com.tengYii.jobspark.dto.request.InterviewSimulationRequest;
 import com.tengYii.jobspark.infrastructure.store.RedisChatMemoryStore;
 import com.tengYii.jobspark.model.bo.interview.*;
 import dev.langchain4j.agentic.AgenticServices;
-import dev.langchain4j.agentic.UntypedAgent;
 import dev.langchain4j.memory.chat.ChatMemoryProvider;
 import dev.langchain4j.memory.chat.MessageWindowChatMemory;
 import dev.langchain4j.model.chat.ChatModel;
@@ -15,6 +14,7 @@ import dev.langchain4j.skills.FileSystemSkillLoader;
 import dev.langchain4j.skills.Skills;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.Resource;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.nio.file.Path;
@@ -23,18 +23,18 @@ import java.util.Objects;
 /**
  * 面试编排服务类，负责协调多代理系统完成完整的面试流程。
  * <p>
- * 面试流程采用三层架构设计：
+ * 面试流程采用交互式架构设计：
  * <ul>
- *   <li><b>顺序流</b>：JD对齐 → 计划制定 → 问题执行 → 结果反思 → 条件路由</li>
- *   <li><b>条件流</b>：根据反思结果选择后续动作：
+ *   <li><b>启动流程</b>：JD对齐 → 计划制定 → 生成首个问题</li>
+ *   <li><b>交互循环</b>：用户回答 → 反思评估 → 决策 → 生成下一问题</li>
+ *   <li><b>决策分支</b>：根据反思结果选择后续动作：
  *     <ul>
- *       <li>PROBE - 追问（进入循环流）</li>
- *       <li>NEXT - 下一题</li>
- *       <li>STAGE_FINISH - 下一阶段</li>
+ *       <li>PROBE - 追问（增加追问计数，不推进问题索引）</li>
+ *       <li>NEXT - 推进到下一问题</li>
+ *       <li>STAGE_FINISH - 推进到下一阶段</li>
  *       <li>FINISH - 结束面试</li>
  *     </ul>
  *   </li>
- *   <li><b>循环流</b>：追问、多轮问答、多阶段面试的循环处理</li>
  * </ul>
  * <p>
  * 核心组件：
@@ -44,12 +44,13 @@ import java.util.Objects;
  *   <li>{@link JavaTechInterviewerAgent} - 技术问题执行</li>
  *   <li>{@link InterviewReflectorAgent} - 面试结果反思评估</li>
  * </ul>
+ * <p>
  *
- * @see JavaInterviewPlanAndExecuteWorkflow
  * @see InterviewCoordinatorAgent
  * @see JavaTechInterviewerAgent
  * @see InterviewReflectorAgent
  */
+@Slf4j
 @Service
 public class InterviewOrchestratorService {
 
@@ -94,25 +95,6 @@ public class InterviewOrchestratorService {
      * 反思评估Agent，负责评估候选人的回答并决定后续流程
      */
     private InterviewReflectorAgent reflector;
-
-    /**
-     * 追问循环Agent
-     * <p>
-     * 最大迭代次数为3次，当反思结果不是PROBE时退出循环
-     * 注意：这是内部循环，由条件路由触发，不是主循环
-     */
-    private UntypedAgent probeLoop;
-
-    /**
-     * 条件路由Agent，根据反思结果决定后续动作
-     * <ul>
-     *   <li>PROBE - 执行追问循环</li>
-     *   <li>NEXT - 执行下一题</li>
-     *   <li>STAGE_FINISH - 进入下一阶段</li>
-     *   <li>FINISH - 结束面试</li>
-     * </ul>
-     */
-    private UntypedAgent decisionRouter;
 
     /**
      * 初始化所有Agent组件
@@ -169,32 +151,6 @@ public class InterviewOrchestratorService {
                 .chatMemoryProvider(redisChatMemoryProvider)
                 .outputKey("reflection")
                 .build();
-
-        probeLoop = AgenticServices
-                .loopBuilder()
-                .subAgents(executor, reflector)
-                .maxIterations(3)
-                .exitCondition((scope, count) -> {
-                    ReflectionResultBO res = scope.readState("reflection", null);
-                    return res == null || !InterviewDecisionEnum.PROBE.equals(res.getDecision());
-                })
-                .build();
-
-        decisionRouter = AgenticServices
-                .conditionalBuilder()
-                .subAgents(scope -> {
-                    ReflectionResultBO r = scope.readState("reflection", null);
-                    return r != null && InterviewDecisionEnum.PROBE.equals(r.getDecision());
-                }, probeLoop)
-                .subAgents(scope -> {
-                    ReflectionResultBO r = scope.readState("reflection", null);
-                    return r != null && InterviewDecisionEnum.NEXT.equals(r.getDecision());
-                }, executor)
-                .subAgents(scope -> {
-                    ReflectionResultBO r = scope.readState("reflection", null);
-                    return r != null && InterviewDecisionEnum.STAGE_FINISH.equals(r.getDecision());
-                }, executor)
-                .build();
     }
 
     /**
@@ -206,9 +162,10 @@ public class InterviewOrchestratorService {
      * @return 首次会话响应
      */
     public InterviewResponseBO startInterview(InterviewSimulationRequest request, ResumeContextBO resumeContextBO) {
-        Long sessionId = generateSessionId();
+        String sessionId = generateSessionId();
         Long userId = request.getUserId();
         Long resumeId = Long.valueOf(request.getResumeId());
+        log.info("创建面试会话: sessionId={}, userId={}, resumeId={}", sessionId, userId, resumeId);
 
         InterviewSessionContext context = InterviewSessionContext.getOrCreate(
                 sessionId, userId, resumeId, request.getJobDescription());
@@ -247,7 +204,7 @@ public class InterviewOrchestratorService {
      * @param userAnswer 用户回答
      * @return 进行中或结束响应
      */
-    public InterviewResponseBO continueInterview(Long sessionId, String userAnswer) {
+    public InterviewResponseBO continueInterview(String sessionId, String userAnswer) {
         InterviewSessionContext context = InterviewSessionContext.get(sessionId);
         if (Objects.isNull(context)) {
             return InterviewResponseBO.error(sessionId, "会话不存在或已过期");
@@ -275,16 +232,20 @@ public class InterviewOrchestratorService {
             return buildCompleteResponse(sessionId, context);
         }
 
-        // 判断是否为追问模式
+        // 根据决策结果更新会话状态
+        // 追问模式：decision=PROBE 且追问次数未超限
         boolean isProbe = InterviewDecisionEnum.PROBE.equals(decision) && context.canProbe();
         if (isProbe) {
+            // 追问模式：增加追问计数，不推进问题/阶段
             context.incrementProbeCount();
-        } else if (InterviewDecisionEnum.NEXT.equals(decision)) {
-            context.moveToNextQuestion();
-        } else if (InterviewDecisionEnum.STAGE_FINISH.equals(decision)) {
-            context.moveToNextStage();
         } else {
-            context.moveToNextQuestion();
+            // 非追问模式：根据决策推进面试进度
+            if (InterviewDecisionEnum.STAGE_FINISH.equals(decision)) {
+                context.moveToNextStage();
+            } else {
+                // NEXT、FINISH（FINISH已在上面处理）、或其他情况：推进到下一问题
+                context.moveToNextQuestion();
+            }
         }
 
         // 调用问题生成Agent
@@ -304,7 +265,7 @@ public class InterviewOrchestratorService {
     /**
      * 获取会话状态
      */
-    public InterviewResponseBO getSessionStatus(Long sessionId) {
+    public InterviewResponseBO getSessionStatus(String sessionId) {
         InterviewSessionContext context = InterviewSessionContext.get(sessionId);
         if (context == null) {
             return InterviewResponseBO.error(sessionId, "会话不存在或已过期");
@@ -320,7 +281,7 @@ public class InterviewOrchestratorService {
     /**
      * 结束面试会话
      */
-    public InterviewResponseBO finishInterview(Long sessionId) {
+    public InterviewResponseBO finishInterview(String sessionId) {
         InterviewSessionContext context = InterviewSessionContext.get(sessionId);
         if (context == null) {
             return InterviewResponseBO.error(sessionId, "会话不存在或已过期");
@@ -330,15 +291,15 @@ public class InterviewOrchestratorService {
         return buildCompleteResponse(sessionId, context);
     }
 
-    private Long generateSessionId() {
-        return SnowflakeUtil.snowflakeId();
+    private String generateSessionId() {
+        return String.valueOf(SnowflakeUtil.snowflakeId());
     }
 
     private String buildMemoryId(Long userId, Long resumeId) {
         return userId + "_" + resumeId;
     }
 
-    private InterviewResponseBO buildSessionResponse(Long sessionId, InterviewSessionContext context, String firstQuestion) {
+    private InterviewResponseBO buildSessionResponse(String sessionId, InterviewSessionContext context, String firstQuestion) {
         InterviewSessionBO sessionBO = new InterviewSessionBO();
         sessionBO.setSessionId(sessionId);
         sessionBO.setCurrentStageIndex(context.getCurrentStageIndex());
@@ -352,7 +313,7 @@ public class InterviewOrchestratorService {
         return InterviewResponseBO.session(sessionId, sessionBO);
     }
 
-    private InterviewResponseBO buildProgressResponse(Long sessionId, InterviewSessionContext context, ReflectionResultBO lastReflection) {
+    private InterviewResponseBO buildProgressResponse(String sessionId, InterviewSessionContext context, ReflectionResultBO lastReflection) {
         InterviewProgressBO progressBO = new InterviewProgressBO();
         progressBO.setSessionId(sessionId);
         progressBO.setCurrentQuestionIndex(context.getCurrentQuestionIndex());
@@ -365,7 +326,7 @@ public class InterviewOrchestratorService {
         return InterviewResponseBO.progress(sessionId, progressBO);
     }
 
-    private InterviewResponseBO buildCompleteResponse(Long sessionId, InterviewSessionContext context) {
+    private InterviewResponseBO buildCompleteResponse(String sessionId, InterviewSessionContext context) {
         InterviewCompleteBO completeBO = new InterviewCompleteBO();
         completeBO.setSessionId(sessionId);
         completeBO.setFinished(true);

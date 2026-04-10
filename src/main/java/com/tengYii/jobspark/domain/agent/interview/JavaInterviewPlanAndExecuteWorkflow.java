@@ -1,10 +1,12 @@
 package com.tengYii.jobspark.domain.agent.interview;
 
+import com.tengYii.jobspark.domain.agent.cv.JsonResponseCleanGuard;
 import com.tengYii.jobspark.dto.response.ResumeDetailResponse;
 import com.tengYii.jobspark.model.bo.interview.JavaInterviewResultBO;
 import dev.langchain4j.agentic.Agent;
 import dev.langchain4j.service.MemoryId;
 import dev.langchain4j.service.V;
+import dev.langchain4j.service.guardrail.OutputGuardrails;
 
 /**
  * Java面试计划与执行工作流接口
@@ -23,6 +25,7 @@ public interface JavaInterviewPlanAndExecuteWorkflow {
      * @return 包含当前阶段信息和可恢复上下文的面试结果
      */
     @Agent("Java面试全流程：JD对齐 → 计划 → 执行 → 反思 → 循环")
+    @OutputGuardrails(value = {JsonResponseCleanGuard.class}, maxRetries = 0)
     JavaInterviewResultBO startInterview(
             @MemoryId String memoryId,
             @V("userId") Long userId,
