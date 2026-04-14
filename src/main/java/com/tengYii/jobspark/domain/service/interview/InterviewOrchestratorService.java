@@ -1,6 +1,7 @@
 package com.tengYii.jobspark.domain.service.interview;
 
 import com.tengYii.jobspark.common.utils.SnowflakeUtil;
+import com.tengYii.jobspark.config.listener.PersistableAgentListener;
 import com.tengYii.jobspark.domain.agent.interview.*;
 import com.tengYii.jobspark.common.enums.InterviewDecisionEnum;
 import com.tengYii.jobspark.dto.request.InterviewSimulationRequest;
@@ -15,6 +16,7 @@ import dev.langchain4j.skills.Skills;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.nio.file.Path;
@@ -66,6 +68,14 @@ public class InterviewOrchestratorService {
     @Resource
     private RedisChatMemoryStore redisChatMemoryStore;
 
+    @Resource
+    private ApplicationEventPublisher eventPublisher;
+
+    /**
+     * 可持久化的Agent监听器
+     */
+    private PersistableAgentListener persistableAgentListener;
+
     /**
      * 问题探查Skill，加载文件系统中的问题探查技能，用于追问场景
      */
@@ -102,6 +112,8 @@ public class InterviewOrchestratorService {
      */
     @PostConstruct
     public void initAgents() {
+        // 初始化可持久化监听器
+        persistableAgentListener = new PersistableAgentListener(eventPublisher);
 
         ChatMemoryProvider redisChatMemoryProvider = memoryId -> MessageWindowChatMemory.builder()
                 .id(memoryId)
@@ -114,6 +126,7 @@ public class InterviewOrchestratorService {
                 .chatModel(chatModel)
                 .chatMemoryProvider(redisChatMemoryProvider)
                 .toolProvider(jdAlignmentSkill.toolProvider())
+                .listener(persistableAgentListener)
                 // 系统消息：告知LLM可用技能，要求先激活技能再执行
                 .systemMessage("""
                         你拥有以下skills权限：
@@ -128,6 +141,7 @@ public class InterviewOrchestratorService {
                 .agentBuilder(InterviewCoordinatorAgent.class)
                 .chatModel(chatModel)
                 .chatMemoryProvider(redisChatMemoryProvider)
+                .listener(persistableAgentListener)
                 .outputKey("interviewPlan")
                 .build();
 
@@ -136,12 +150,8 @@ public class InterviewOrchestratorService {
                 .chatModel(chatModel)
                 .chatMemoryProvider(redisChatMemoryProvider)
                 .toolProvider(questionProbingSkill.toolProvider())
-                // 系统消息：告知LLM可用技能，要求先激活技能再执行
-                .systemMessage("""
-                        你拥有以下skills权限：
-                        %s
-                        当用户请求涉及上述skills时，必须先通过activate_skill工具激活skill，再执行操作。
-                        """.formatted(questionProbingSkill.formatAvailableSkills()))
+                .listener(persistableAgentListener)
+                .systemMessage(buildInterviewerSystemMessage(questionProbingSkill.formatAvailableSkills()))
                 .outputKey("questionBO")
                 .build();
 
@@ -149,6 +159,7 @@ public class InterviewOrchestratorService {
                 .agentBuilder(InterviewReflectorAgent.class)
                 .chatModel(chatModel)
                 .chatMemoryProvider(redisChatMemoryProvider)
+                .listener(persistableAgentListener)
                 .outputKey("reflection")
                 .build();
     }
@@ -167,6 +178,10 @@ public class InterviewOrchestratorService {
         Long resumeId = Long.valueOf(request.getResumeId());
         log.info("创建面试会话: sessionId={}, userId={}, resumeId={}", sessionId, userId, resumeId);
 
+        // 设置会话ID到监听器，用于Trace ID关联
+        String memoryId = buildMemoryId(userId, resumeId);
+        persistableAgentListener.setSessionId(memoryId, sessionId);
+
         InterviewSessionContext context = InterviewSessionContext.getOrCreate(
                 sessionId, userId, resumeId, request.getJobDescription());
 
@@ -174,7 +189,6 @@ public class InterviewOrchestratorService {
         context.setResumeContextBO(resumeContextBO);
 
         // 调用JD对齐Agent
-        String memoryId = buildMemoryId(userId, resumeId);
         JDAlignmentResultBO jdResult = jdAlignAgent.align(memoryId, request.getJobDescription(), resumeContextBO);
         context.setJdAlignmentResult(jdResult);
 
@@ -488,5 +502,50 @@ public class InterviewOrchestratorService {
         } else {
             return "面试已完成。建议您系统复习Java核心技术栈，加强项目经验积累，平时多练习编码和系统设计。";
         }
+    }
+
+    /**
+     * 构建面试执行Agent的系统消息
+     * 组合 skill 激活信息与面试官角色提示词
+     *
+     * @param availableSkills 可用的skills描述
+     * @return 完整的系统消息
+     */
+    private String buildInterviewerSystemMessage(String availableSkills) {
+        return """
+                你是一位拥有10年以上开发经验的资深Java技术面试官。
+                
+                ## 核心原则
+                1. **个性化提问**：必须结合候选人的简历项目经历来定制问题，不要问空泛的理论问题
+                2. **深度追问**：根据候选人的回答质量动态调整，对深入的回答进行追问
+                3. **难度适配**：候选人回答困难时适当降低难度，回答优秀时继续深挖
+                4. **场景化问题**：技术问题要结合实际业务场景，特别是候选人简历中提到的技术栈
+                
+                ## 追问模式说明
+                - 当 isProbe=true 时，表示需要对上一轮回答进行深入追问
+                - 追问应基于候选人的回答细节进行针对性提问
+                - 追问方向：原理深挖、场景应用、解决方案对比、最佳实践等
+                
+                ## 提问技巧
+                - 如果候选人提到 Redis，必须问具体的缓存使用场景、缓存策略、雪崩处理等
+                - 如果候选人提到微服务，要问服务治理、熔断限流、分布式事务等
+                - 如果候选人提到并发，要问具体的并发场景、线程安全解决方案等
+                - 项目问题要深挖：为什么用这个技术？遇到的最大挑战？如何解决的？
+                
+                ## 输出要求
+                输出 JSON 格式的 InterviewQuestionBO 对象，包含：
+                - stageName: 当前阶段名称
+                - stageOrder: 当前阶段序号
+                - topicName: 考察主题名称
+                - questionContent: 面试官提问内容（问题文本）
+                - intentAnalyses: 出题意图分析列表
+                - followUpPlans: 追问预案列表
+                - simplifiedQuestion: 备选简化问题
+                
+                ## Skills权限
+                你拥有以下skills权限：
+                %s
+                当任务涉及上述skills时，必须先通过activate_skill工具激活skill，再执行操作。
+                """.formatted(availableSkills);
     }
 }

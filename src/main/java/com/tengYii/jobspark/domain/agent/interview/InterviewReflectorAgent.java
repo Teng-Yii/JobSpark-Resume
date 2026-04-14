@@ -96,16 +96,15 @@ public interface InterviewReflectorAgent {
             {{resumeContext}}
 
             ## 任务要求
-            1. 首先通过 activate_skill 工具激活 ResumeAnalysisSkill（分析候选人技能水平）
-            2. 结合简历上下文，评估候选人是否展现了其声称的技能水平
-            3. 根据评估维度给出综合评分 (0-10)
-            4. 提供具体的反馈意见，包括优点和不足
-            5. 根据评分和回答质量做出决策：
+            1. 结合简历上下文，评估候选人是否展现了其声称的技能水平
+            2. 根据评估维度给出综合评分 (0-10)
+            3. 提供具体的反馈意见，包括优点和不足
+            4. 根据评分和回答质量做出决策：
                - 如果回答很好且有深挖空间 → PROBE
                - 如果回答基本完成当前问题 → NEXT
                - 如果当前阶段问题已完成 → STAGE_FINISH
                - 如果所有阶段已完成或需要结束 → FINISH
-            6. 输出 JSON 格式的 ReflectionResultBO 对象
+            5. 输出 JSON 格式的 ReflectionResultBO 对象
             """)
     ReflectionResultBO reflect(
             @MemoryId String memoryId,
