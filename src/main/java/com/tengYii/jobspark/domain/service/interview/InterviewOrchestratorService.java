@@ -1,7 +1,8 @@
 package com.tengYii.jobspark.domain.service.interview;
 
+import com.tengYii.jobspark.common.enums.AgentTypeEnum;
 import com.tengYii.jobspark.common.utils.SnowflakeUtil;
-import com.tengYii.jobspark.config.listener.PersistableAgentListener;
+import com.tengYii.jobspark.config.listener.AgentListenerFactory;
 import com.tengYii.jobspark.domain.agent.interview.*;
 import com.tengYii.jobspark.common.enums.InterviewDecisionEnum;
 import com.tengYii.jobspark.dto.request.InterviewSimulationRequest;
@@ -16,7 +17,6 @@ import dev.langchain4j.skills.Skills;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.nio.file.Path;
@@ -68,13 +68,11 @@ public class InterviewOrchestratorService {
     @Resource
     private RedisChatMemoryStore redisChatMemoryStore;
 
-    @Resource
-    private ApplicationEventPublisher eventPublisher;
-
     /**
-     * 可持久化的Agent监听器
+     * Agent监听器工厂
      */
-    private PersistableAgentListener persistableAgentListener;
+    @Resource
+    private AgentListenerFactory agentListenerFactory;
 
     /**
      * 问题探查Skill，加载文件系统中的问题探查技能，用于追问场景
@@ -112,21 +110,24 @@ public class InterviewOrchestratorService {
      */
     @PostConstruct
     public void initAgents() {
-        // 初始化可持久化监听器
-        persistableAgentListener = new PersistableAgentListener(eventPublisher);
-
         ChatMemoryProvider redisChatMemoryProvider = memoryId -> MessageWindowChatMemory.builder()
                 .id(memoryId)
                 .maxMessages(50)
                 .chatMemoryStore(redisChatMemoryStore)
                 .build();
 
+        // 通过工厂获取各Agent类型的监听器，支持不同Agent使用不同的监听策略
+        var jdAlignmentListener = agentListenerFactory.getListener(AgentTypeEnum.JD_ALIGNMENT);
+        var coordinatorListener = agentListenerFactory.getListener(AgentTypeEnum.INTERVIEW_COORDINATOR);
+        var interviewerListener = agentListenerFactory.getListener(AgentTypeEnum.JAVA_TECH_INTERVIEWER);
+        var reflectorListener = agentListenerFactory.getListener(AgentTypeEnum.INTERVIEW_REFLECTOR);
+
         jdAlignAgent = AgenticServices
                 .agentBuilder(JDAlignmentAgent.class)
                 .chatModel(chatModel)
                 .chatMemoryProvider(redisChatMemoryProvider)
                 .toolProvider(jdAlignmentSkill.toolProvider())
-                .listener(persistableAgentListener)
+//                .listener(jdAlignmentListener)
                 // 系统消息：告知LLM可用技能，要求先激活技能再执行
                 .systemMessage("""
                         你拥有以下skills权限：
@@ -141,7 +142,7 @@ public class InterviewOrchestratorService {
                 .agentBuilder(InterviewCoordinatorAgent.class)
                 .chatModel(chatModel)
                 .chatMemoryProvider(redisChatMemoryProvider)
-                .listener(persistableAgentListener)
+//                .listener(coordinatorListener)
                 .outputKey("interviewPlan")
                 .build();
 
@@ -150,7 +151,7 @@ public class InterviewOrchestratorService {
                 .chatModel(chatModel)
                 .chatMemoryProvider(redisChatMemoryProvider)
                 .toolProvider(questionProbingSkill.toolProvider())
-                .listener(persistableAgentListener)
+//                .listener(interviewerListener)
                 .systemMessage(buildInterviewerSystemMessage(questionProbingSkill.formatAvailableSkills()))
                 .outputKey("questionBO")
                 .build();
@@ -159,7 +160,7 @@ public class InterviewOrchestratorService {
                 .agentBuilder(InterviewReflectorAgent.class)
                 .chatModel(chatModel)
                 .chatMemoryProvider(redisChatMemoryProvider)
-                .listener(persistableAgentListener)
+//                .listener(reflectorListener)
                 .outputKey("reflection")
                 .build();
     }
@@ -178,9 +179,9 @@ public class InterviewOrchestratorService {
         Long resumeId = Long.valueOf(request.getResumeId());
         log.info("创建面试会话: sessionId={}, userId={}, resumeId={}", sessionId, userId, resumeId);
 
-        // 设置会话ID到监听器，用于Trace ID关联
+        // 设置会话ID到监听器工厂，用于Trace ID关联
         String memoryId = buildMemoryId(userId, resumeId);
-        persistableAgentListener.setSessionId(memoryId, sessionId);
+        agentListenerFactory.setSessionId(memoryId, sessionId);
 
         InterviewSessionContext context = InterviewSessionContext.getOrCreate(
                 sessionId, userId, resumeId, request.getJobDescription());

@@ -22,12 +22,21 @@ public class JsonResponseCleanGuard implements OutputGuardrail {
      */
     @Override
     public OutputGuardrailResult validate(OutputGuardrailRequest request) {
+        try {
+            String aiMessageText = request.responseFromLLM().aiMessage().text();
 
-        String aiMessageText = request.responseFromLLM().aiMessage().text();
+            if (aiMessageText == null || aiMessageText.trim().isEmpty()) {
+                log.warn("LLM响应为空，跳过JSON清理");
+                return successWith("");
+            }
 
-        log.info("对LLM响应进行JSON格式化，LLM响应原文本: {}", aiMessageText);
-        String cleanJsonResponse = JsonResponseCleaner.cleanJsonResponse(aiMessageText);
-        return successWith(cleanJsonResponse);
-//        return validate(request.responseFromLLM().aiMessage());
+            log.info("对LLM响应进行JSON格式化，LLM响应原文本: {}", aiMessageText);
+            String cleanJsonResponse = JsonResponseCleaner.cleanJsonResponse(aiMessageText);
+            return successWith(cleanJsonResponse);
+        } catch (Exception e) {
+            log.error("JSON清理失败: {}", e.getMessage(), e);
+            // 返回失败结果而不是抛出异常
+            return failure("JSON清理失败: %s".formatted(e.getMessage()), e);
+        }
     }
 }

@@ -1,7 +1,7 @@
 package com.tengYii.jobspark.config.listener;
 
-import com.tengYii.jobspark.domain.event.AgentInvocationEvent;
-import com.tengYii.jobspark.domain.event.AgentToolExecutionEvent;
+import com.tengYii.jobspark.config.listener.event.AgentInvocationEvent;
+import com.tengYii.jobspark.config.listener.event.AgentToolExecutionEvent;
 import com.tengYii.jobspark.domain.service.observability.AgentTracePersistService;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
@@ -28,7 +28,7 @@ public class AgentObservabilityEventListener {
      *
      * @param event Agent调用事件
      */
-    @Async("taskExecutor")
+//    @Async("taskExecutor")
     @EventListener
     public void handleAgentInvocationEvent(AgentInvocationEvent event) {
         log.debug("接收到Agent调用事件: traceId={}, type={}", 
@@ -41,7 +41,7 @@ public class AgentObservabilityEventListener {
      *
      * @param event 工具执行事件
      */
-    @Async("taskExecutor")
+//    @Async("taskExecutor")
     @EventListener
     public void handleToolExecutionEvent(AgentToolExecutionEvent event) {
         log.debug("接收到工具执行事件: traceId={}, toolName={}", 

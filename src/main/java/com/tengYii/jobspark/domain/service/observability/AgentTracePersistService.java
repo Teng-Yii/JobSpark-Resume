@@ -2,8 +2,8 @@ package com.tengYii.jobspark.domain.service.observability;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tengYii.jobspark.common.enums.AgentExecutionStatusEnum;
-import com.tengYii.jobspark.domain.event.AgentInvocationEvent;
-import com.tengYii.jobspark.domain.event.AgentToolExecutionEvent;
+import com.tengYii.jobspark.config.listener.event.AgentInvocationEvent;
+import com.tengYii.jobspark.config.listener.event.AgentToolExecutionEvent;
 import com.tengYii.jobspark.infrastructure.repo.AgentExecutionTraceRepository;
 import com.tengYii.jobspark.infrastructure.repo.AgentSessionStatsRepository;
 import com.tengYii.jobspark.infrastructure.repo.AgentToolInvocationRepository;
@@ -47,7 +47,7 @@ public class AgentTracePersistService {
      *
      * @param event Agent调用事件
      */
-    @Async("taskExecutor")
+//    @Async("taskExecutor")
     @Transactional(rollbackFor = Exception.class)
     public void handleAgentInvocationEvent(AgentInvocationEvent event) {
         try {
@@ -66,7 +66,7 @@ public class AgentTracePersistService {
      *
      * @param event 工具调用事件
      */
-    @Async("taskExecutor")
+//    @Async("taskExecutor")
     @Transactional(rollbackFor = Exception.class)
     public void handleToolExecutionEvent(AgentToolExecutionEvent event) {
         try {

@@ -1,4 +1,4 @@
-package com.tengYii.jobspark.domain.event;
+package com.tengYii.jobspark.config.listener.event;
 
 import lombok.Getter;
 import org.springframework.context.ApplicationEvent;
