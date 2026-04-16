@@ -47,7 +47,7 @@ public class AgentTracePersistService {
      *
      * @param event Agent调用事件
      */
-//    @Async("taskExecutor")
+    @Async("taskExecutor")
     @Transactional(rollbackFor = Exception.class)
     public void handleAgentInvocationEvent(AgentInvocationEvent event) {
         try {
@@ -66,7 +66,7 @@ public class AgentTracePersistService {
      *
      * @param event 工具调用事件
      */
-//    @Async("taskExecutor")
+    @Async("taskExecutor")
     @Transactional(rollbackFor = Exception.class)
     public void handleToolExecutionEvent(AgentToolExecutionEvent event) {
         try {
