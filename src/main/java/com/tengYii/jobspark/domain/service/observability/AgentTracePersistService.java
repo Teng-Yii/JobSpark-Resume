@@ -12,9 +12,10 @@ import com.tengYii.jobspark.model.po.AgentExecutionTracePO;
 import com.tengYii.jobspark.model.po.AgentToolInvocationPO;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.support.DefaultTransactionDefinition;
 
 import java.time.LocalDateTime;
 import java.util.Map;
@@ -42,33 +43,46 @@ public class AgentTracePersistService {
     @Resource
     private AgentTraceStoreService traceStoreService;
 
+    @Resource
+    private PlatformTransactionManager transactionManager;
+
     /**
-     * 异步处理Agent调用事件
+     * 处理Agent调用事件（由Listener层异步调用）
+     * 使用编程式事务，避免@Async和@Transactional组合失效问题
      *
      * @param event Agent调用事件
      */
-    @Async("taskExecutor")
-    @Transactional(rollbackFor = Exception.class)
     public void handleAgentInvocationEvent(AgentInvocationEvent event) {
+        DefaultTransactionDefinition def = new DefaultTransactionDefinition();
+        def.setName("AgentInvocationTx-" + event.getTraceId());
+        TransactionStatus status = transactionManager.getTransaction(def);
+        
         try {
             switch (event.getEventType()) {
                 case START -> handleStartEvent(event);
                 case END -> handleEndEvent(event);
                 case ERROR -> handleErrorEvent(event);
             }
+            transactionManager.commit(status);
         } catch (Exception e) {
-            log.error("处理Agent调用事件失败: traceId={}, error={}", event.getTraceId(), e.getMessage(), e);
+            transactionManager.rollback(status);
+            log.error("处理Agent调用事件失败，事务已回滚: traceId={}, error={}", 
+                    event.getTraceId(), e.getMessage(), e);
+            throw e; // 抛出异常让上层处理
         }
     }
 
     /**
-     * 异步处理工具调用事件
+     * 处理工具调用事件（由Listener层异步调用）
+     * 使用编程式事务，避免@Async和@Transactional组合失效问题
      *
      * @param event 工具调用事件
      */
-    @Async("taskExecutor")
-    @Transactional(rollbackFor = Exception.class)
     public void handleToolExecutionEvent(AgentToolExecutionEvent event) {
+        DefaultTransactionDefinition def = new DefaultTransactionDefinition();
+        def.setName("ToolInvocationTx-" + event.getTraceId());
+        TransactionStatus status = transactionManager.getTransaction(def);
+        
         try {
             // 保存到MySQL
             AgentToolInvocationPO invocation = AgentToolInvocationPO.builder()
@@ -89,13 +103,22 @@ public class AgentTracePersistService {
                 sessionStatsRepository.incrementToolCall(event.getSessionId());
             }
 
-            // 同时保存到Redis
-            traceStoreService.saveToolInvocation(invocation);
+            // 同时保存到Redis（非事务操作，失败不影响主事务）
+            try {
+                traceStoreService.saveToolInvocation(invocation);
+            } catch (Exception redisEx) {
+                log.warn("Redis保存工具调用记录失败（不影响主事务）: traceId={}, error={}", 
+                        event.getTraceId(), redisEx.getMessage());
+            }
 
+            transactionManager.commit(status);
             log.debug("工具调用记录持久化完成: traceId={}, toolName={}", 
                     event.getTraceId(), event.getToolName());
         } catch (Exception e) {
-            log.error("处理工具调用事件失败: traceId={}, error={}", event.getTraceId(), e.getMessage(), e);
+            transactionManager.rollback(status);
+            log.error("处理工具调用事件失败，事务已回滚: traceId={}, error={}", 
+                    event.getTraceId(), e.getMessage(), e);
+            throw e; // 抛出异常让上层处理
         }
     }
 

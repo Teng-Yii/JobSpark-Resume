@@ -25,6 +25,7 @@ public class AgentObservabilityEventListener {
 
     /**
      * 异步处理Agent调用事件
+     * 注意：事务在Service层通过编程式事务控制
      *
      * @param event Agent调用事件
      */
@@ -33,11 +34,18 @@ public class AgentObservabilityEventListener {
     public void handleAgentInvocationEvent(AgentInvocationEvent event) {
         log.debug("接收到Agent调用事件: traceId={}, type={}", 
                 event.getTraceId(), event.getEventType());
-        tracePersistService.handleAgentInvocationEvent(event);
+        try {
+            tracePersistService.handleAgentInvocationEvent(event);
+        } catch (Exception e) {
+            log.error("处理Agent调用事件失败: traceId={}, error={}", 
+                    event.getTraceId(), e.getMessage(), e);
+            // 事件处理失败不应影响主流程，只记录日志
+        }
     }
 
     /**
      * 异步处理工具执行事件
+     * 注意：事务在Service层通过编程式事务控制
      *
      * @param event 工具执行事件
      */
@@ -46,6 +54,12 @@ public class AgentObservabilityEventListener {
     public void handleToolExecutionEvent(AgentToolExecutionEvent event) {
         log.debug("接收到工具执行事件: traceId={}, toolName={}", 
                 event.getTraceId(), event.getToolName());
-        tracePersistService.handleToolExecutionEvent(event);
+        try {
+            tracePersistService.handleToolExecutionEvent(event);
+        } catch (Exception e) {
+            log.error("处理工具执行事件失败: traceId={}, toolName={}, error={}", 
+                    event.getTraceId(), event.getToolName(), e.getMessage(), e);
+            // 事件处理失败不应影响主流程，只记录日志
+        }
     }
 }
