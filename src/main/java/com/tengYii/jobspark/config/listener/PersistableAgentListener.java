@@ -45,6 +45,8 @@ public class PersistableAgentListener implements AgentListener {
     private final Map<String, Instant> executionStartTimes = new ConcurrentHashMap<>();
     private final Map<String, AtomicInteger> toolInvocationCounters = new ConcurrentHashMap<>();
     private final Map<String, String> sessionIdMap = new ConcurrentHashMap<>();
+    // 用于存储 memoryId 到 traceId 的映射，供工具执行事件使用
+    private final Map<String, String> memoryIdToTraceIdMap = new ConcurrentHashMap<>();
 
     // ==================== 可配置属性 ====================
     
@@ -108,6 +110,8 @@ public class PersistableAgentListener implements AgentListener {
             
             executionStartTimes.put(traceId, Instant.now());
             toolInvocationCounters.put(traceId, new AtomicInteger(0));
+            // 保存 memoryId 到 traceId 的映射，供工具执行事件使用
+            memoryIdToTraceIdMap.put(memoryId, traceId);
 
             // 发布开始事件
             AgentInvocationEvent event = new AgentInvocationEvent(
@@ -272,8 +276,9 @@ public class PersistableAgentListener implements AgentListener {
     }
 
     private String generateTraceId(AfterAgentToolExecution toolExecution) {
-        // 从工具执行上下文中获取traceId - 简化处理
-        return "tool_" + System.currentTimeMillis();
+        // 从 memoryId 获取对应的 traceId，确保与 Agent 调用事件使用相同的 traceId
+        String memoryId = toolExecution.agenticScope().memoryId().toString();
+        return memoryIdToTraceIdMap.getOrDefault(memoryId, "unknown_" + System.currentTimeMillis());
     }
 
     private String getParentAgentId(AgentRequest request) {
