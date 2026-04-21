@@ -34,34 +34,36 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class PersistableAgentListener implements AgentListener {
 
     private final ApplicationEventPublisher eventPublisher;
-    
+
     /**
      * Agent类型，用于区分不同监听策略
      */
     @Getter
     private final AgentTypeEnum agentType;
-    
+
     // 用于追踪调用时长和工具调用顺序
     private final Map<String, Instant> executionStartTimes = new ConcurrentHashMap<>();
     private final Map<String, AtomicInteger> toolInvocationCounters = new ConcurrentHashMap<>();
     private final Map<String, String> sessionIdMap = new ConcurrentHashMap<>();
+    // 用于存储 memoryId 到 traceId 的映射，供工具执行事件使用
+    private final Map<String, String> memoryIdToTraceIdMap = new ConcurrentHashMap<>();
 
     // ==================== 可配置属性 ====================
-    
+
     /**
      * 是否启用详细日志
      */
     @Setter
     @Getter
     private boolean detailedLogging = true;
-    
+
     /**
      * 输入参数最大长度
      */
     @Setter
     @Getter
     private int maxInputLength = 500;
-    
+
     /**
      * 输出结果最大长度
      */
@@ -79,7 +81,7 @@ public class PersistableAgentListener implements AgentListener {
         this.eventPublisher = eventPublisher;
         this.agentType = agentType != null ? agentType : AgentTypeEnum.GENERIC;
     }
-    
+
     /**
      * 构造函数（向后兼容）
      *
@@ -102,12 +104,14 @@ public class PersistableAgentListener implements AgentListener {
     @Override
     public void beforeAgentInvocation(AgentRequest agentRequest) {
         try {
-            String traceId = generateTraceId(agentRequest);
-            String memoryId = agentRequest.agenticScope().memoryId().toString();
+            String memoryId = String.valueOf(agentRequest.inputs().get("memoryId"));
+            String traceId = generateTraceId(agentRequest, memoryId);
             String sessionId = sessionIdMap.getOrDefault(memoryId, null);
-            
+
             executionStartTimes.put(traceId, Instant.now());
             toolInvocationCounters.put(traceId, new AtomicInteger(0));
+            // 保存 memoryId 到 traceId 的映射，供工具执行事件使用
+            memoryIdToTraceIdMap.put(memoryId, traceId);
 
             // 发布开始事件
             AgentInvocationEvent event = new AgentInvocationEvent(
@@ -121,7 +125,7 @@ public class PersistableAgentListener implements AgentListener {
                     LocalDateTime.now(),
                     agentRequest.inputs()
             );
-            
+
             eventPublisher.publishEvent(event);
             log.debug("[Agent调用] 开始 | traceId={}, agentName={}", traceId, agentRequest.agentName());
         } catch (Exception e) {
@@ -132,11 +136,11 @@ public class PersistableAgentListener implements AgentListener {
     @Override
     public void afterAgentInvocation(AgentResponse agentResponse) {
         try {
-            String traceId = generateTraceId(agentResponse);
+            String memoryId = String.valueOf(agentResponse.inputs().get("memoryId"));
+            String traceId = generateTraceId(agentResponse, memoryId);
             Instant startTime = executionStartTimes.remove(traceId);
             long durationMs = startTime != null ? Duration.between(startTime, Instant.now()).toMillis() : 0;
-            
-            String memoryId = agentResponse.agenticScope().memoryId().toString();
+
             String sessionId = sessionIdMap.getOrDefault(memoryId, null);
 
             // 发布结束事件
@@ -154,10 +158,10 @@ public class PersistableAgentListener implements AgentListener {
                     agentResponse.agent().parent() != null ? null : Map.of(), // 简化处理
                     truncateOutput(agentResponse.output())
             );
-            
+
             eventPublisher.publishEvent(event);
             toolInvocationCounters.remove(traceId);
-            log.debug("[Agent调用] 完成 | traceId={}, agentName={}, duration={}ms", 
+            log.debug("[Agent调用] 完成 | traceId={}, agentName={}, duration={}ms",
                     traceId, agentResponse.agentName(), durationMs);
         } catch (Exception e) {
             log.warn("afterAgentInvocation监听器异常: {}", e.getMessage(), e);
@@ -167,11 +171,11 @@ public class PersistableAgentListener implements AgentListener {
     @Override
     public void onAgentInvocationError(AgentInvocationError error) {
         try {
-            String traceId = generateTraceId(error);
+            String memoryId = String.valueOf(error.inputs().get("memoryId"));
+            String traceId = generateTraceId(error, memoryId);
             Instant startTime = executionStartTimes.remove(traceId);
             long durationMs = startTime != null ? Duration.between(startTime, Instant.now()).toMillis() : 0;
-            
-            String memoryId = error.agenticScope().memoryId().toString();
+
             String sessionId = sessionIdMap.getOrDefault(memoryId, null);
 
             // 发布错误事件
@@ -190,10 +194,10 @@ public class PersistableAgentListener implements AgentListener {
                     error.error().getMessage(),
                     getStackTraceString(error.error())
             );
-            
+
             eventPublisher.publishEvent(event);
             toolInvocationCounters.remove(traceId);
-            log.error("[Agent调用] 异常 | traceId={}, agentName={}, error={}" 
+            log.error("[Agent调用] 异常 | traceId={}, agentName={}, error={}"
                     , traceId, error.agentName(), error.error().getMessage());
         } catch (Exception e) {
             log.warn("onAgentInvocationError监听器异常: {}", e.getMessage(), e);
@@ -202,7 +206,24 @@ public class PersistableAgentListener implements AgentListener {
 
     @Override
     public void beforeAgentToolExecution(BeforeAgentToolExecution beforeAgentToolExecution) {
-        // 工具执行前不处理，在完成后统一记录
+        try {
+            String memoryId = String.valueOf(beforeAgentToolExecution.toolExecution().invocationContext().chatMemoryId());
+
+            // 如果memoryIdToTraceIdMap中没有对应的traceId，则初始化
+            // 这样可以处理直接从工具调用开始的场景（绕过Agent调用）
+            if (!memoryIdToTraceIdMap.containsKey(memoryId)) {
+                String traceId = "tool_" + memoryId + "_" + System.currentTimeMillis();
+                memoryIdToTraceIdMap.put(memoryId, traceId);
+                executionStartTimes.put(traceId, Instant.now());
+                toolInvocationCounters.put(traceId, new AtomicInteger(0));
+
+                log.info("[工具执行] 初始化追踪 | memoryId={}, traceId={}", memoryId, traceId);
+            }
+
+            log.info("[工具执行] 开始 | traceId={}, toolName={}", memoryIdToTraceIdMap.get(memoryId), beforeAgentToolExecution.toolExecution().request().name());
+        } catch (Exception e) {
+            log.warn("beforeAgentToolExecution监听器异常: {}", e.getMessage(), e);
+        }
     }
 
     @Override
@@ -211,10 +232,10 @@ public class PersistableAgentListener implements AgentListener {
             String traceId = generateTraceId(afterAgentToolExecution);
             AtomicInteger counter = toolInvocationCounters.get(traceId);
             int order = counter != null ? counter.incrementAndGet() : 0;
-            
-            String memoryId = afterAgentToolExecution.agenticScope().memoryId().toString();
+
+            String memoryId = String.valueOf(afterAgentToolExecution.toolExecution().invocationContext().chatMemoryId());
             String sessionId = sessionIdMap.getOrDefault(memoryId, null);
-            
+
             String toolName = afterAgentToolExecution.toolExecution().request().name();
             Object toolResult = afterAgentToolExecution.toolExecution().result();
             // 简化处理，假设工具执行成功
@@ -232,7 +253,7 @@ public class PersistableAgentListener implements AgentListener {
                     null, // 工具执行耗时需要额外追踪
                     order
             );
-            
+
             eventPublisher.publishEvent(event);
             log.debug("[工具执行] 完成 | traceId={}, toolName={}, order={}", traceId, toolName, order);
         } catch (Exception e) {
@@ -247,9 +268,6 @@ public class PersistableAgentListener implements AgentListener {
 
     @Override
     public void beforeAgenticScopeDestroyed(AgenticScope agenticScope) {
-        // 作用域销毁时清理相关数据
-        String memoryId = agenticScope.memoryId().toString();
-        sessionIdMap.remove(memoryId);
     }
 
     @Override
@@ -259,21 +277,27 @@ public class PersistableAgentListener implements AgentListener {
 
     // ==================== 辅助方法 ====================
 
-    private String generateTraceId(AgentRequest request) {
-        return request.agentId() + "_" + System.currentTimeMillis();
+    private String generateTraceId(AgentRequest request, String memoryId) {
+        return request.agentId() + "_" + memoryId;
     }
 
-    private String generateTraceId(AgentResponse response) {
-        return response.agentId() + "_" + System.currentTimeMillis();
+    private String generateTraceId(AgentResponse response, String memoryId) {
+        return response.agentId() + "_" + memoryId;
     }
 
-    private String generateTraceId(AgentInvocationError error) {
-        return error.agentId() + "_" + System.currentTimeMillis();
+    private String generateTraceId(AgentInvocationError error, String memoryId) {
+        return error.agentId() + "_" + memoryId;
     }
 
-    private String generateTraceId(AfterAgentToolExecution toolExecution) {
-        // 从工具执行上下文中获取traceId - 简化处理
-        return "tool_" + System.currentTimeMillis();
+    private String generateTraceId(BeforeAgentToolExecution beforeAgentToolExecution) {
+        String memoryId = String.valueOf(beforeAgentToolExecution.toolExecution().invocationContext().chatMemoryId());
+        return memoryIdToTraceIdMap.getOrDefault(memoryId, "unknown_" + System.currentTimeMillis());
+    }
+
+    private String generateTraceId(AfterAgentToolExecution afterAgentToolExecution) {
+        // 从 memoryId 获取对应的 traceId，确保与 Agent 调用事件使用相同的 traceId
+        String memoryId = String.valueOf(afterAgentToolExecution.toolExecution().invocationContext().chatMemoryId());
+        return memoryIdToTraceIdMap.getOrDefault(memoryId, "unknown_" + System.currentTimeMillis());
     }
 
     private String getParentAgentId(AgentRequest request) {
@@ -299,7 +323,7 @@ public class PersistableAgentListener implements AgentListener {
         String str = output.toString();
         return str.length() > maxOutputLength ? str.substring(0, maxOutputLength) + "..." : str;
     }
-    
+
     /**
      * 截断输入内容
      *
