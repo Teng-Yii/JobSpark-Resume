@@ -127,7 +127,7 @@ public class InterviewOrchestratorService {
                 .chatModel(chatModel)
                 .chatMemoryProvider(redisChatMemoryProvider)
                 .toolProvider(jdAlignmentSkill.toolProvider())
-//                .listener(jdAlignmentListener)
+                .listener(jdAlignmentListener)
                 // 系统消息：告知LLM可用技能，要求先激活技能再执行
                 .systemMessage("""
                         你拥有以下skills权限：
@@ -142,7 +142,7 @@ public class InterviewOrchestratorService {
                 .agentBuilder(InterviewCoordinatorAgent.class)
                 .chatModel(chatModel)
                 .chatMemoryProvider(redisChatMemoryProvider)
-//                .listener(coordinatorListener)
+                .listener(coordinatorListener)
                 .outputKey("interviewPlan")
                 .build();
 
@@ -151,7 +151,7 @@ public class InterviewOrchestratorService {
                 .chatModel(chatModel)
                 .chatMemoryProvider(redisChatMemoryProvider)
                 .toolProvider(questionProbingSkill.toolProvider())
-//                .listener(interviewerListener)
+                .listener(interviewerListener)
                 .systemMessage(buildInterviewerSystemMessage(questionProbingSkill.formatAvailableSkills()))
                 .outputKey("questionBO")
                 .build();
@@ -160,7 +160,7 @@ public class InterviewOrchestratorService {
                 .agentBuilder(InterviewReflectorAgent.class)
                 .chatModel(chatModel)
                 .chatMemoryProvider(redisChatMemoryProvider)
-//                .listener(reflectorListener)
+                .listener(reflectorListener)
                 .outputKey("reflection")
                 .build();
     }

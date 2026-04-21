@@ -59,6 +59,11 @@ langchain4j:
     vector-size: 1024 # text-embedding-v3/v4 默认维度
     # api-key: your-api-key # 如果需要鉴权请配置
 
+# Agent可观测性配置
+agent:
+  observability:
+    enabled: true  # 全局启用/禁用Agent监听
+
 # 生成接口文档
 springdoc:
   api-docs:

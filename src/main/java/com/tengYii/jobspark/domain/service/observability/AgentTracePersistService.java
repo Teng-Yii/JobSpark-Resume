@@ -75,15 +75,30 @@ public class AgentTracePersistService {
     /**
      * 处理工具调用事件（由Listener层异步调用）
      * 使用编程式事务，避免@Async和@Transactional组合失效问题
+     * <p>
+     * 注意：由于异步处理时序问题，工具调用事件可能在Agent执行轨迹之前到达，
+     * 因此采用延迟重试机制等待父记录创建，避免产生大量UNKNOWN占位记录。
      *
      * @param event 工具调用事件
      */
     public void handleToolExecutionEvent(AgentToolExecutionEvent event) {
+        // 先尝试等待父记录存在（带重试机制）
+        boolean parentExists = waitForTraceExists(event.getTraceId(), 5, 100);
+        
+        if (!parentExists) {
+            log.error("Agent执行轨迹不存在，工具调用记录可能无法正确关联: traceId={}, toolName={}", 
+                    event.getTraceId(), event.getToolName());
+            // 仍然尝试保存，让外键约束失败来暴露问题，而不是创建占位记录
+        }
+
         DefaultTransactionDefinition def = new DefaultTransactionDefinition();
         def.setName("ToolInvocationTx-" + event.getTraceId());
         TransactionStatus status = transactionManager.getTransaction(def);
-        
+
         try {
+            // 再次确保父记录存在（事务内检查）
+            ensureTraceExists(event);
+
             // 保存到MySQL
             AgentToolInvocationPO invocation = AgentToolInvocationPO.builder()
                     .traceId(event.getTraceId())
@@ -120,6 +135,68 @@ public class AgentTracePersistService {
                     event.getTraceId(), e.getMessage(), e);
             throw e; // 抛出异常让上层处理
         }
+    }
+
+    /**
+     * 等待Agent执行轨迹记录存在（带重试机制）
+     * 
+     * @param traceId 追踪ID
+     * @param maxRetries 最大重试次数
+     * @param retryIntervalMs 每次重试间隔（毫秒）
+     * @return 是否成功找到父记录
+     */
+    private boolean waitForTraceExists(String traceId, int maxRetries, long retryIntervalMs) {
+        for (int i = 0; i < maxRetries; i++) {
+            AgentExecutionTracePO existingTrace = executionTraceRepository.getByTraceId(traceId);
+            if (existingTrace != null) {
+                if (i > 0) {
+                    log.debug("Agent执行轨迹在第{}次重试后找到: traceId={}", i + 1, traceId);
+                }
+                return true;
+            }
+            
+            if (i < maxRetries - 1) {
+                try {
+                    Thread.sleep(retryIntervalMs);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    log.warn("等待Agent执行轨迹时被中断: traceId={}", traceId);
+                    return false;
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * 确保Agent执行轨迹记录存在
+     * 如果记录不存在，创建一个占位记录以满足外键约束（仅作为最后兜底）
+     *
+     * @param event 工具调用事件
+     */
+    private void ensureTraceExists(AgentToolExecutionEvent event) {
+        // 检查trace是否存在
+        AgentExecutionTracePO existingTrace = executionTraceRepository.getByTraceId(event.getTraceId());
+        if (existingTrace != null) {
+            return;
+        }
+
+        // 创建占位记录以满足外键约束（仅作为最后兜底，正常情况下不应该走到这里）
+        log.error("Agent执行轨迹不存在，创建兜底占位记录（请检查异步时序问题）: traceId={}, toolName={}, sessionId={}", 
+                event.getTraceId(), event.getToolName(), event.getSessionId());
+        
+        AgentExecutionTracePO placeholderTrace = AgentExecutionTracePO.builder()
+                .traceId(event.getTraceId())
+                .sessionId(event.getSessionId())
+                .agentName("ORPHAN_TOOL_EVENT")
+                .agentId("ORPHAN")
+                .status(AgentExecutionStatusEnum.RUNNING.getCode())
+                .startTime(LocalDateTime.now())
+                .deleteFlag(0)
+                .createdTime(LocalDateTime.now())
+                .build();
+        
+        executionTraceRepository.save(placeholderTrace);
     }
 
     private void handleStartEvent(AgentInvocationEvent event) {
