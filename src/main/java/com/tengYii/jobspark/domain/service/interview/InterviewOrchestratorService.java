@@ -7,10 +7,12 @@ import com.tengYii.jobspark.domain.agent.interview.*;
 import com.tengYii.jobspark.common.enums.InterviewDecisionEnum;
 import com.tengYii.jobspark.dto.request.InterviewSimulationRequest;
 import com.tengYii.jobspark.infrastructure.store.RedisChatMemoryStore;
+import com.tengYii.jobspark.infrastructure.store.memory.DecisionIndex;
+import com.tengYii.jobspark.infrastructure.store.memory.HybridCompactingChatMemory;
+import com.tengYii.jobspark.infrastructure.store.memory.InterviewRuleBasedScorer;
 import com.tengYii.jobspark.model.bo.interview.*;
 import dev.langchain4j.agentic.AgenticServices;
 import dev.langchain4j.memory.chat.ChatMemoryProvider;
-import dev.langchain4j.memory.chat.MessageWindowChatMemory;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.skills.FileSystemSkillLoader;
 import dev.langchain4j.skills.Skills;
@@ -105,15 +107,25 @@ public class InterviewOrchestratorService {
     private InterviewReflectorAgent reflector;
 
     /**
+     * 共享决策索引，跨Agent记录和查询关键决策
+     */
+    private final DecisionIndex sharedDecisionIndex = new DecisionIndex();
+
+    /**
      * 初始化所有Agent组件
      * 在Spring容器完成依赖注入后调用，确保ChatModel已正确注入
      */
     @PostConstruct
     public void initAgents() {
-        ChatMemoryProvider redisChatMemoryProvider = memoryId -> MessageWindowChatMemory.builder()
+        // 使用混合压缩记忆替代简单滑动窗口，实现重要性分级 + 摘要压缩
+        ChatMemoryProvider hybridMemoryProvider = memoryId -> HybridCompactingChatMemory.builder()
                 .id(memoryId)
-                .maxMessages(50)
-                .chatMemoryStore(redisChatMemoryStore)
+                .chatModel(chatModel)
+                .store(redisChatMemoryStore)
+                .scorer(new InterviewRuleBasedScorer())
+                .compactThreshold(30)       // 超过30条消息触发压缩
+                .recentMessageCount(6)      // 始终保留最近6条消息
+                .decisionIndex(sharedDecisionIndex)  // 跨Agent共享决策索引
                 .build();
 
         // 通过工厂获取各Agent类型的监听器，支持不同Agent使用不同的监听策略
@@ -125,7 +137,7 @@ public class InterviewOrchestratorService {
         jdAlignAgent = AgenticServices
                 .agentBuilder(JDAlignmentAgent.class)
                 .chatModel(chatModel)
-                .chatMemoryProvider(redisChatMemoryProvider)
+                .chatMemoryProvider(hybridMemoryProvider)
                 .toolProvider(jdAlignmentSkill.toolProvider())
                 .listener(jdAlignmentListener)
                 // 系统消息：告知LLM可用技能，要求先激活技能再执行
@@ -141,7 +153,7 @@ public class InterviewOrchestratorService {
         planner = AgenticServices
                 .agentBuilder(InterviewCoordinatorAgent.class)
                 .chatModel(chatModel)
-                .chatMemoryProvider(redisChatMemoryProvider)
+                .chatMemoryProvider(hybridMemoryProvider)
                 .listener(coordinatorListener)
                 .outputKey("interviewPlan")
                 .build();
@@ -149,7 +161,7 @@ public class InterviewOrchestratorService {
         executor = AgenticServices
                 .agentBuilder(JavaTechInterviewerAgent.class)
                 .chatModel(chatModel)
-                .chatMemoryProvider(redisChatMemoryProvider)
+                .chatMemoryProvider(hybridMemoryProvider)
                 .toolProvider(questionProbingSkill.toolProvider())
                 .listener(interviewerListener)
                 .systemMessage(buildInterviewerSystemMessage(questionProbingSkill.formatAvailableSkills()))
@@ -159,10 +171,20 @@ public class InterviewOrchestratorService {
         reflector = AgenticServices
                 .agentBuilder(InterviewReflectorAgent.class)
                 .chatModel(chatModel)
-                .chatMemoryProvider(redisChatMemoryProvider)
+                .chatMemoryProvider(hybridMemoryProvider)
                 .listener(reflectorListener)
                 .outputKey("reflection")
                 .build();
+    }
+
+    /**
+     * 获取共享决策索引
+     * 供外部服务查询面试过程中的关键决策记录
+     *
+     * @return 共享的DecisionIndex实例
+     */
+    public DecisionIndex getSharedDecisionIndex() {
+        return sharedDecisionIndex;
     }
 
     /**
