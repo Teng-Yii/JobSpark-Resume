@@ -1,5 +1,6 @@
 package com.tengYii.jobspark.config;
 
+import dev.langchain4j.http.client.spring.restclient.SpringRestClientBuilder;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.openai.OpenAiChatModel;
 import dev.langchain4j.model.openai.OpenAiEmbeddingModel;
@@ -15,6 +16,18 @@ import org.springframework.context.annotation.Configuration;
  */
 @Configuration
 public class LlmConfig {
+
+    private SpringRestClientBuilder dashscopeHttpClientBuilder() {
+        return new SpringRestClientBuilder()
+                .connectTimeout(Duration.ofSeconds(10))
+                .readTimeout(Duration.ofSeconds(30));
+    }
+
+    private SpringRestClientBuilder deepseekHttpClientBuilder() {
+        return new SpringRestClientBuilder()
+                .connectTimeout(Duration.ofSeconds(10))
+                .readTimeout(Duration.ofSeconds(150));
+    }
 
     /**
      * 注册 ChatModel Bean
@@ -35,6 +48,8 @@ public class LlmConfig {
 //                .logResponses(true)
                 // 结构化输出
                 .strictJsonSchema(true)
+                .httpClientBuilder(deepseekHttpClientBuilder())
+                .maxRetries(3)
                 .build();
     }
 
@@ -49,6 +64,9 @@ public class LlmConfig {
                 .apiKey(System.getenv("DASHSCOPE_API_KEY"))
                 .modelName("text-embedding-v4")
                 .baseUrl("https://dashscope.aliyuncs.com/compatible-mode/v1")
+                .timeout(Duration.ofSeconds(30))
+                .httpClientBuilder(dashscopeHttpClientBuilder())
+                .maxRetries(3)
                 .build();
     }
 
@@ -60,6 +78,8 @@ public class LlmConfig {
                 .baseUrl("https://dashscope.aliyuncs.com/compatible-mode/v1")
                 // 结构化输出
                 .strictJsonSchema(true)
+                .httpClientBuilder(deepseekHttpClientBuilder())
+                .maxRetries(3)
                 .build();
     }
 }
