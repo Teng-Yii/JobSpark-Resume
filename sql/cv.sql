@@ -35,7 +35,7 @@ CREATE TABLE `cv` (
   PRIMARY KEY (`id`),
   KEY `idx_name` (`name`),
   KEY `idx_delete_flag` (`delete_flag`) COMMENT '逻辑删除查询索引'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='简历基本信息表'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='简历基本信息表';
 
 
 -- 联系方式表
