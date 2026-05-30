@@ -236,12 +236,13 @@ public class AgentTracePersistService {
                 truncateOutput(event.getOutput())
         );
 
-        // 更新MySQL
+        // 更新MySQL（包含output_summary）
         executionTraceRepository.updateStatus(
-                event.getTraceId(), 
-                status, 
-                event.getEndTime(), 
-                event.getDurationMs()
+                event.getTraceId(),
+                status,
+                event.getEndTime(),
+                event.getDurationMs(),
+                truncateOutput(event.getOutput())
         );
 
         // 更新统计

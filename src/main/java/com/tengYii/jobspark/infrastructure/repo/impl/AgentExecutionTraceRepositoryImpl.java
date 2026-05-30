@@ -54,12 +54,13 @@ public class AgentExecutionTraceRepositoryImpl extends ServiceImpl<AgentExecutio
     }
 
     @Override
-    public void updateStatus(String traceId, String status, LocalDateTime endTime, Long durationMs) {
+    public void updateStatus(String traceId, String status, LocalDateTime endTime, Long durationMs, String outputSummary) {
         LambdaUpdateWrapper<AgentExecutionTracePO> updateWrapper = new LambdaUpdateWrapper<>();
         updateWrapper.eq(AgentExecutionTracePO::getTraceId, traceId)
                 .set(AgentExecutionTracePO::getStatus, status)
                 .set(AgentExecutionTracePO::getEndTime, endTime)
                 .set(AgentExecutionTracePO::getDurationMs, durationMs)
+                .set(AgentExecutionTracePO::getOutputSummary, outputSummary)
                 .set(AgentExecutionTracePO::getUpdatedTime, LocalDateTime.now());
         baseMapper.update(null, updateWrapper);
     }

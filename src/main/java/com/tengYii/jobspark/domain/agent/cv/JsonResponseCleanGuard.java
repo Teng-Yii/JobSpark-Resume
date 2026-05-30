@@ -30,6 +30,13 @@ public class JsonResponseCleanGuard implements OutputGuardrail {
                 return successWith("");
             }
 
+            // 检测是否为 Agent tool call 响应（如 activate_skill 等）
+            // tool call 需要原样返回给 Agent 框架处理，不能做 JSON 清理
+            if (isToolCallResponse(aiMessageText)) {
+                log.info("检测到 tool call 响应，跳过JSON清理直接返回");
+                return successWith(aiMessageText);
+            }
+
             log.info("对LLM响应进行JSON格式化，LLM响应原文本: {}", aiMessageText);
             String cleanJsonResponse = JsonResponseCleaner.cleanJsonResponse(aiMessageText);
             return successWith(cleanJsonResponse);
@@ -38,5 +45,19 @@ public class JsonResponseCleanGuard implements OutputGuardrail {
             // 返回失败结果而不是抛出异常
             return failure("JSON清理失败: %s".formatted(e.getMessage()), e);
         }
+    }
+
+    /**
+     * 判断响应是否为 Agent tool call（如 activate_skill）。
+     * <p>
+     * tool call 响应包含工具调用标记，需要原样传递给 Agent 框架，
+     * 不能走 JSON 清理逻辑。
+     * </p>
+     */
+    private boolean isToolCallResponse(String text) {
+        String trimmed = text.trim();
+        return trimmed.startsWith("<tool_calls>")
+                || trimmed.startsWith("<invoke")
+                || trimmed.startsWith("<parameter");
     }
 }

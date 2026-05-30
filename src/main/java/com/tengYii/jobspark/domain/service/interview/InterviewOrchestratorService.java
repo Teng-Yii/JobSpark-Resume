@@ -1,8 +1,7 @@
 package com.tengYii.jobspark.domain.service.interview;
 
-import com.tengYii.jobspark.common.enums.AgentTypeEnum;
 import com.tengYii.jobspark.common.utils.SnowflakeUtil;
-import com.tengYii.jobspark.config.listener.AgentListenerFactory;
+import com.tengYii.jobspark.config.listener.event.AgentInvocationEvent;
 import com.tengYii.jobspark.domain.agent.interview.*;
 import com.tengYii.jobspark.common.enums.InterviewDecisionEnum;
 import com.tengYii.jobspark.dto.request.InterviewSimulationRequest;
@@ -19,10 +18,14 @@ import dev.langchain4j.skills.Skills;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.nio.file.Path;
+import java.time.LocalDateTime;
+import java.util.Map;
 import java.util.Objects;
+import java.util.function.Supplier;
 
 /**
  * 面试编排服务类，负责协调多代理系统完成完整的面试流程。
@@ -71,10 +74,11 @@ public class InterviewOrchestratorService {
     private RedisChatMemoryStore redisChatMemoryStore;
 
     /**
-     * Agent监听器工厂
+     * Spring事件发布器，用于手动发布Agent调用事件
+     * （独立@Agent不走AgentListener生命周期，需手动发布）
      */
     @Resource
-    private AgentListenerFactory agentListenerFactory;
+    private ApplicationEventPublisher eventPublisher;
 
     /**
      * 问题探查Skill，加载文件系统中的问题探查技能，用于追问场景
@@ -128,33 +132,25 @@ public class InterviewOrchestratorService {
                 .decisionIndex(sharedDecisionIndex)  // 跨Agent共享决策索引
                 .build();
 
-        // 通过工厂获取各Agent类型的监听器，支持不同Agent使用不同的监听策略
-        var jdAlignmentListener = agentListenerFactory.getListener(AgentTypeEnum.JD_ALIGNMENT);
-        var coordinatorListener = agentListenerFactory.getListener(AgentTypeEnum.INTERVIEW_COORDINATOR);
-        var interviewerListener = agentListenerFactory.getListener(AgentTypeEnum.JAVA_TECH_INTERVIEWER);
-        var reflectorListener = agentListenerFactory.getListener(AgentTypeEnum.INTERVIEW_REFLECTOR);
-
+        // 注意：独立 @Agent 不走 AgentListener 生命周期回调，
+        // Agent 调用事件改为在服务层手动发布（见 publishAgentStart/publishAgentEnd）
         jdAlignAgent = AgenticServices
                 .agentBuilder(JDAlignmentAgent.class)
                 .chatModel(chatModel)
                 .chatMemoryProvider(hybridMemoryProvider)
                 .toolProvider(jdAlignmentSkill.toolProvider())
-                .listener(jdAlignmentListener)
-                // 系统消息：告知LLM可用技能，要求先激活技能再执行
                 .systemMessage("""
                         你拥有以下skills权限：
                         %s
                         当用户请求涉及上述skills时，必须先通过activate_skill工具激活skill，再执行操作。
                         """.formatted(jdAlignmentSkill.formatAvailableSkills()))
-
-//                .outputKey("jdAlignResult")
+                .outputKey("jdAlignResult")
                 .build();
 
         planner = AgenticServices
                 .agentBuilder(InterviewCoordinatorAgent.class)
                 .chatModel(chatModel)
                 .chatMemoryProvider(hybridMemoryProvider)
-                .listener(coordinatorListener)
                 .outputKey("interviewPlan")
                 .build();
 
@@ -163,7 +159,6 @@ public class InterviewOrchestratorService {
                 .chatModel(chatModel)
                 .chatMemoryProvider(hybridMemoryProvider)
                 .toolProvider(questionProbingSkill.toolProvider())
-                .listener(interviewerListener)
                 .systemMessage(buildInterviewerSystemMessage(questionProbingSkill.formatAvailableSkills()))
                 .outputKey("questionBO")
                 .build();
@@ -172,7 +167,6 @@ public class InterviewOrchestratorService {
                 .agentBuilder(InterviewReflectorAgent.class)
                 .chatModel(chatModel)
                 .chatMemoryProvider(hybridMemoryProvider)
-                .listener(reflectorListener)
                 .outputKey("reflection")
                 .build();
     }
@@ -201,9 +195,8 @@ public class InterviewOrchestratorService {
         Long resumeId = Long.valueOf(request.getResumeId());
         log.info("创建面试会话: sessionId={}, userId={}, resumeId={}", sessionId, userId, resumeId);
 
-        // 设置会话ID到监听器工厂，用于Trace ID关联
+        // 设置会话ID，用于Trace ID关联
         String memoryId = buildMemoryId(userId, resumeId);
-        agentListenerFactory.setSessionId(memoryId, sessionId);
 
         InterviewSessionContext context = InterviewSessionContext.getOrCreate(
                 sessionId, userId, resumeId, request.getJobDescription());
@@ -212,21 +205,28 @@ public class InterviewOrchestratorService {
         context.setResumeContextBO(resumeContextBO);
 
         // 调用JD对齐Agent
-        JDAlignmentResultBO jdResult = jdAlignAgent.align(memoryId, request.getJobDescription(), resumeContextBO);
+        JDAlignmentResultBO jdResult = invokeAndPublish(memoryId, sessionId, "JDAlignmentAgent", "jdAlign",
+                Map.of("jobDescription", request.getJobDescription(), "resumeContext", resumeContextBO),
+                () -> jdAlignAgent.align(memoryId, request.getJobDescription(), resumeContextBO));
         context.setJdAlignmentResult(jdResult);
 
         // 调用计划制定Agent
-        InterviewPlanBO plan = planner.generateInterviewPlan(memoryId, resumeContextBO, jdResult);
+        InterviewPlanBO plan = invokeAndPublish(memoryId, sessionId, "InterviewCoordinatorAgent", "planner",
+                Map.of("resumeContext", resumeContextBO, "jdResult", jdResult),
+                () -> planner.generateInterviewPlan(memoryId, resumeContextBO, jdResult));
         context.setInterviewPlan(plan);
 
         // 调用问题生成Agent
-        InterviewQuestionBO firstQuestionBO = executor.generateQuestion(
-                memoryId,
-                plan,
-                context.getCurrentStageIndex(),
-                context.getCurrentQuestionIndex(),
-                false
-        );
+        InterviewQuestionBO firstQuestionBO = invokeAndPublish(memoryId, sessionId, "JavaTechInterviewerAgent", "executor",
+                Map.of("plan", plan, "stageIndex", context.getCurrentStageIndex(),
+                        "questionIndex", context.getCurrentQuestionIndex(), "isProbe", false),
+                () -> executor.generateQuestion(
+                        memoryId,
+                        plan,
+                        context.getCurrentStageIndex(),
+                        context.getCurrentQuestionIndex(),
+                        false
+                ));
         context.setCurrentQuestionBO(firstQuestionBO);
         context.setCurrentQuestion(firstQuestionBO.getQuestionContent());
 
@@ -257,7 +257,10 @@ public class InterviewOrchestratorService {
         ResumeContextBO resumeContextBO = context.getResumeContextBO();
 
         // 调用反思评估Agent
-        ReflectionResultBO reflection = reflector.reflect(memoryId, context.getCurrentQuestion(), userAnswer, resumeContextBO);
+        ReflectionResultBO reflection = invokeAndPublish(memoryId, sessionId, "InterviewReflectorAgent", "reflector",
+                Map.of("question", context.getCurrentQuestion(), "answer", userAnswer,
+                        "resumeContext", resumeContextBO),
+                () -> reflector.reflect(memoryId, context.getCurrentQuestion(), userAnswer, resumeContextBO));
         context.setCurrentDecision(reflection.getDecision());
 
         addQARecord(context, reflection);
@@ -286,13 +289,16 @@ public class InterviewOrchestratorService {
         }
 
         // 调用问题生成Agent
-        InterviewQuestionBO nextQuestionBO = executor.generateQuestion(
-                memoryId,
-                context.getInterviewPlan(),
-                context.getCurrentStageIndex(),
-                context.getCurrentQuestionIndex(),
-                isProbe
-        );
+        InterviewQuestionBO nextQuestionBO = invokeAndPublish(memoryId, sessionId, "JavaTechInterviewerAgent", "executor",
+                Map.of("plan", context.getInterviewPlan(), "stageIndex", context.getCurrentStageIndex(),
+                        "questionIndex", context.getCurrentQuestionIndex(), "isProbe", isProbe),
+                () -> executor.generateQuestion(
+                        memoryId,
+                        context.getInterviewPlan(),
+                        context.getCurrentStageIndex(),
+                        context.getCurrentQuestionIndex(),
+                        isProbe
+                ));
         context.setCurrentQuestionBO(nextQuestionBO);
         context.setCurrentQuestion(nextQuestionBO.getQuestionContent());
 
@@ -326,6 +332,82 @@ public class InterviewOrchestratorService {
 
         context.finish();
         return buildCompleteResponse(sessionId, context);
+    }
+
+    /**
+     * 调用 Agent 并手动发布调用事件。
+     * <p>
+     * 独立 @Agent 不走 AgentListener 生命周期，需在服务层手动发布事件。
+     * </p>
+     *
+     * @param memoryId  Memory ID
+     * @param sessionId 会话 ID
+     * @param agentName Agent 名称
+     * @param agentId   Agent 标识
+     * @param inputs    Agent 入参（用于 input_summary）
+     * @param call      Agent 调用
+     * @return Agent 返回结果
+     */
+    private <T> T invokeAndPublish(String memoryId, String sessionId, String agentName, String agentId,
+                                    Map<String, Object> inputs, Supplier<T> call) {
+        String traceId = agentId + "_" + memoryId + "_" + System.currentTimeMillis();
+        LocalDateTime startTime = LocalDateTime.now();
+
+        // 发布 START 事件
+        try {
+            eventPublisher.publishEvent(new AgentInvocationEvent(
+                    this, traceId, sessionId, memoryId,
+                    agentName, agentId, null, startTime, inputs
+            ));
+        } catch (Exception e) {
+            log.warn("发布Agent START事件失败: {}", e.getMessage());
+        }
+
+        try {
+            T result = call.get();
+            LocalDateTime endTime = LocalDateTime.now();
+            long durationMs = java.time.Duration.between(startTime, endTime).toMillis();
+
+            // 发布 END 事件
+            try {
+                eventPublisher.publishEvent(new AgentInvocationEvent(
+                        this, traceId, sessionId, memoryId,
+                        agentName, agentId, null,
+                        startTime, endTime, durationMs,
+                        inputs, result
+                ));
+            } catch (Exception e) {
+                log.warn("发布Agent END事件失败: {}", e.getMessage());
+            }
+
+            return result;
+        } catch (Exception ex) {
+            LocalDateTime endTime = LocalDateTime.now();
+            long durationMs = java.time.Duration.between(startTime, endTime).toMillis();
+
+            // 发布 ERROR 事件
+            try {
+                eventPublisher.publishEvent(new AgentInvocationEvent(
+                        this, traceId, sessionId, memoryId,
+                        agentName, agentId, null,
+                        startTime, endTime, durationMs,
+                        inputs, ex.getMessage(), getStackTrace(ex)
+                ));
+            } catch (Exception e) {
+                log.warn("发布Agent ERROR事件失败: {}", e.getMessage());
+            }
+
+            throw ex instanceof RuntimeException re ? re : new RuntimeException(ex);
+        }
+    }
+
+    private String getStackTrace(Throwable t) {
+        StringBuilder sb = new StringBuilder();
+        for (StackTraceElement e : t.getStackTrace()) {
+            sb.append(e.toString()).append("\n");
+            if (sb.length() > 2000) break;
+        }
+        return sb.toString();
     }
 
     private String generateSessionId() {

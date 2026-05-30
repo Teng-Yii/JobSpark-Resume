@@ -73,7 +73,15 @@ public interface JavaTechInterviewerAgent {
             2. 根据当前阶段索引从面试计划获取对应阶段，根据问题索引获取考察主题
             3. 结合会话上下文中的候选人项目经历，定制化生成技术问题
             4. 如果是追问模式（isProbe=true），基于上一轮回答内容进行深入追问
-            5. 输出 JSON 格式的 InterviewQuestionBO 对象
+            5. 生成 InterviewQuestionBO 对象，包含：question（问题内容）、intent（出题意图）、probePlan（追问预案）等字段
+
+            ## CRITICAL OUTPUT RULES - 必须严格遵守：
+            - 只输出一个纯 JSON 对象，不要任何其他文字
+            - 禁止输出 Markdown 标题、代码块、解释性文字
+            - 禁止用 ```json 代码块包裹
+            - 禁止在 JSON 前后添加任何前缀或后缀文本
+            - 你的整个回复必须是一个可直接解析的 JSON 对象，以 { 开头，以 } 结尾
+            - 字符串值中的换行使用 \\n 转义，不要输出真实的换行符
             """)
     @OutputGuardrails(value = {JsonResponseCleanGuard.class}, maxRetries = 0)
     InterviewQuestionBO generateQuestion(

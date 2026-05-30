@@ -40,12 +40,13 @@ public interface AgentExecutionTraceRepository extends IService<AgentExecutionTr
     /**
      * 更新执行状态
      *
-     * @param traceId   追踪ID
-     * @param status    状态
-     * @param endTime   结束时间
-     * @param durationMs 耗时
+     * @param traceId      追踪ID
+     * @param status       状态
+     * @param endTime      结束时间
+     * @param durationMs   耗时
+     * @param outputSummary 输出摘要
      */
-    void updateStatus(String traceId, String status, java.time.LocalDateTime endTime, Long durationMs);
+    void updateStatus(String traceId, String status, java.time.LocalDateTime endTime, Long durationMs, String outputSummary);
 
     /**
      * 更新错误信息

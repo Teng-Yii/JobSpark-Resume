@@ -32,32 +32,45 @@ public interface JDAlignmentAgent {
      */
     @Agent(value = "JD对齐分析Agent：深入分析职位描述与候选人简历的技能匹配度，输出详细的匹配度评分和关键差异点", outputKey = "jdAlignResult")
     @UserMessage("""
-            你是一位专业的HR技术招聘专家，擅长分析职位描述(JD)与候选人简历之间的技能匹配度。
-            
-            请根据以下信息进行深度分析：
-            
+            你是JD与简历技能匹配分析引擎。根据以下信息进行深度分析：
+
             ## 职位描述 (JD)
             {{jobDescription}}
-            
+
             ## 简历上下文
             {{resumeContext}}
-            
-            ## 任务要求
+
+            ## 分析要求（在内部思考，不要输出分析过程）
             1. 首先通过 activate_skill 工具激活 JDAlignmentSkill
             2. 调用 JDAlignmentSkill 分析简历与JD的匹配度
-            3. 从JD中提取所有关键技能要求：
-               - 硬性技能：编程语言、框架、工具、平台
-               - 软性技能：沟通能力、团队协作、项目管理等
-               - 加分项：额外技能或经验
-            4. 识别候选人已展示的技能并计算每项技能的匹配度
-            5. 输出：
-               - matchedSkills: 已匹配的技能列表及匹配度(0-100%)
-               - missingSkills: 缺失的关键技能列表
-               - matchScore: 综合匹配度评分(0-100)
-               - relatedProjects: 相关项目列表
-               - focusAreas: 面试重点考察方向列表
-               - suggestion: 综合建议
-            6. 输出 JSON 格式的 JDAlignmentResultBO 对象
+            3. 从JD中提取所有关键技能要求（硬性技能、软性技能、加分项）
+            4. 逐项对比候选人简历中的技能，计算匹配度(0-100%)
+            5. 识别匹配的技能、缺失的技能、相关项目经验
+            6. 确定面试重点考察方向
+            7. 给出综合评分(0-100)和建议
+
+            ## 输出字段说明
+            - matchScore: 综合匹配度评分(整数,0-100)
+            - matchedSkills: 已匹配技能及匹配度描述列表（字符串数组）
+            - missingSkills: 缺失的关键技能列表（字符串数组）
+            - relatedProjects: 相关项目经验列表（字符串数组）
+            - focusAreas: 面试重点考察方向列表（字符串数组）
+            - suggestion: 综合评价与面试建议（字符串）
+
+            ## CRITICAL OUTPUT RULES - 必须严格遵守：
+            - 只输出一个纯 JSON 对象，不要任何其他文字
+            - 禁止输出 Markdown 标题、表格、分隔线、分析报告
+            - 禁止用 ```json 代码块包裹
+            - 禁止输出"综合分析"、"详细评估"等解释性文字
+            - 禁止在 JSON 前后添加任何前缀或后缀文本
+            - 你的整个回复必须是一个可直接解析的 JSON 对象，以 { 开头，以 } 结尾
+            - 字符串值中的换行使用 \\n 转义，不要输出真实的换行符
+
+            错误示例（禁止）：
+            下面是我的分析... ```json {...} ```
+
+            正确示例（必须）：
+            {"matchScore":72,"matchedSkills":["Java(95%)"],"missingSkills":["Spring Cloud"],"relatedProjects":["项目A"],"focusAreas":["考察点1"],"suggestion":"建议内容"}
             """)
     @OutputGuardrails(value = {JsonResponseCleanGuard.class}, maxRetries = 0)
     JDAlignmentResultBO align(@MemoryId String memoryId, @V("jobDescription") String jobDescription, @V("resumeContext") ResumeContextBO resumeContext);
